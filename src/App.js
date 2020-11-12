@@ -287,8 +287,8 @@ class App extends React.Component {
     const context = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
 
-    const index = Math.round((event.clientX - rect.left)/canvas.width*this.state.columnNbr);
-    const height = Math.round((canvas.height - (event.clientY - rect.top))/canvas.height*this.state.columnNbr);
+    const index = Math.floor((event.clientX - rect.left)/canvas.width*this.state.columnNbr);
+    const height = Math.floor((canvas.height - (event.clientY - rect.top))/canvas.height*this.state.columnNbr);
     
     if (this.prevDrawIndex && this.prevDrawHeight) {
       const arr = this.state.arr
