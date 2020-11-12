@@ -268,7 +268,6 @@ class App extends React.Component {
   shuffleAndDraw = () => {
     this.stopSorting()
 
-    //const arr = [...Array(this.state.columnNbr).keys()];
     const arr = this.state.arr
     shuffleArray(arr);
     this.setState({ arr })
@@ -281,7 +280,7 @@ class App extends React.Component {
   }
 
 
-  drawOnCanvas = async (event) => {
+  drawOnCanvas = (event) => {
     if (!this.state.isDrawing) return
 
     const canvas = this.canvasRef.current;
@@ -290,13 +289,26 @@ class App extends React.Component {
 
     const index = Math.round((event.clientX - rect.left)/canvas.width*this.state.columnNbr);
     const height = Math.round((canvas.height - (event.clientY - rect.top))/canvas.height*this.state.columnNbr);
+    
+    if (this.prevDrawIndex && this.prevDrawHeight) {
+      const arr = this.state.arr
+      const indexIncr = Math.sign(index-this.prevDrawIndex)
+      let curHeight = this.prevDrawHeight
+      console.log(curHeight)
+      for (let i = this.prevDrawIndex + indexIncr; i !== index; i += indexIncr) {
+        curHeight += (height-this.prevDrawHeight) / Math.abs(index-this.prevDrawIndex)
+        arr[i] = Math.round(curHeight)
+        this.clearColumn(context, i)
+        this.drawColumn(context, arr, i, i)
+      }
+    }
 
     const arr = this.state.arr
     arr[index] = height
     this.clearColumn(context, index)
     this.drawColumn(context, arr, index, index)
-    //this.setState({ arr })
-    //sleep(1)
+    this.prevDrawIndex = index
+    this.prevDrawHeight = height
   }
 
   startDrawOnCanvas = () => {
@@ -307,6 +319,8 @@ class App extends React.Component {
   }
 
   endDrawOnCanvas = () => {
+    this.prevDrawIndex = null
+    this.prevDrawHeight = null
     this.setState({ isDrawing: false })
   }
 
@@ -337,7 +351,7 @@ class App extends React.Component {
               </div>
               <div>
                 <FormControlLabel
-                  control={<Switch checked={this.state.canDraw} onChange={this.toggleCanDraw} name="checkedA" />}
+                  control={<Switch checked={this.state.canDraw} onChange={this.toggleCanDraw} name="canDraw" />}
                   label="Draw Mode"
                 />
               </div>
