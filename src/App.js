@@ -14,9 +14,8 @@ import FormControl from "@material-ui/core/FormControl";
 import Slider from "@material-ui/core/Slider";
 import "./App.css";
 
-const sleepTime = 0;
+const swapTime = 0;
 const initColumnNbr = 100;
-const longSleepTime = 10;
 
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -24,6 +23,8 @@ function shuffleArray(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
+
+const timeScale = (x) => Math.round(2 ** x)-1
 
 const sleep = (ms) => {
   if (ms === 0) return new Promise((resolve) => setImmediate(resolve));
@@ -58,6 +59,8 @@ class App extends React.Component {
       areSettingsOpen: false,
       chosenSortAlg: "Insertion Sort",
       columnNbr: initColumnNbr,
+      swapTime: swapTime,
+      isDrawing: false
     };
     this.sortingAlgorithms = {
         "Insertion Sort": this.insertionSort,
@@ -75,8 +78,6 @@ class App extends React.Component {
 
     context.canvas.width = parent.offsetWidth;
     context.canvas.height = parent.offsetHeight;
-    //context.canvas.width = window.innerWidth;
-    //context.canvas.height = window.innerHeight;
 
     this.drawAll(context, this.state.arr);
   }
@@ -142,7 +143,7 @@ class App extends React.Component {
         }
         catch (e) {
           console.log("Sorting interrupted!")
-          this.setState({ isSorting: false });
+          this.setState({ arr, isSorting: false });
         }
       }
     );
@@ -155,7 +156,7 @@ class App extends React.Component {
       for (let i = 1; i < arr.length; i++) {
         if (arr[i - 1] > arr[i]) {
           this.drawAndSwap(arr, i - 1, i);
-          await sleep(sleepTime);
+          await sleep(this.state.swapTime);
           isSorted = false;
         }
       }
@@ -170,7 +171,7 @@ class App extends React.Component {
       for (let i = 1; i < arr.length; i++) {
         if (arr[i - 1] > arr[i]) {
           this.drawAndSwap(arr, i - 1, i);
-          await sleep(sleepTime);
+          await sleep(this.state.swapTime);
           isSorted = false;
           break;
         }
@@ -188,7 +189,7 @@ class App extends React.Component {
       }
       if (curJ !== i) {
         this.drawAndSwap(arr, curJ, i);
-        await sleep(longSleepTime);
+        await sleep(this.state.swapTime);
       }
     }
   };
@@ -202,7 +203,7 @@ class App extends React.Component {
         for (let i = 1; i < arr.length; i++) {
           if (arr[i - 1] > arr[i]) {
             this.drawAndSwap(arr, i - 1, i);
-            await sleep(sleepTime);
+            await sleep(this.state.swapTime);
             isSorted = false;
           }
         }
@@ -210,7 +211,7 @@ class App extends React.Component {
         for (let i = arr.length - 1; i > 0; i--) {
           if (arr[i - 1] > arr[i]) {
             this.drawAndSwap(arr, i - 1, i);
-            await sleep(sleepTime);
+            await sleep(this.state.swapTime);
             isSorted = false;
           }
         }
@@ -237,23 +238,31 @@ class App extends React.Component {
     this.setState({ areSettingsOpen: !this.state.areSettingsOpen });
   };
 
+  closeDisplaySettings = () => {
+    this.setState({ areSettingsOpen: false });
+  };
+
   chooseSortAlg = (event) => {
     this.stopSorting()
 
     this.setState({ chosenSortAlg: event.target.value });
-    this.resetAndDraw()
   };
 
   changeColumnNbr = (event, value) => {
     this.stopSorting()
 
-    this.setState({ columnNbr: value }, () => this.resetAndDraw());
+    this.setState({ columnNbr: value, arr: [...Array(value).keys()] }, () => this.resetAndDraw());
+  }
+
+  changeSwapTime = (event, value) => {
+    this.setState({ swapTime: value });
   }
 
   resetAndDraw = () => {
     this.stopSorting()
 
-    const arr = [...Array(this.state.columnNbr).keys()];
+    //const arr = [...Array(this.state.columnNbr).keys()];
+    const arr = this.state.arr
     shuffleArray(arr);
     this.setState({ arr })
 
@@ -264,10 +273,38 @@ class App extends React.Component {
     this.drawAll(context, arr)
   }
 
+
+  drawOnCanvas = async (event) => {
+    if (!this.state.isDrawing) return
+
+    const canvas = this.canvasRef.current;
+    const context = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+
+    const index = Math.round((event.clientX - rect.left)/canvas.width*this.state.columnNbr);
+    const height = Math.round((canvas.height - (event.clientY - rect.top))/canvas.height*this.state.columnNbr);
+
+    const arr = this.state.arr
+    arr[index] = height
+    this.clearColumn(context, index)
+    this.drawColumn(context, arr, index, index)
+    //this.setState({ arr })
+    //sleep(1)
+  }
+
+  startDrawOnCanvas = () => {
+    this.stopSorting()
+    this.setState({ isDrawing: true })
+  }
+
+  endDrawOnCanvas = () => {
+    this.setState({ isDrawing: false })
+  }
+
   render() {
     return (
       <div className="App">
-        <div className="App-header">
+        <div className="App-header" >
           <AppBar position="relative">
             <Toolbar className="toolbar">
               <div className="toolbar-button-wrapper">
@@ -292,10 +329,14 @@ class App extends React.Component {
             </Toolbar>
           </AppBar>
 
-          <div className="canvas-wrapper" id="canvas-wrapper">
+          <div className="canvas-wrapper" id="canvas-wrapper" onClick={this.closeDisplaySettings}>
             <canvas
               className="App-canvas"
               ref={this.canvasRef}
+              onMouseDown={this.startDrawOnCanvas}
+              onMouseMove={this.drawOnCanvas}
+              onMouseUp={this.endDrawOnCanvas}
+              onMouseLeave={this.endDrawOnCanvas}
             />
           </div>
 
@@ -356,6 +397,28 @@ class App extends React.Component {
                   min={10}
                   max={1000}
                   onChangeCommitted={this.changeColumnNbr}
+                />
+              </div>
+            </div>
+            <div>
+              <Typography
+                align="left"
+                variant="h6"
+                color="textSecondary"
+                gutterBottom
+              >
+                Time per swap (ms)
+              </Typography>
+              <div className="col-slider">
+                <Slider
+                  defaultValue={swapTime}
+                  aria-labelledby="discrete-slider"
+                  valueLabelDisplay="auto"
+                  min={0}
+                  step={0.1}
+                  max={10}
+                  scale={(x) => timeScale(x)}
+                  onChangeCommitted={(e, value) => this.changeSwapTime(e, timeScale(value))}
                 />
               </div>
             </div>
