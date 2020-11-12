@@ -56,7 +56,7 @@
     padding-left: 8px;
 }
 
-.choice {
+* {
     user-select: none
 }
 

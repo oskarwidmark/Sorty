@@ -12,6 +12,7 @@ import RadioGroup from "@material-ui/core/RadioGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormControl from "@material-ui/core/FormControl";
 import Slider from "@material-ui/core/Slider";
+import Switch from "@material-ui/core/Switch";
 import "./App.css";
 
 const swapTime = 0;
@@ -60,7 +61,8 @@ class App extends React.Component {
       chosenSortAlg: "Insertion Sort",
       columnNbr: initColumnNbr,
       swapTime: swapTime,
-      isDrawing: false
+      isDrawing: false,
+      canDraw: false
     };
     this.sortingAlgorithms = {
         "Insertion Sort": this.insertionSort,
@@ -251,7 +253,7 @@ class App extends React.Component {
   changeColumnNbr = (event, value) => {
     this.stopSorting()
 
-    this.setState({ columnNbr: value, arr: [...Array(value).keys()] }, () => this.resetAndDraw());
+    this.setState({ columnNbr: value, arr: [...Array(value).keys()] }, () => this.shuffleAndDraw());
   }
 
   changeSwapTime = (event, value) => {
@@ -259,6 +261,11 @@ class App extends React.Component {
   }
 
   resetAndDraw = () => {
+    const arr = [...Array(this.state.columnNbr).keys()];
+    this.setState({ arr }, () => this.shuffleAndDraw())
+  }
+
+  shuffleAndDraw = () => {
     this.stopSorting()
 
     //const arr = [...Array(this.state.columnNbr).keys()];
@@ -293,6 +300,8 @@ class App extends React.Component {
   }
 
   startDrawOnCanvas = () => {
+    if (!this.state.canDraw) return 
+
     this.stopSorting()
     this.setState({ isDrawing: true })
   }
@@ -301,21 +310,36 @@ class App extends React.Component {
     this.setState({ isDrawing: false })
   }
 
+  toggleCanDraw = () => {    
+    this.setState({ canDraw: !this.state.canDraw })
+  }
+
   render() {
     return (
       <div className="App">
         <div className="App-header" >
           <AppBar position="relative">
             <Toolbar className="toolbar">
-              <div className="toolbar-button-wrapper">
+              <div>
                 <Button variant="contained" color="secondary" onClick={() => this.sort(this.state.arr)} disableElevation>
                   Sort
                 </Button>
               </div>
-              <div className="toolbar-button-wrapper">
-                <Button variant="contained" color="secondary" onClick={this.resetAndDraw} disableElevation>
+              <div>
+                <Button variant="contained" color="secondary" onClick={this.shuffleAndDraw} disableElevation>
                   Shuffle
                 </Button>
+              </div>
+              <div>
+                <Button variant="contained" color="secondary" onClick={this.resetAndDraw} disableElevation>
+                  Reset
+                </Button>
+              </div>
+              <div>
+                <FormControlLabel
+                  control={<Switch checked={this.state.canDraw} onChange={this.toggleCanDraw} name="checkedA" />}
+                  label="Draw Mode"
+                />
               </div>
               <IconButton
                 color="inherit"
