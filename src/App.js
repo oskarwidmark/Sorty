@@ -18,17 +18,6 @@ import "./App.css";
 const swapTime = 0;
 const initColumnNbr = 100;
 
-//** REMOVE ARR FROM STATE - IS NOT USED IN COMPONENTS!
-//
-
-
-
-
-
-
-
-
-
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -36,7 +25,7 @@ function shuffleArray(arr) {
   }
 }
 
-const timeScale = (x) => Math.round(2 ** x)-1
+const timeScale = (x) => Math.round(2 ** x) - 1;
 
 const sleep = (ms) => {
   if (ms === 0) return new Promise((resolve) => setImmediate(resolve));
@@ -72,13 +61,14 @@ class App extends React.Component {
       columnNbr: initColumnNbr,
       swapTime: swapTime,
       isDrawing: false,
-      canDraw: false
+      canDraw: false,
     };
     this.sortingAlgorithms = {
-        "Insertion Sort": this.insertionSort,
-        "Selection Sort": this.selectionSort,
-        "Cocktail Shaker Sort": this.cocktailShakerSort,
-        "Bubble Sort": this.bubbleSort,
+      "Insertion Sort": this.insertionSort,
+      "Selection Sort": this.selectionSort,
+      "Cocktail Shaker Sort": this.cocktailShakerSort,
+      "Bubble Sort": this.bubbleSort,
+      "Radix Sort (LSD)": this.lsdRadixSort,
     };
     this.canvasRef = React.createRef();
   }
@@ -95,7 +85,7 @@ class App extends React.Component {
   }
 
   drawDiff = (arr, i1, i2) => {
-    if (!this.state.isSorting) throw Error("We should not be sorting!")
+    if (!this.state.isSorting) throw Error("We should not be sorting!");
 
     const canvas = this.canvasRef.current;
     const context = canvas.getContext("2d");
@@ -111,7 +101,7 @@ class App extends React.Component {
 
   clearAll = (ctx) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  }
+  };
 
   drawColumn = (ctx, arr, i1, i2) => {
     const arrLength = arr.length;
@@ -149,16 +139,14 @@ class App extends React.Component {
     if (this.state.isSorting) return;
 
     this.setState({ isSorting: true }, async () => {
-        try {
-          await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
-          this.setState({ isSorting: false });
-        }
-        catch (e) {
-          console.log("Sorting interrupted!")
-          this.setState({ isSorting: false });
-        }
+      try {
+        await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
+        this.setState({ isSorting: false });
+      } catch (e) {
+        console.log("Sorting interrupted! Reason: " + e);
+        this.setState({ isSorting: false });
       }
-    );
+    });
   };
 
   bubbleSort = async (arr) => {
@@ -175,7 +163,6 @@ class App extends React.Component {
     }
   };
 
-  // Bad implementation O(N^3)???
   insertionSort = async (arr) => {
     var isSorted = false;
     while (!isSorted) {
@@ -186,6 +173,37 @@ class App extends React.Component {
           await sleep(this.state.swapTime);
           isSorted = false;
           break;
+        }
+      }
+    }
+  };
+
+  lsdRadixSort = async (arr, base = 4) => {
+    const buckets = Array(base);
+    var shift = 0;
+    var isSorted = false;
+    while (!isSorted) {
+      isSorted = true;
+      for (let i = 0; i < base; i++) {
+        buckets[i] = [];
+      }
+      for (let a of arr) {
+        const index = (Math.floor(a / base ** shift)) % base;
+        buckets[index].push(a);
+      }
+      shift++;
+      var index = 0;
+      
+      for (let bucket of buckets) {
+        console.log(bucket)
+        for (let a of bucket) {
+          if (arr[index] !== a) {
+            isSorted = false;
+          }
+          arr[index] = a;
+          this.drawAndSwap(arr, index, index);
+          index++;
+          await sleep(this.state.swapTime);
         }
       }
     }
@@ -234,7 +252,7 @@ class App extends React.Component {
 
   stopSorting = () => {
     this.setState({ isSorting: false });
-  }
+  };
 
   drawAndSwap = (arr, i1, i2) => {
     this.drawDiff(arr, i1, i2);
@@ -255,114 +273,140 @@ class App extends React.Component {
   };
 
   chooseSortAlg = (event) => {
-    this.stopSorting()
+    this.stopSorting();
 
     this.setState({ chosenSortAlg: event.target.value });
   };
 
   changeColumnNbr = (event, value) => {
-    this.stopSorting()
+    this.stopSorting();
 
-    this.arr = [...Array(value).keys()]
+    this.arr = [...Array(value).keys()];
     this.setState({ columnNbr: value }, () => this.shuffleAndDraw());
-  }
+  };
 
   changeSwapTime = (event, value) => {
     this.setState({ swapTime: value });
-  }
+  };
 
   resetAndDraw = () => {
     this.arr = [...Array(this.state.columnNbr).keys()];
-    this.shuffleAndDraw()
-  }
+    this.shuffleAndDraw();
+  };
 
   shuffleAndDraw = () => {
-    this.stopSorting()
+    this.stopSorting();
 
-    const arr = this.arr
-    shuffleArray(arr);
-    this.setState({ arr })
+    shuffleArray(this.arr);
 
     const canvas = this.canvasRef.current;
     const context = canvas.getContext("2d");
 
-    this.clearAll(context)
-    this.drawAll(context, arr)
-  }
-
+    this.clearAll(context);
+    this.drawAll(context, this.arr);
+  };
 
   drawOnCanvas = (event) => {
-    if (!this.state.isDrawing) return
+    if (!this.state.isDrawing) return;
 
     const canvas = this.canvasRef.current;
     const context = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
 
-    const index = Math.floor((event.clientX - rect.left)/canvas.width*this.state.columnNbr);
-    const height = Math.floor((canvas.height - (event.clientY - rect.top))/canvas.height*this.state.columnNbr);
-    
+    const index = Math.floor(
+      ((event.clientX - rect.left) / canvas.width) * this.state.columnNbr
+    );
+    const height = Math.floor(
+      ((canvas.height - (event.clientY - rect.top)) / canvas.height) *
+        this.state.columnNbr
+    );
+
     if (this.prevDrawIndex && this.prevDrawHeight) {
-      const arr = this.arr
-      const indexIncr = Math.sign(index-this.prevDrawIndex)
-      let curHeight = this.prevDrawHeight
-      console.log(curHeight)
-      for (let i = this.prevDrawIndex + indexIncr; i !== index; i += indexIncr) {
-        curHeight += (height-this.prevDrawHeight) / Math.abs(index-this.prevDrawIndex)
-        arr[i] = Math.round(curHeight)
-        this.clearColumn(context, i)
-        this.drawColumn(context, arr, i, i)
+      const indexIncr = Math.sign(index - this.prevDrawIndex);
+      let curHeight = this.prevDrawHeight;
+      console.log(curHeight);
+      for (
+        let i = this.prevDrawIndex + indexIncr;
+        i !== index;
+        i += indexIncr
+      ) {
+        curHeight +=
+          (height - this.prevDrawHeight) / Math.abs(index - this.prevDrawIndex);
+        this.arr[i] = Math.round(curHeight);
+        this.clearColumn(context, i);
+        this.drawColumn(context, this.arr, i, i);
       }
     }
 
-    const arr = this.arr
-    arr[index] = height
-    this.clearColumn(context, index)
-    this.drawColumn(context, arr, index, index)
-    this.prevDrawIndex = index
-    this.prevDrawHeight = height
-  }
+    this.arr[index] = height;
+    this.clearColumn(context, index);
+    this.drawColumn(context, this.arr, index, index);
+    this.prevDrawIndex = index;
+    this.prevDrawHeight = height;
+  };
 
   startDrawOnCanvas = () => {
-    if (!this.state.canDraw) return 
+    if (!this.state.canDraw) return;
 
-    this.stopSorting()
-    this.setState({ isDrawing: true })
-  }
+    this.stopSorting();
+    this.setState({ isDrawing: true });
+  };
 
   endDrawOnCanvas = () => {
-    this.prevDrawIndex = null
-    this.prevDrawHeight = null
-    this.setState({ isDrawing: false })
-  }
+    this.prevDrawIndex = null;
+    this.prevDrawHeight = null;
+    this.setState({ isDrawing: false });
+  };
 
-  toggleCanDraw = () => {    
-    this.setState({ canDraw: !this.state.canDraw })
-  }
+  toggleCanDraw = () => {
+    this.setState({ canDraw: !this.state.canDraw });
+  };
 
   render() {
     return (
       <div className="App">
-        <div className="App-header" >
+        <div className="App-header">
           <AppBar position="relative">
             <Toolbar className="toolbar">
               <div>
-                <Button variant="contained" color="secondary" onClick={() => this.sort(this.arr)} disableElevation>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => this.sort(this.arr)}
+                  disableElevation
+                >
                   Sort
                 </Button>
               </div>
               <div>
-                <Button variant="contained" color="secondary" onClick={this.shuffleAndDraw} disableElevation>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={this.shuffleAndDraw}
+                  disableElevation
+                >
                   Shuffle
                 </Button>
               </div>
               <div>
-                <Button variant="contained" color="secondary" onClick={this.resetAndDraw} disableElevation>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={this.resetAndDraw}
+                  disableElevation
+                >
                   Reset
                 </Button>
               </div>
               <div>
                 <FormControlLabel
-                  control={<Switch checked={this.state.canDraw} onChange={this.toggleCanDraw} name="canDraw" />}
+                  control={
+                    <Switch
+                      checked={this.state.canDraw}
+                      onChange={this.toggleCanDraw}
+                      name="canDraw"
+                    />
+                  }
                   label="Draw Mode"
                 />
               </div>
@@ -378,7 +422,11 @@ class App extends React.Component {
             </Toolbar>
           </AppBar>
 
-          <div className="canvas-wrapper" id="canvas-wrapper" onClick={this.closeDisplaySettings}>
+          <div
+            className="canvas-wrapper"
+            id="canvas-wrapper"
+            onClick={this.closeDisplaySettings}
+          >
             <canvas
               className="App-canvas"
               ref={this.canvasRef}
@@ -467,7 +515,9 @@ class App extends React.Component {
                   step={0.1}
                   max={10}
                   scale={(x) => timeScale(x)}
-                  onChangeCommitted={(e, value) => this.changeSwapTime(e, timeScale(value))}
+                  onChangeCommitted={(e, value) =>
+                    this.changeSwapTime(e, timeScale(value))
+                  }
                 />
               </div>
             </div>
