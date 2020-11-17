@@ -18,6 +18,17 @@ import "./App.css";
 const swapTime = 0;
 const initColumnNbr = 100;
 
+//** REMOVE ARR FROM STATE - IS NOT USED IN COMPONENTS!
+//
+
+
+
+
+
+
+
+
+
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -52,10 +63,9 @@ class App extends React.Component {
   constructor(props) {
     super();
 
-    const arr = [...Array(initColumnNbr).keys()];
-    shuffleArray(arr);
+    this.arr = [...Array(initColumnNbr).keys()];
+    shuffleArray(this.arr);
     this.state = {
-      arr,
       isSorting: false,
       areSettingsOpen: false,
       chosenSortAlg: "Insertion Sort",
@@ -81,7 +91,7 @@ class App extends React.Component {
     context.canvas.width = parent.offsetWidth;
     context.canvas.height = parent.offsetHeight;
 
-    this.drawAll(context, this.state.arr);
+    this.drawAll(context, this.arr);
   }
 
   drawDiff = (arr, i1, i2) => {
@@ -141,11 +151,11 @@ class App extends React.Component {
     this.setState({ isSorting: true }, async () => {
         try {
           await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
-          this.setState({ arr, isSorting: false });
+          this.setState({ isSorting: false });
         }
         catch (e) {
           console.log("Sorting interrupted!")
-          this.setState({ arr, isSorting: false });
+          this.setState({ isSorting: false });
         }
       }
     );
@@ -253,7 +263,8 @@ class App extends React.Component {
   changeColumnNbr = (event, value) => {
     this.stopSorting()
 
-    this.setState({ columnNbr: value, arr: [...Array(value).keys()] }, () => this.shuffleAndDraw());
+    this.arr = [...Array(value).keys()]
+    this.setState({ columnNbr: value }, () => this.shuffleAndDraw());
   }
 
   changeSwapTime = (event, value) => {
@@ -261,14 +272,14 @@ class App extends React.Component {
   }
 
   resetAndDraw = () => {
-    const arr = [...Array(this.state.columnNbr).keys()];
-    this.setState({ arr }, () => this.shuffleAndDraw())
+    this.arr = [...Array(this.state.columnNbr).keys()];
+    this.shuffleAndDraw()
   }
 
   shuffleAndDraw = () => {
     this.stopSorting()
 
-    const arr = this.state.arr
+    const arr = this.arr
     shuffleArray(arr);
     this.setState({ arr })
 
@@ -291,7 +302,7 @@ class App extends React.Component {
     const height = Math.floor((canvas.height - (event.clientY - rect.top))/canvas.height*this.state.columnNbr);
     
     if (this.prevDrawIndex && this.prevDrawHeight) {
-      const arr = this.state.arr
+      const arr = this.arr
       const indexIncr = Math.sign(index-this.prevDrawIndex)
       let curHeight = this.prevDrawHeight
       console.log(curHeight)
@@ -303,7 +314,7 @@ class App extends React.Component {
       }
     }
 
-    const arr = this.state.arr
+    const arr = this.arr
     arr[index] = height
     this.clearColumn(context, index)
     this.drawColumn(context, arr, index, index)
@@ -335,7 +346,7 @@ class App extends React.Component {
           <AppBar position="relative">
             <Toolbar className="toolbar">
               <div>
-                <Button variant="contained" color="secondary" onClick={() => this.sort(this.state.arr)} disableElevation>
+                <Button variant="contained" color="secondary" onClick={() => this.sort(this.arr)} disableElevation>
                   Sort
                 </Button>
               </div>
