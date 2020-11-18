@@ -68,7 +68,7 @@ class App extends React.Component {
       "Selection Sort": this.selectionSort,
       "Cocktail Shaker Sort": this.cocktailShakerSort,
       "Bubble Sort": this.bubbleSort,
-      "Radix Sort (LSD)": this.lsdRadixSort,
+      "Radix Sort (LSD)": this.lsdRadixSort
     };
     this.canvasRef = React.createRef();
   }
@@ -178,6 +178,76 @@ class App extends React.Component {
     }
   };
 
+  /*
+  lsdRadixSort = async (arr, base = 4) => {
+    const bucketsIndices = Array(base);
+    var shift = 0;
+    var isSorted = false;
+    while (!isSorted) {
+      isSorted = true;
+      for (let i = 0; i < base; i++) {
+        bucketsIndices[i] = 0
+      }
+      for (let a of arr) {
+        const index = (Math.floor(a / base ** shift)) % base;
+        bucketsIndices[index] += 1
+      }
+      for (let i = 1; i < base; i++) {
+        bucketsIndices[i] = bucketsIndices[i-1] 
+      }
+      bucketsIndices[0] = 0
+      shift++;
+
+      var index = 1;
+      const currentIndices = [...bucketsIndices]
+      while (index < arr.length) {
+        const bucket = (Math.floor(arr[index] / base ** shift)) % base;
+        while ()
+        this.drawAndSwap(arr, index, currentIndices[bucket]);
+        currentIndices[bucket]++
+
+        await sleep(this.state.swapTime);
+        index++
+      }
+    }
+  };
+  */
+
+  lsdRadixSort = async (arr, base = 4) => {
+    const buckets = Array(base);
+    const indexMap = new Map()
+    var shift = 0;
+    var isSorted = false;
+    while (!isSorted) {
+      for (let i = 0; i < base; i++) {
+        buckets[i] = [];
+      }
+      for (let i = 0; i < arr.length; i++) {
+        const index = (Math.floor(arr[i] / base ** shift)) % base;
+        buckets[index].push(arr[i]);
+        indexMap[arr[i]] = i
+      }
+      shift++;
+      var currentIndex = 0;
+
+      if (buckets[0].length === arr.length) {
+        break
+      }
+      
+      for (let bucket of buckets) {
+        for (let a of bucket) {
+          const swapIndex = indexMap[a]
+          this.drawAndSwap(arr, currentIndex, swapIndex);
+          indexMap[arr[swapIndex]] = indexMap[arr[currentIndex]]
+          await sleep(this.state.swapTime);
+
+          currentIndex++;
+        }
+      }
+    }
+  };
+
+  /*
   lsdRadixSort = async (arr, base = 4) => {
     const buckets = Array(base);
     var shift = 0;
@@ -201,13 +271,15 @@ class App extends React.Component {
             isSorted = false;
           }
           arr[index] = a;
-          this.drawAndSwap(arr, index, index);
           index++;
+          // TODO: radix sort is not in-place, which means that interrupting sorting will ruin array
+          this.drawAndSwap(arr, index, index);
           await sleep(this.state.swapTime);
         }
       }
     }
   };
+  */
 
   selectionSort = async (arr) => {
     for (let i = 0; i < arr.length; i++) {
