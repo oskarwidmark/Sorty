@@ -72,7 +72,8 @@ class App extends React.Component {
       "Bubble Sort": this.bubbleSort,
       "Radix Sort (LSD)": this.lsdRadixSort,
       "Radix Sort (MSD)": this.msdRadixSort,
-      "Quick Sort": this.quickSort
+      "Quick Sort": this.quickSort,
+      "Shell Sort": this.shellSort
     };
     this.canvasRef = React.createRef();
   }
@@ -359,6 +360,22 @@ class App extends React.Component {
 
     await this.quickSort(arr, start, i-1)
     await this.quickSort(arr, i+1, end)
+  }
+
+  shellSort = async (arr) => {
+    const gaps = [701, 301, 132, 57, 23, 10, 4, 1] // from https://oeis.org/A102549
+    for (let gap of gaps) {
+      if (gap > this.state.columnNbr) continue
+      for (let i = gap; i < this.state.columnNbr; i++) {
+        for (let j = i; j >= gap; j -= gap) {
+          if (arr[j - gap].x > arr[j].x) {
+            this.drawAndSwap(arr, j - gap, j);
+            await sleep(this.state.swapTime);
+          }
+          else break
+        }
+      }
+    }
   }
 
   stopSorting = () => {
