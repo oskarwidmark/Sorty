@@ -237,6 +237,8 @@ class App extends React.Component {
       indexMap[arr[i].id] = i
     }
 
+    const bucketIndices = []
+
     var currentIndex = start;
 
     for (let bucket of buckets) {
@@ -250,7 +252,11 @@ class App extends React.Component {
         currentIndex++;
       }
       if (shift === 0) continue
-      await this.msdRadixSort(arr, base, bucketStart, currentIndex, shift-1)
+
+      bucketIndices.push([bucketStart, currentIndex])
+    }
+    for (const [bucketStart, bucketEnd] of bucketIndices) {
+      await this.msdRadixSort(arr, base, bucketStart, bucketEnd, shift-1)
     }
   };
 
