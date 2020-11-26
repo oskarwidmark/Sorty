@@ -71,7 +71,8 @@ class App extends React.Component {
       "Cocktail Shaker Sort": this.cocktailShakerSort,
       "Bubble Sort": this.bubbleSort,
       "Radix Sort (LSD)": this.lsdRadixSort,
-      "Radix Sort (MSD)": this.msdRadixSort
+      "Radix Sort (MSD)": this.msdRadixSort,
+      "Quick Sort": this.quickSort
     };
     this.canvasRef = React.createRef();
   }
@@ -215,18 +216,17 @@ class App extends React.Component {
     }
   };
 
-  msdRadixSort = async (arr, base = 4, start = 0, end = this.state.columnNbr, shift = Math.floor(Math.log(this.state.columnNbr)/Math.log(base))) => {
+  msdRadixSort = async (
+    arr, 
+    base = 4,
+    start = 0,
+    end = this.state.columnNbr,
+    shift = Math.floor(Math.log(this.state.columnNbr)/Math.log(base))
+  ) => {
     const buckets = Array(base);
     const indexMap = new Map()
 
     if (end-start === 0) return
-    if (end-start === 1) {
-      if (arr[end] < arr[start]) {
-        this.drawAndSwap(arr, start, end);
-        await sleep(this.state.swapTime);
-      }
-      return
-    }
 
     for (let i = 0; i < base; i++) {
       buckets[i] = [];
@@ -300,6 +300,66 @@ class App extends React.Component {
       shouldSortReversed = !shouldSortReversed;
     }
   };
+
+  //#region merge sort
+  /* In-place merge sort is complicated...
+  mergeSort = async (arr, start, end) => {
+    if (start >= end) return
+    if (end-start === 1) {
+      if (arr[start] > arr[end]) {
+        this.drawAndSwap(arr, start, end);
+        await sleep(this.state.swapTime);
+      }
+    }
+
+    const mid = Math.floor((start+end) / 2)
+    this.mergeSort(arr, start, mid)
+    this.mergeSort(arr, mid+1, end)
+    var i = start
+    var j = mid+1
+    while (i < mid && j < end) {
+      if (arr[i] > arr[j]) {
+        this.drawAndSwap(arr, i, j);
+        await sleep(this.state.swapTime);
+      }
+    }
+  }
+  */
+ //#endregion
+
+  quickSort = async (arr, start = 0, end = this.state.columnNbr-1) => {
+    if (start >= end) return
+
+    const mid = Math.floor((start+end)/2)
+
+    if (arr[mid].x < arr[start].x) {
+      this.drawAndSwap(arr, start, mid)
+      await sleep(this.state.swapTime)  
+    }
+    if (arr[end].x < arr[start].x) {
+      this.drawAndSwap(arr, start, end)
+      await sleep(this.state.swapTime)  
+    }
+    if (arr[mid].x < arr[end].x) {
+      this.drawAndSwap(arr, mid, end)
+      await sleep(this.state.swapTime)  
+    }
+
+    const pivot = arr[end].x
+    var i = start
+    for (var j = start; j < end; j++) {
+      if (arr[j].x < pivot) {
+        this.drawAndSwap(arr, i, j)
+        await sleep(this.state.swapTime)
+        i++
+      }
+    }
+    this.drawAndSwap(arr, i, end)
+    await sleep(this.state.swapTime)
+
+    await this.quickSort(arr, start, i-1)
+    await this.quickSort(arr, i+1, end)
+  }
 
   stopSorting = () => {
     this.setState({ isSorting: false });
