@@ -48,11 +48,13 @@ function hsvToRgbHex(h, s, v) {
   );
 }
 
+const createArr = (columnNbr) => [...Array(columnNbr).keys()].map((a, idx) => { return {x: a, id: idx} })
+
 class App extends React.Component {
   constructor(props) {
     super();
 
-    this.arr = [...Array(initColumnNbr).keys()];
+    this.arr = createArr(initColumnNbr);
     shuffleArray(this.arr);
     this.state = {
       isSorting: false,
@@ -68,7 +70,8 @@ class App extends React.Component {
       "Selection Sort": this.selectionSort,
       "Cocktail Shaker Sort": this.cocktailShakerSort,
       "Bubble Sort": this.bubbleSort,
-      "Radix Sort (LSD)": this.lsdRadixSort
+      "Radix Sort (LSD)": this.lsdRadixSort,
+      "Radix Sort (MSD)": this.msdRadixSort
     };
     this.canvasRef = React.createRef();
   }
@@ -85,7 +88,7 @@ class App extends React.Component {
   }
 
   drawDiff = (arr, i1, i2) => {
-    if (!this.state.isSorting) throw Error("We should not be sorting!");
+    if (!this.state.isSorting) throw Error("isSorting is false!");
 
     const canvas = this.canvasRef.current;
     const context = canvas.getContext("2d");
@@ -106,10 +109,10 @@ class App extends React.Component {
   drawColumn = (ctx, arr, i1, i2) => {
     const arrLength = arr.length;
     const width = ctx.canvas.width / this.state.columnNbr;
-    const height = (ctx.canvas.height / this.state.columnNbr) * (arr[i2] + 1);
+    const height = (ctx.canvas.height / this.state.columnNbr) * (arr[i2].x + 1);
     const startX = width * i1;
 
-    ctx.fillStyle = hsvToRgbHex((360 * arr[i2]) / arrLength, 1, 1);
+    ctx.fillStyle = hsvToRgbHex((360 * arr[i2].x) / arrLength, 1, 1);
     this.fillRect(ctx, startX, 0, width, height);
   };
 
@@ -154,7 +157,7 @@ class App extends React.Component {
     while (!isSorted) {
       isSorted = true;
       for (let i = 1; i < arr.length; i++) {
-        if (arr[i - 1] > arr[i]) {
+        if (arr[i - 1].x > arr[i].x) {
           this.drawAndSwap(arr, i - 1, i);
           await sleep(this.state.swapTime);
           isSorted = false;
@@ -168,7 +171,7 @@ class App extends React.Component {
     while (!isSorted) {
       isSorted = true;
       for (let i = 1; i < arr.length; i++) {
-        if (arr[i - 1] > arr[i]) {
+        if (arr[i - 1].x > arr[i].x) {
           this.drawAndSwap(arr, i - 1, i);
           await sleep(this.state.swapTime);
           isSorted = false;
@@ -177,41 +180,6 @@ class App extends React.Component {
       }
     }
   };
-
-  /*
-  lsdRadixSort = async (arr, base = 4) => {
-    const bucketsIndices = Array(base);
-    var shift = 0;
-    var isSorted = false;
-    while (!isSorted) {
-      isSorted = true;
-      for (let i = 0; i < base; i++) {
-        bucketsIndices[i] = 0
-      }
-      for (let a of arr) {
-        const index = (Math.floor(a / base ** shift)) % base;
-        bucketsIndices[index] += 1
-      }
-      for (let i = 1; i < base; i++) {
-        bucketsIndices[i] = bucketsIndices[i-1] 
-      }
-      bucketsIndices[0] = 0
-      shift++;
-
-      var index = 1;
-      const currentIndices = [...bucketsIndices]
-      while (index < arr.length) {
-        const bucket = (Math.floor(arr[index] / base ** shift)) % base;
-        while ()
-        this.drawAndSwap(arr, index, currentIndices[bucket]);
-        currentIndices[bucket]++
-
-        await sleep(this.state.swapTime);
-        index++
-      }
-    }
-  };
-  */
 
   lsdRadixSort = async (arr, base = 4) => {
     const buckets = Array(base);
@@ -223,9 +191,9 @@ class App extends React.Component {
         buckets[i] = [];
       }
       for (let i = 0; i < arr.length; i++) {
-        const index = (Math.floor(arr[i] / base ** shift)) % base;
+        const index = (Math.floor(arr[i].x / base ** shift)) % base;
         buckets[index].push(arr[i]);
-        indexMap[arr[i]] = i
+        indexMap[arr[i].id] = i
       }
       shift++;
       var currentIndex = 0;
@@ -233,12 +201,12 @@ class App extends React.Component {
       if (buckets[0].length === arr.length) {
         break
       }
-      
+
       for (let bucket of buckets) {
         for (let a of bucket) {
-          const swapIndex = indexMap[a]
+          const swapIndex = indexMap[a.id]
           this.drawAndSwap(arr, currentIndex, swapIndex);
-          indexMap[arr[swapIndex]] = indexMap[arr[currentIndex]]
+          indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id]
           await sleep(this.state.swapTime);
 
           currentIndex++;
@@ -247,45 +215,50 @@ class App extends React.Component {
     }
   };
 
-  /*
-  lsdRadixSort = async (arr, base = 4) => {
+  msdRadixSort = async (arr, base = 4, start = 0, end = this.state.columnNbr, shift = Math.floor(Math.log(this.state.columnNbr)/Math.log(base))) => {
     const buckets = Array(base);
-    var shift = 0;
-    var isSorted = false;
-    while (!isSorted) {
-      isSorted = true;
-      for (let i = 0; i < base; i++) {
-        buckets[i] = [];
+    const indexMap = new Map()
+
+    if (end-start === 0) return
+    if (end-start === 1) {
+      if (arr[end] < arr[start]) {
+        this.drawAndSwap(arr, start, end);
+        await sleep(this.state.swapTime);
       }
-      for (let a of arr) {
-        const index = (Math.floor(a / base ** shift)) % base;
-        buckets[index].push(a);
+      return
+    }
+
+    for (let i = 0; i < base; i++) {
+      buckets[i] = [];
+    }
+    for (let i = start; i < end; i++) {
+      const index = (Math.floor(arr[i].x / base ** shift)) % base;
+      buckets[index].push(arr[i]);
+      indexMap[arr[i].id] = i
+    }
+
+    var currentIndex = start;
+
+    for (let bucket of buckets) {
+      const bucketStart = currentIndex
+      for (let a of bucket) {
+        const swapIndex = indexMap[a.id]
+        this.drawAndSwap(arr, currentIndex, swapIndex);
+        indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id]
+        await sleep(this.state.swapTime);
+
+        currentIndex++;
       }
-      shift++;
-      var index = 0;
-      
-      for (let bucket of buckets) {
-        console.log(bucket)
-        for (let a of bucket) {
-          if (arr[index] !== a) {
-            isSorted = false;
-          }
-          arr[index] = a;
-          index++;
-          // TODO: radix sort is not in-place, which means that interrupting sorting will ruin array
-          this.drawAndSwap(arr, index, index);
-          await sleep(this.state.swapTime);
-        }
-      }
+      if (shift === 0) continue
+      await this.msdRadixSort(arr, base, bucketStart, currentIndex, shift-1)
     }
   };
-  */
 
   selectionSort = async (arr) => {
     for (let i = 0; i < arr.length; i++) {
       var curJ = i;
       for (let j = i + 1; j < arr.length; j++) {
-        if (arr[j] < arr[curJ]) {
+        if (arr[j].x < arr[curJ].x) {
           curJ = j;
         }
       }
@@ -303,7 +276,7 @@ class App extends React.Component {
       isSorted = true;
       if (shouldSortReversed) {
         for (let i = 1; i < arr.length; i++) {
-          if (arr[i - 1] > arr[i]) {
+          if (arr[i - 1].x > arr[i].x) {
             this.drawAndSwap(arr, i - 1, i);
             await sleep(this.state.swapTime);
             isSorted = false;
@@ -311,7 +284,7 @@ class App extends React.Component {
         }
       } else {
         for (let i = arr.length - 1; i > 0; i--) {
-          if (arr[i - 1] > arr[i]) {
+          if (arr[i - 1].x > arr[i].x) {
             this.drawAndSwap(arr, i - 1, i);
             await sleep(this.state.swapTime);
             isSorted = false;
@@ -353,7 +326,7 @@ class App extends React.Component {
   changeColumnNbr = (event, value) => {
     this.stopSorting();
 
-    this.arr = [...Array(value).keys()];
+    this.arr = createArr(value);
     this.setState({ columnNbr: value }, () => this.shuffleAndDraw());
   };
 
@@ -362,7 +335,7 @@ class App extends React.Component {
   };
 
   resetAndDraw = () => {
-    this.arr = [...Array(this.state.columnNbr).keys()];
+    this.arr = createArr(this.state.columnNbr);
     this.shuffleAndDraw();
   };
 
@@ -396,7 +369,6 @@ class App extends React.Component {
     if (this.prevDrawIndex && this.prevDrawHeight) {
       const indexIncr = Math.sign(index - this.prevDrawIndex);
       let curHeight = this.prevDrawHeight;
-      console.log(curHeight);
       for (
         let i = this.prevDrawIndex + indexIncr;
         i !== index;
@@ -404,13 +376,13 @@ class App extends React.Component {
       ) {
         curHeight +=
           (height - this.prevDrawHeight) / Math.abs(index - this.prevDrawIndex);
-        this.arr[i] = Math.round(curHeight);
+        this.arr[i].x = Math.round(curHeight);
         this.clearColumn(context, i);
         this.drawColumn(context, this.arr, i, i);
       }
     }
 
-    this.arr[index] = height;
+    this.arr[index].x = height;
     this.clearColumn(context, index);
     this.drawColumn(context, this.arr, index, index);
     this.prevDrawIndex = index;
