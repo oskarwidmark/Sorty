@@ -73,6 +73,7 @@ class App extends React.Component {
       "Radix Sort (LSD)": this.lsdRadixSort,
       "Radix Sort (MSD)": this.msdRadixSort,
       "Quick Sort": this.quickSort,
+      "Comb Sort": this.combSort,
       "Shell Sort": this.shellSort
     };
     this.canvasRef = React.createRef();
@@ -161,6 +162,26 @@ class App extends React.Component {
       for (let i = 1; i < arr.length; i++) {
         if (arr[i - 1].x > arr[i].x) {
           this.drawAndSwap(arr, i - 1, i);
+          await sleep(this.state.swapTime);
+          isSorted = false;
+        }
+      }
+    }
+  };
+
+  combSort = async (arr) => {
+    var gap = this.state.columnNbr
+    const shrinkFactor = 1.3 
+    var isSorted = false
+    while (!isSorted) {
+      gap = Math.floor(gap/shrinkFactor)
+      if (gap <= 1) {
+        gap = 1
+        isSorted = true
+      }
+      for (let i = gap; i < arr.length; i++) {
+        if (arr[i - gap].x > arr[i].x) {
+          this.drawAndSwap(arr, i - gap, i);
           await sleep(this.state.swapTime);
           isSorted = false;
         }
