@@ -218,20 +218,14 @@ class App extends React.Component {
     }
   };
 
-  // Ain't no good
   insertionSort = async (arr) => {
-    var isSorted = false;
-    while (!isSorted) {
-      isSorted = true;
-      for (let i = 1; i < arr.length; i++) {
-        if (arr[i - 1].x > arr[i].x) {
-          this.drawAndSwap(arr, i - 1, i);
-          isSorted = false;
-          break;
-        }
-        this.highlight(arr, [i - 1, i]);
+    for (let i = 1; i < arr.length; i++) {
+      var j = i
+      while (j > 0 && arr[j - 1].x > arr[j].x) {
+        this.drawAndSwap(arr, j-1, j);
+        this.highlight(arr, [j - 1, j]);
         await sleep(this.state.swapTime);
-
+        j--;
       }
     }
   };
