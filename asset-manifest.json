@@ -1,26 +1,26 @@
 {
   "files": {
     "main.css": "/Sorty/static/css/main.14a111fb.chunk.css",
-    "main.js": "/Sorty/static/js/main.cf2fa6cd.chunk.js",
-    "main.js.map": "/Sorty/static/js/main.cf2fa6cd.chunk.js.map",
+    "main.js": "/Sorty/static/js/main.96fb0f2c.chunk.js",
+    "main.js.map": "/Sorty/static/js/main.96fb0f2c.chunk.js.map",
     "runtime-main.js": "/Sorty/static/js/runtime-main.cc43b284.js",
     "runtime-main.js.map": "/Sorty/static/js/runtime-main.cc43b284.js.map",
     "static/css/2.a8f49d3f.chunk.css": "/Sorty/static/css/2.a8f49d3f.chunk.css",
-    "static/js/2.53e14e41.chunk.js": "/Sorty/static/js/2.53e14e41.chunk.js",
-    "static/js/2.53e14e41.chunk.js.map": "/Sorty/static/js/2.53e14e41.chunk.js.map",
+    "static/js/2.51537a1d.chunk.js": "/Sorty/static/js/2.51537a1d.chunk.js",
+    "static/js/2.51537a1d.chunk.js.map": "/Sorty/static/js/2.51537a1d.chunk.js.map",
     "static/js/3.7e2d45f8.chunk.js": "/Sorty/static/js/3.7e2d45f8.chunk.js",
     "static/js/3.7e2d45f8.chunk.js.map": "/Sorty/static/js/3.7e2d45f8.chunk.js.map",
     "index.html": "/Sorty/index.html",
     "static/css/2.a8f49d3f.chunk.css.map": "/Sorty/static/css/2.a8f49d3f.chunk.css.map",
     "static/css/main.14a111fb.chunk.css.map": "/Sorty/static/css/main.14a111fb.chunk.css.map",
-    "static/js/2.53e14e41.chunk.js.LICENSE.txt": "/Sorty/static/js/2.53e14e41.chunk.js.LICENSE.txt",
+    "static/js/2.51537a1d.chunk.js.LICENSE.txt": "/Sorty/static/js/2.51537a1d.chunk.js.LICENSE.txt",
     "static/media/index.css": "/Sorty/static/media/roboto-vietnamese-400-normal.52cebac0.woff2"
   },
   "entrypoints": [
     "static/js/runtime-main.cc43b284.js",
     "static/css/2.a8f49d3f.chunk.css",
-    "static/js/2.53e14e41.chunk.js",
+    "static/js/2.51537a1d.chunk.js",
     "static/css/main.14a111fb.chunk.css",
-    "static/js/main.cf2fa6cd.chunk.js"
+    "static/js/main.96fb0f2c.chunk.js"
   ]
 }
