@@ -75,7 +75,9 @@ class App extends React.Component {
       "Radix Sort (MSD)": this.msdRadixSort,
       "Quick Sort": this.quickSort,
       "Comb Sort": this.combSort,
-      "Shell Sort": this.shellSort
+      "Shell Sort": this.shellSort,
+      "Bully Sort": this.bullySort,
+      // "Bully Sort 2": this.bullySort2,
     };
     this.canvasRef = React.createRef();
   }
@@ -358,6 +360,60 @@ class App extends React.Component {
       shouldSortReversed = !shouldSortReversed;
     }
   };
+
+  // Elmayo's brain child
+  bullySort = async (arr) => {
+    var isSorted = false;
+    while (!isSorted) {
+      isSorted = true;
+      let swapIndex = 0;
+      for (let i = 1; i < arr.length; i++) {
+        if (arr[i - 1].x > arr[i].x && (arr[i+1]?.x ?? Infinity) >= arr[i].x) {
+          for (let j = swapIndex; j < i; j++) {
+            if (!(arr[i - 1].x > arr[j].x && (arr[i+1]?.x ?? Infinity) >= arr[j].x)) {
+              this.drawAndSwap(arr, j, i);
+              this.highlight(arr, [j, i])
+              await sleep(this.state.swapTime);  
+              isSorted = false;
+              swapIndex++;
+              break;
+            }
+          }
+        }
+      }
+    } 
+  }
+  
+  /* Not quite there yet
+  bullySort2 = async (arr) => {
+    var isSorted = false;
+    while (!isSorted) {
+      isSorted = true;
+      let swapIndex = 0;
+      const test = async (arr, i) => { 
+        if (arr[i - 1].x > arr[i].x && (arr[i+1]?.x ?? Infinity) > arr[i].x) {
+          if (!((arr[i - 1]?.x ?? -Infinity) > arr[swapIndex].x && (arr[i+1]?.x ?? Infinity) > arr[swapIndex].x)) {
+            isSorted = false;
+            this.drawAndSwap(arr, swapIndex, i);
+            this.highlight(arr, [swapIndex, i])
+            await sleep(this.state.swapTime);
+            if (swapIndex > 0) {
+              const temp = swapIndex;
+              swapIndex = 0;
+              await test(arr, temp);
+            }
+          } else {
+            swapIndex++;
+            await test(arr, i);
+          }
+        }
+      }
+      for (let i = 1; i < arr.length; i++) {
+        await test(arr, i);
+      }
+    }
+  }
+  */
 
   //#region merge sort
   /* In-place merge sort is complicated...
