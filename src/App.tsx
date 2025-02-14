@@ -86,6 +86,8 @@ class App extends React.Component {
     swapTime: number;
     isDrawing: boolean;
     canDraw: boolean;
+    nbrOfSwaps: number;
+    nbrOfComparisons: number;
   };
   prevDrawIndex: number | null = null;
   prevDrawHeight: number | null = null;
@@ -103,6 +105,8 @@ class App extends React.Component {
       swapTime: swapTime,
       isDrawing: false,
       canDraw: false,
+      nbrOfSwaps: 0,
+      nbrOfComparisons: 0,
     };
     this.sortingAlgorithms = {
       [SortName.InsertionSort]: this.insertionSort,
@@ -148,7 +152,7 @@ class App extends React.Component {
     context.canvas.height = parent.offsetHeight;
 
     this.drawAll(context, this.arr);
-  }
+  };
 
   removeHighlight = (arr: SortValue[]) => {
     this.highlight(arr, []);
@@ -266,7 +270,7 @@ class App extends React.Component {
     while (!isSorted) {
       isSorted = true;
       for (let i = 1; i < arr.length - sortedCount; i++) {
-        if (arr[i - 1].x > arr[i].x) {
+        if (this.compare(arr[i - 1].x > arr[i].x)) {
           this.drawAndSwap(arr, i - 1, i);
           isSorted = false;
         }
@@ -289,7 +293,7 @@ class App extends React.Component {
         isSorted = true;
       }
       for (let i = gap; i < arr.length; i++) {
-        if (arr[i - gap].x > arr[i].x) {
+        if (this.compare(arr[i - gap].x > arr[i].x)) {
           this.drawAndSwap(arr, i - gap, i);
           isSorted = false;
         }
@@ -302,7 +306,7 @@ class App extends React.Component {
   insertionSort = async (arr: SortValue[]) => {
     for (let i = 1; i < arr.length; i++) {
       let j = i;
-      while (j > 0 && arr[j - 1].x > arr[j].x) {
+      while (j > 0 && this.compare(arr[j - 1].x > arr[j].x)) {
         this.drawAndSwap(arr, j - 1, j);
         this.highlight(arr, [j - 1, j]);
         await sleep(this.state.swapTime);
@@ -397,7 +401,7 @@ class App extends React.Component {
       for (let j = i + 1; j < arr.length; j++) {
         this.highlight(arr, [curJ, j]);
         await sleep(this.state.swapTime);
-        if (arr[j].x < arr[curJ].x) {
+        if (this.compare(arr[j].x < arr[curJ].x)) {
           curJ = j;
         }
       }
@@ -421,7 +425,7 @@ class App extends React.Component {
           i < arr.length - sortedCountRight;
           i++
         ) {
-          if (arr[i - 1].x > arr[i].x) {
+          if (this.compare(arr[i - 1].x > arr[i].x)) {
             this.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
@@ -435,7 +439,7 @@ class App extends React.Component {
           i > sortedCountLeft;
           i--
         ) {
-          if (arr[i - 1].x > arr[i].x) {
+          if (this.compare(arr[i - 1].x > arr[i].x)) {
             this.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
@@ -456,14 +460,14 @@ class App extends React.Component {
       let swapIndex = 0;
       for (let i = 1; i < arr.length; i++) {
         if (
-          arr[i - 1].x > arr[i].x &&
-          (arr[i + 1]?.x ?? Infinity) >= arr[i].x
+          this.compare(arr[i - 1].x > arr[i].x) &&
+          this.compare((arr[i + 1]?.x ?? Infinity) >= arr[i].x)
         ) {
           for (let j = swapIndex; j < i; j++) {
             if (
               !(
-                arr[i - 1].x > arr[j].x &&
-                (arr[i + 1]?.x ?? Infinity) >= arr[j].x
+                this.compare(arr[i - 1].x > arr[j].x) &&
+                this.compare((arr[i + 1]?.x ?? Infinity) >= arr[j].x)
               )
             ) {
               this.drawAndSwap(arr, j, i);
@@ -541,21 +545,21 @@ class App extends React.Component {
     start = 0,
     end = this.state.columnNbr - 1,
   ) => {
-    if (start >= end) return;
+    if (this.compare(start >= end)) return;
 
     const mid = Math.floor((start + end) / 2);
 
-    if (arr[mid].x < arr[start].x) {
+    if (this.compare(arr[mid].x < arr[start].x)) {
       this.drawAndSwap(arr, start, mid);
       this.highlight(arr, [start, mid]);
       await sleep(this.state.swapTime);
     }
-    if (arr[end].x < arr[start].x) {
+    if (this.compare(arr[end].x < arr[start].x)) {
       this.drawAndSwap(arr, start, end);
       this.highlight(arr, [start, end]);
       await sleep(this.state.swapTime);
     }
-    if (arr[mid].x < arr[end].x) {
+    if (this.compare(arr[mid].x < arr[end].x)) {
       this.drawAndSwap(arr, mid, end);
       this.highlight(arr, [mid, end]);
       await sleep(this.state.swapTime);
@@ -564,7 +568,7 @@ class App extends React.Component {
     const pivot = arr[end].x;
     let i = start;
     for (let j = start; j < end; j++) {
-      if (arr[j].x < pivot) {
+      if (this.compare(arr[j].x < pivot)) {
         this.drawAndSwap(arr, i, j);
         this.highlight(arr, [i, j]);
         await sleep(this.state.swapTime);
@@ -585,7 +589,8 @@ class App extends React.Component {
       if (gap > this.state.columnNbr) continue;
       for (let i = gap; i < this.state.columnNbr; i++) {
         for (let j = i; j >= gap; j -= gap) {
-          if (arr[j - gap].x > arr[j].x) {
+          // TODO: clean up
+          if (this.compare(arr[j - gap].x > arr[j].x)) {
             this.drawAndSwap(arr, j - gap, j);
           } else break;
 
@@ -610,8 +615,18 @@ class App extends React.Component {
     this.swap(arr, i1, i2);
   };
 
+  compare = (comparison: boolean): boolean => {
+    this.setState((prevState: typeof this.state) => ({
+      nbrOfComparisons: prevState.isSorting ? prevState.nbrOfComparisons + 1 : 0,
+    }));
+    return comparison;
+  }
+
   swap = (arr: SortValue[], i1: number, i2: number) => {
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
+    this.setState((prevState: typeof this.state) => ({
+      nbrOfSwaps: prevState.isSorting ? prevState.nbrOfSwaps + 1 : 0,
+    }));
   };
 
   toggleDisplaySettings = () => {
@@ -658,6 +673,7 @@ class App extends React.Component {
 
     this.clearAll(context);
     this.drawAll(context, this.arr);
+    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
   };
 
   drawOnCanvas = (event: MouseEvent<HTMLCanvasElement>) => {
@@ -770,6 +786,22 @@ class App extends React.Component {
                   }
                   label="Draw Mode"
                 />
+              </div>
+              <div>
+                <Typography
+                  align="left"
+                  color="white"
+                >
+                  Swaps: {this.state.nbrOfSwaps}
+                </Typography>
+              </div>
+              <div>
+                <Typography
+                  align="left"
+                  color="white"
+                >
+                  Comparisons: {this.state.nbrOfComparisons}
+                </Typography>
               </div>
               <IconButton
                 color="inherit"
