@@ -69,7 +69,7 @@ enum SortName {
   BullySort = 'Bully Sort',
 }
 
-type SortAlgorithm = (arr: { x: number; id: number }[]) => Promise<void>;
+type SortAlgorithm = (arr: SortValue[]) => Promise<void>;
 
 type SortValue = { x: number; id: number };
 
@@ -123,6 +123,15 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    this.resizeCanvas();
+    window.addEventListener('resize', this.resizeCanvas);
+  }
+
+  componentWillUnmount(): void {
+    window.removeEventListener('resize', this.resizeCanvas);
+  }
+
+  resizeCanvas = () => {
     const canvas = this.canvasRef.current;
     const context = canvas?.getContext('2d');
 
