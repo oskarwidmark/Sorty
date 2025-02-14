@@ -1,23 +1,23 @@
-import React, {ChangeEvent, MouseEvent} from "react";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import Drawer from "@material-ui/core/Drawer";
-import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import Typography from "@material-ui/core/Typography";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
-import Slider from "@material-ui/core/Slider";
-import Switch from "@material-ui/core/Switch";
-import "./App.css";
+import React, { ChangeEvent, MouseEvent } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+import Drawer from '@mui/material/Drawer';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import Typography from '@mui/material/Typography';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import Slider from '@mui/material/Slider';
+import Switch from '@mui/material/Switch';
+import './App.css';
 
 const swapTime = 0;
 const initColumnNbr = 100;
-const highlightColor = "#FFFFFF";
+const highlightColor = '#FFFFFF';
 
 function shuffleArray(arr: SortValue[]) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -37,41 +37,41 @@ const sleep = (ms: number) => {
 };
 
 function hsvToRgbHex(h: number, s: number, v: number) {
-  let f = (n: number, k = (n + h / 60) % 6) =>
+  const f = (n: number, k = (n + h / 60) % 6) =>
     Math.round((v - v * s * Math.max(Math.min(k, 4 - k, 1), 0)) * 255);
 
   return (
-    "#" +
+    '#' +
     [f(5), f(3), f(1)]
       .map((x) => {
         const hex = x.toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
+        return hex.length === 1 ? '0' + hex : hex;
       })
-      .join("")
+      .join('')
   );
 }
 
 const createArr = (columnNbr: number) =>
   [...Array(columnNbr).keys()].map((a, idx) => {
-    return {x: a, id: idx};
+    return { x: a, id: idx };
   });
 
 enum SortName {
-  InsertionSort = "Insertion Sort",
-  SelectionSort = "Selection Sort",
-  CocktailShakerSort = "Cocktail Shaker Sort",
-  BubbleSort = "Bubble Sort",
-  RadixSortLSD = "Radix Sort (LSD)",
-  RadixSortMSD = "Radix Sort (MSD)",
-  QuickSort = "Quick Sort",
-  CombSort = "Comb Sort",
-  ShellSort = "Shell Sort",
-  BullySort = "Bully Sort",
+  InsertionSort = 'Insertion Sort',
+  SelectionSort = 'Selection Sort',
+  CocktailShakerSort = 'Cocktail Shaker Sort',
+  BubbleSort = 'Bubble Sort',
+  RadixSortLSD = 'Radix Sort (LSD)',
+  RadixSortMSD = 'Radix Sort (MSD)',
+  QuickSort = 'Quick Sort',
+  CombSort = 'Comb Sort',
+  ShellSort = 'Shell Sort',
+  BullySort = 'Bully Sort',
 }
 
-type SortAlgorithm = (arr: {x: number; id: number}[]) => Promise<void>;
+type SortAlgorithm = (arr: { x: number; id: number }[]) => Promise<void>;
 
-type SortValue = {x: number; id: number};
+type SortValue = { x: number; id: number };
 
 class App extends React.Component {
   private sortingAlgorithms: Record<SortName, SortAlgorithm>;
@@ -90,7 +90,7 @@ class App extends React.Component {
   prevDrawIndex: number | null = null;
   prevDrawHeight: number | null = null;
 
-  constructor(props: any) {
+  constructor(props: object) {
     super(props);
 
     this.arr = createArr(initColumnNbr);
@@ -115,7 +115,7 @@ class App extends React.Component {
       [SortName.CombSort]: this.combSort,
       [SortName.ShellSort]: this.shellSort,
       [SortName.BullySort]: this.bullySort,
-      // "Bully Sort 2": this.bullySort2,
+      // 'Bully Sort 2': this.bullySort2,
     };
 
     const ref = React.createRef<HTMLCanvasElement>();
@@ -124,15 +124,15 @@ class App extends React.Component {
 
   componentDidMount() {
     const canvas = this.canvasRef.current;
-    const context = canvas?.getContext("2d");
+    const context = canvas?.getContext('2d');
 
     if (context == null) {
-      throw Error("context is null!");
+      throw Error('context is null!');
     }
 
-    let parent = document.getElementById("canvas-wrapper");
+    const parent = document.getElementById('canvas-wrapper');
     if (parent === null) {
-      throw Error("parent is null!");
+      throw Error('parent is null!');
     }
 
     context.canvas.width = parent.offsetWidth;
@@ -146,12 +146,12 @@ class App extends React.Component {
   };
 
   highlight = (arr: SortValue[], indices: number[]) => {
-    if (!this.state.isSorting) throw Error("isSorting is false!");
+    if (!this.state.isSorting) throw Error('isSorting is false!');
 
     const canvas = this.canvasRef.current;
-    const context = canvas?.getContext("2d");
+    const context = canvas?.getContext('2d');
     if (context == null) {
-      throw Error("context is null!");
+      throw Error('context is null!');
     }
 
     if (this.prevHighlightIndices) {
@@ -168,12 +168,12 @@ class App extends React.Component {
   };
 
   drawDiff = (arr: SortValue[], i1: number, i2: number) => {
-    if (!this.state.isSorting) throw Error("isSorting is false!");
+    if (!this.state.isSorting) throw Error('isSorting is false!');
 
     const canvas = this.canvasRef.current;
-    const context = canvas?.getContext("2d");
+    const context = canvas?.getContext('2d');
     if (context == null) {
-      throw Error("context is null!");
+      throw Error('context is null!');
     }
 
     this.clearColumn(context, i1);
@@ -195,7 +195,7 @@ class App extends React.Component {
     arr: SortValue[],
     i1: number,
     i2: number,
-    color?: string
+    color?: string,
   ) => {
     const arrLength = arr.length;
     const width = ctx.canvas.width / this.state.columnNbr;
@@ -211,14 +211,14 @@ class App extends React.Component {
     startX: number,
     startY: number,
     width: number,
-    height: number
+    height: number,
   ) => {
     const ctxHeight = ctx.canvas.height;
     ctx.fillRect(
       startX,
       Math.floor(ctxHeight) - Math.floor(startY) - Math.floor(height),
       Math.floor(width),
-      Math.floor(height)
+      Math.floor(height),
     );
   };
 
@@ -232,7 +232,7 @@ class App extends React.Component {
   clearRect = (
     ctx: CanvasRenderingContext2D,
     startX: number,
-    width: number
+    width: number,
   ) => {
     const ctxHeight = ctx.canvas.height;
     ctx.clearRect(startX - 1, 0, Math.floor(width) + 2, Math.floor(ctxHeight));
@@ -241,11 +241,11 @@ class App extends React.Component {
   sort = async (arr: SortValue[]) => {
     if (this.state.isSorting) return;
 
-    this.setState({isSorting: true}, async () => {
+    this.setState({ isSorting: true }, async () => {
       try {
         await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
       } catch (e) {
-        console.log("Sorting interrupted! Reason: " + e);
+        console.log('Sorting interrupted! Reason: ' + e);
       }
       this.stopSorting();
     });
@@ -306,7 +306,7 @@ class App extends React.Component {
     const buckets = Array(base);
     const indexMap: Record<number, number> = {};
     let shift = 0;
-    let isSorted = false;
+    const isSorted = false;
     while (!isSorted) {
       for (let i = 0; i < base; i++) {
         buckets[i] = [];
@@ -342,7 +342,7 @@ class App extends React.Component {
     base = 4,
     start = 0,
     end = this.state.columnNbr,
-    shift = Math.floor(Math.log(this.state.columnNbr) / Math.log(base))
+    shift = Math.floor(Math.log(this.state.columnNbr) / Math.log(base)),
   ) => {
     const buckets = Array(base);
     const indexMap: Record<number, number> = {};
@@ -530,7 +530,7 @@ class App extends React.Component {
   quickSort = async (
     arr: SortValue[],
     start = 0,
-    end = this.state.columnNbr - 1
+    end = this.state.columnNbr - 1,
   ) => {
     if (start >= end) return;
 
@@ -591,7 +591,7 @@ class App extends React.Component {
     if (this.prevHighlightIndices) {
       this.removeHighlight(this.arr);
     }
-    this.setState({isSorting: false});
+    this.setState({ isSorting: false });
     this.prevHighlightIndices = null;
   };
 
@@ -606,28 +606,28 @@ class App extends React.Component {
   };
 
   toggleDisplaySettings = () => {
-    this.setState({areSettingsOpen: !this.state.areSettingsOpen});
+    this.setState({ areSettingsOpen: !this.state.areSettingsOpen });
   };
 
   closeDisplaySettings = () => {
-    this.setState({areSettingsOpen: false});
+    this.setState({ areSettingsOpen: false });
   };
 
   chooseSortAlg = (event: ChangeEvent<HTMLInputElement>) => {
     this.stopSorting();
 
-    this.setState({chosenSortAlg: event.target.value});
+    this.setState({ chosenSortAlg: event.target.value });
   };
 
-  changeColumnNbr = (_: ChangeEvent<{}>, value: number | number[]) => {
+  changeColumnNbr = (_: unknown, value: number | number[]) => {
     this.stopSorting();
 
     this.arr = createArr(value instanceof Array ? value[0] : value);
-    this.setState({columnNbr: value}, () => this.shuffleAndDraw());
+    this.setState({ columnNbr: value }, () => this.shuffleAndDraw());
   };
 
-  changeSwapTime = (_: ChangeEvent<{}>, value: number | number[]) => {
-    this.setState({swapTime: value});
+  changeSwapTime = (_: unknown, value: number | number[]) => {
+    this.setState({ swapTime: value });
   };
 
   resetAndDraw = () => {
@@ -641,10 +641,10 @@ class App extends React.Component {
     shuffleArray(this.arr);
 
     const canvas = this.canvasRef.current;
-    const context = canvas?.getContext("2d");
+    const context = canvas?.getContext('2d');
 
     if (context == null) {
-      throw Error("context is null!");
+      throw Error('context is null!');
     }
 
     this.clearAll(context);
@@ -656,21 +656,21 @@ class App extends React.Component {
 
     const canvas = this.canvasRef.current;
     if (canvas == null) {
-      throw Error("canvas is null!");
+      throw Error('canvas is null!');
     }
 
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext('2d');
     if (context == null) {
-      throw Error("context is null!");
+      throw Error('context is null!');
     }
     const rect = canvas.getBoundingClientRect();
 
     const index = Math.floor(
-      ((event.clientX - rect.left) / canvas.width) * this.state.columnNbr
+      ((event.clientX - rect.left) / canvas.width) * this.state.columnNbr,
     );
     const height = Math.floor(
       ((canvas.height - (event.clientY - rect.top)) / canvas.height) *
-        this.state.columnNbr
+        this.state.columnNbr,
     );
 
     if (this.prevDrawIndex && this.prevDrawHeight) {
@@ -700,17 +700,17 @@ class App extends React.Component {
     if (!this.state.canDraw) return;
 
     this.stopSorting();
-    this.setState({isDrawing: true});
+    this.setState({ isDrawing: true });
   };
 
   endDrawOnCanvas = () => {
     this.prevDrawIndex = null;
     this.prevDrawHeight = null;
-    this.setState({isDrawing: false});
+    this.setState({ isDrawing: false });
   };
 
   toggleCanDraw = () => {
-    this.setState({canDraw: !this.state.canDraw});
+    this.setState({ canDraw: !this.state.canDraw });
   };
 
   render() {
@@ -756,6 +756,7 @@ class App extends React.Component {
                       checked={this.state.canDraw}
                       onChange={this.toggleCanDraw}
                       name="canDraw"
+                      color="secondary"
                     />
                   }
                   label="Draw Mode"
