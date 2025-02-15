@@ -73,8 +73,17 @@ type SortAlgorithm = (arr: SortValue[]) => Promise<void>;
 
 type SortValue = { x: number; id: number };
 
+enum ResetPreset {
+  Shuffle = 'Shuffle',
+  Sorted = 'Sorted',
+  ReverseSorted = 'Reverse Sorted',
+}
+
+type ResetFunction = () => void;
+
 class App extends React.Component {
   private sortingAlgorithms: Record<SortName, SortAlgorithm>;
+  private resetPresets: Record<ResetPreset, ResetFunction>;
   private arr: SortValue[];
   private canvasRef: React.RefObject<HTMLCanvasElement>;
   private prevHighlightIndices: number[] | null = null;
@@ -88,6 +97,7 @@ class App extends React.Component {
     canDraw: boolean;
     nbrOfSwaps: number;
     nbrOfComparisons: number;
+    resetPreset: ResetPreset;
   };
   prevDrawIndex: number | null = null;
   prevDrawHeight: number | null = null;
@@ -107,6 +117,7 @@ class App extends React.Component {
       canDraw: false,
       nbrOfSwaps: 0,
       nbrOfComparisons: 0,
+      resetPreset: ResetPreset.Shuffle,
     };
     this.sortingAlgorithms = {
       [SortName.InsertionSort]: this.insertionSort,
@@ -120,6 +131,12 @@ class App extends React.Component {
       [SortName.ShellSort]: this.shellSort,
       [SortName.BullySort]: this.bullySort,
       // 'Bully Sort 2': this.bullySort2,
+    };
+
+    this.resetPresets = {
+      [ResetPreset.Shuffle]: () => shuffleArray(this.arr),
+      [ResetPreset.Sorted]: () => this.arr.sort((a, b) => a.x - b.x),
+      [ResetPreset.ReverseSorted]: () => this.arr.sort((a, b) => b.x - a.x),
     };
 
     const ref = React.createRef<HTMLCanvasElement>();
@@ -651,20 +668,39 @@ class App extends React.Component {
     this.setState({ chosenSortAlg: event.target.value });
   };
 
+  chooseResetPreset = (event: SelectChangeEvent<ResetPreset>) => {
+    this.setState({ resetPreset: event.target.value });
+  };
+
   changeColumnNbr = (_: unknown, value: number | number[]) => {
     this.stopSorting();
 
     this.arr = createArr(value instanceof Array ? value[0] : value);
-    this.setState({ columnNbr: value }, () => this.shuffleAndDraw());
+    this.setState({ columnNbr: value }, () => this.resetAndDraw());
   };
 
   changeSwapTime = (_: unknown, value: number | number[]) => {
-    this.setState({ swapTime: timeScale(value instanceof Array ? value[0] : value) });
+    this.setState({
+      swapTime: timeScale(value instanceof Array ? value[0] : value),
+    });
   };
 
   resetAndDraw = () => {
+    this.stopSorting();
     this.arr = createArr(this.state.columnNbr);
-    this.shuffleAndDraw();
+    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
+
+    this.resetPresets[this.state.resetPreset]();
+
+    const canvas = this.canvasRef.current;
+    const context = canvas?.getContext('2d');
+
+    if (context == null) {
+      throw Error('context is null!');
+    }
+
+    this.clearAll(context);
+    this.drawAll(context, this.arr);
   };
 
   shuffleAndDraw = () => {
@@ -862,7 +898,7 @@ class App extends React.Component {
                 <Select
                   value={this.state.chosenSortAlg}
                   onChange={this.chooseSortAlg}
-                  autoWidth={true}
+                  size="small"
                 >
                   {Object.values(SortName).map((v) => (
                     <MenuItem className="choice" value={v}>
@@ -919,6 +955,35 @@ class App extends React.Component {
                   onChangeCommitted={this.changeSwapTime}
                 />
               </div>
+            </div>
+            <div className="sortAlgChoice-wrapper">
+              <FormControl component="fieldset">
+                <Typography
+                  align="left"
+                  variant="h6"
+                  color="textSecondary"
+                  gutterBottom
+                >
+                  Reset Preset
+                </Typography>
+                <Select
+                  value={this.state.resetPreset}
+                  onChange={this.chooseResetPreset}
+                  size="small"
+                >
+                  {Object.values(ResetPreset).map((v) => (
+                    <MenuItem className="choice" value={v}>
+                      <Typography
+                        align="left"
+                        variant="body1"
+                        color="textSecondary"
+                      >
+                        {v}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </div>
           </Drawer>
         </div>
