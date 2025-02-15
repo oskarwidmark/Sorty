@@ -1,4 +1,4 @@
-import React, { ChangeEvent, MouseEvent } from 'react';
+import React, { MouseEvent } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
@@ -7,16 +7,15 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Drawer from '@mui/material/Drawer';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Typography from '@mui/material/Typography';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
 import './App.css';
 import { PlayCircle, StopCircle } from '@mui/icons-material';
+import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 
-const swapTime = 0;
+const initSwapTime = 0;
 const initColumnNbr = 100;
 const highlightColor = '#FFFFFF';
 
@@ -103,7 +102,7 @@ class App extends React.Component {
       areSettingsOpen: false,
       chosenSortAlg: SortName.InsertionSort,
       columnNbr: initColumnNbr,
-      swapTime: swapTime,
+      swapTime: initSwapTime,
       isDrawing: false,
       canDraw: false,
       nbrOfSwaps: 0,
@@ -646,7 +645,7 @@ class App extends React.Component {
     this.setState({ areSettingsOpen: false });
   };
 
-  chooseSortAlg = (event: ChangeEvent<HTMLInputElement>) => {
+  chooseSortAlg = (event: SelectChangeEvent<SortName>) => {
     this.stopSorting();
 
     this.setState({ chosenSortAlg: event.target.value });
@@ -660,7 +659,7 @@ class App extends React.Component {
   };
 
   changeSwapTime = (_: unknown, value: number | number[]) => {
-    this.setState({ swapTime: value });
+    this.setState({ swapTime: timeScale(value instanceof Array ? value[0] : value) });
   };
 
   resetAndDraw = () => {
@@ -841,6 +840,9 @@ class App extends React.Component {
             anchor="right"
             className="drawer"
             open={this.state.areSettingsOpen}
+            PaperProps={{
+              sx: { width: '20%' },
+            }}
           >
             <div className="chevron-wrapper">
               <IconButton onClick={this.toggleDisplaySettings}>
@@ -857,23 +859,23 @@ class App extends React.Component {
                 >
                   Sorting Algorithm
                 </Typography>
-                <RadioGroup
-                  className="choiceGroup"
-                  aria-label="choiceGroup"
-                  name="choiceGroup"
+                <Select
                   value={this.state.chosenSortAlg}
                   onChange={this.chooseSortAlg}
+                  autoWidth={true}
                 >
                   {Object.values(SortName).map((v) => (
-                    <FormControlLabel
-                      className="choice"
-                      value={v}
-                      key={v}
-                      control={<Radio />}
-                      label={v}
-                    />
+                    <MenuItem className="choice" value={v}>
+                      <Typography
+                        align="left"
+                        variant="body1"
+                        color="textSecondary"
+                      >
+                        {v}
+                      </Typography>
+                    </MenuItem>
                   ))}
-                </RadioGroup>
+                </Select>
               </FormControl>
             </div>
             <div>
@@ -907,7 +909,7 @@ class App extends React.Component {
               </Typography>
               <div className="col-slider">
                 <Slider
-                  defaultValue={swapTime}
+                  defaultValue={initSwapTime}
                   aria-labelledby="discrete-slider"
                   valueLabelDisplay="auto"
                   min={0}
