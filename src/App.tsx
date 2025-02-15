@@ -14,6 +14,7 @@ import FormControl from '@mui/material/FormControl';
 import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
 import './App.css';
+import { PlayCircle, StopCircle } from '@mui/icons-material';
 
 const swapTime = 0;
 const initColumnNbr = 100;
@@ -252,16 +253,22 @@ class App extends React.Component {
   };
 
   sort = async (arr: SortValue[]) => {
-    if (this.state.isSorting) return;
-
-    this.setState({ isSorting: true }, async () => {
-      try {
-        await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
-      } catch (e) {
-        console.log('Sorting interrupted! Reason: ' + e);
-      }
+    if (this.state.isSorting) {
       this.stopSorting();
-    });
+      return;
+    }
+
+    this.setState(
+      { isSorting: true, nbrOfSwaps: 0, nbrOfComparisons: 0 },
+      async () => {
+        try {
+          await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
+        } catch (e) {
+          console.log('Sorting interrupted! Reason: ' + e);
+        }
+        this.stopSorting();
+      },
+    );
   };
 
   bubbleSort = async (arr: SortValue[]) => {
@@ -616,16 +623,18 @@ class App extends React.Component {
   };
 
   compare = (comparison: boolean): boolean => {
+    if (!this.state.isSorting) throw Error('isSorting is false!');
     this.setState((prevState: typeof this.state) => ({
-      nbrOfComparisons: prevState.isSorting ? prevState.nbrOfComparisons + 1 : 0,
+      nbrOfComparisons: prevState.nbrOfComparisons + 1,
     }));
     return comparison;
-  }
+  };
 
   swap = (arr: SortValue[], i1: number, i2: number) => {
+    if (!this.state.isSorting) throw Error('isSorting is false!');
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
     this.setState((prevState: typeof this.state) => ({
-      nbrOfSwaps: prevState.isSorting ? prevState.nbrOfSwaps + 1 : 0,
+      nbrOfSwaps: prevState.nbrOfSwaps + 1,
     }));
   };
 
@@ -661,6 +670,7 @@ class App extends React.Component {
 
   shuffleAndDraw = () => {
     this.stopSorting();
+    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
 
     shuffleArray(this.arr);
 
@@ -673,7 +683,6 @@ class App extends React.Component {
 
     this.clearAll(context);
     this.drawAll(context, this.arr);
-    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
   };
 
   drawOnCanvas = (event: MouseEvent<HTMLCanvasElement>) => {
@@ -750,6 +759,9 @@ class App extends React.Component {
                   color="secondary"
                   onClick={() => this.sort(this.arr)}
                   disableElevation
+                  startIcon={
+                    !this.state.isSorting ? <PlayCircle /> : <StopCircle />
+                  }
                 >
                   Sort
                 </Button>
@@ -788,18 +800,12 @@ class App extends React.Component {
                 />
               </div>
               <div>
-                <Typography
-                  align="left"
-                  color="white"
-                >
+                <Typography align="left" color="white">
                   Swaps: {this.state.nbrOfSwaps}
                 </Typography>
               </div>
               <div>
-                <Typography
-                  align="left"
-                  color="white"
-                >
+                <Typography align="left" color="white">
                   Comparisons: {this.state.nbrOfComparisons}
                 </Typography>
               </div>
