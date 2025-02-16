@@ -29,24 +29,19 @@ function shuffleArray(arr: SortValue[]) {
 const timeScale = (x: number) => Math.round(2 ** x) - 1;
 
 const sleep = (ms: number) => {
-  // if (ms === 0) {
-  //   return new Promise((resolve) => setImmediate(resolve))
-  // }
-
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 function hsvToRgbHex(h: number, s: number, v: number) {
-  const f = (n: number, k = (n + h / 60) % 6) =>
-    Math.round((v - v * s * Math.max(Math.min(k, 4 - k, 1), 0)) * 255);
+  const f = (n: number) => {
+    const k = (n + h / 60) % 6;
+    return Math.round((v - v * s * Math.max(Math.min(k, 4 - k, 1), 0)) * 255);
+  };
 
   return (
     '#' +
     [f(5), f(3), f(1)]
-      .map((x) => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-      })
+      .map((x) =>  x.toString(16).padStart(2, '0'))
       .join('')
   );
 }
@@ -734,42 +729,45 @@ class App extends React.Component {
     }
     const rect = canvas.getBoundingClientRect();
 
-    const index = Math.floor(
+    const colIndex = Math.floor(
       ((event.clientX - rect.left) / canvas.width) * this.state.columnNbr,
     );
-    const height = Math.floor(
+    const colHeight = Math.floor(
       ((canvas.height - (event.clientY - rect.top)) / canvas.height) *
         this.state.columnNbr,
     );
 
+    // If the mouse is moved too fast, we will set the height of the columns in
+    // between the previous and current mouse position to match the line
+    // between the two points.
     if (this.prevDrawIndex && this.prevDrawHeight) {
-      const indexIncr = Math.sign(index - this.prevDrawIndex);
+      const indexIncr = Math.sign(colIndex - this.prevDrawIndex);
       let curHeight = this.prevDrawHeight;
       for (
         let i = this.prevDrawIndex + indexIncr;
-        i !== index;
+        i !== colIndex;
         i += indexIncr
       ) {
         curHeight +=
-          (height - this.prevDrawHeight) / Math.abs(index - this.prevDrawIndex);
+          (colHeight - this.prevDrawHeight) / Math.abs(colIndex - this.prevDrawIndex);
         this.arr[i].x = Math.round(curHeight);
         this.clearColumn(context, i);
         this.drawColumn(context, this.arr, i, i);
       }
     }
 
-    this.arr[index].x = height;
-    this.clearColumn(context, index);
-    this.drawColumn(context, this.arr, index, index);
-    this.prevDrawIndex = index;
-    this.prevDrawHeight = height;
+    this.arr[colIndex].x = colHeight;
+    this.clearColumn(context, colIndex);
+    this.drawColumn(context, this.arr, colIndex, colIndex);
+    this.prevDrawIndex = colIndex;
+    this.prevDrawHeight = colHeight;
   };
 
-  startDrawOnCanvas = () => {
+  startDrawOnCanvas = (event: MouseEvent<HTMLCanvasElement>) => {
     if (!this.state.canDraw) return;
 
     this.stopSorting();
-    this.setState({ isDrawing: true });
+    this.setState({ isDrawing: true }, () => this.drawOnCanvas(event));
   };
 
   endDrawOnCanvas = () => {
