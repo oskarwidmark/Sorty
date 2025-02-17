@@ -13,7 +13,12 @@ import Slider from '@mui/material/Slider';
 import Switch from '@mui/material/Switch';
 import './App.css';
 import { PlayCircle, StopCircle } from '@mui/icons-material';
-import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import {
+  CircularProgress,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from '@mui/material';
 
 const INIT_SWAP_TIME = 1;
 const INIT_COMPARE_TIME = 1;
@@ -856,13 +861,33 @@ class App extends React.Component {
                 />
               </div>
               <div>
-                <Typography align="left" color="white">
-                  Swaps: {this.state.nbrOfSwaps}
+                <Typography className="counter" align="left" color="white">
+                  Swaps:{' '}
+                  {this.state.swapTime || !this.state.isSorting ? (
+                    this.state.nbrOfSwaps
+                  ) : (
+                    <CircularProgress
+                      className="counter-spinner"
+                      size={15}
+                      thickness={10}
+                      color="secondary"
+                    />
+                  )}
                 </Typography>
               </div>
               <div>
-                <Typography align="left" color="white">
-                  Comparisons: {this.state.nbrOfComparisons}
+                <Typography className="counter" align="left" color="white">
+                  Comparisons:{' '}
+                  {this.state.compareTime || !this.state.isSorting ? (
+                    this.state.nbrOfComparisons
+                  ) : (
+                    <CircularProgress
+                      className="counter-spinner"
+                      size={15}
+                      thickness={10}
+                      color="secondary"
+                    />
+                  )}
                 </Typography>
               </div>
               <IconButton

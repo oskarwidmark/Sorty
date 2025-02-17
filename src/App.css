@@ -65,3 +65,13 @@
 .open-drawer-button {
     margin-left: auto !important;
 }
+
+.counter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.counter-spinner {
+  margin-left: 4px;
+}
