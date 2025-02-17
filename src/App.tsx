@@ -623,7 +623,7 @@ class App extends React.Component {
     this.swap(arr, i1, i2);
     this.nbrOfSwaps++;
     if (this.state.swapTime) {
-      // With a zero compareTime, maximum update depth will be exceeded
+      // With a zero swapTime, maximum update depth will be exceeded
       // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
@@ -641,9 +641,9 @@ class App extends React.Component {
   ): Promise<boolean> => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
     this.nbrOfComparisons++;
-    // With a zero compareTime, maximum update depth will be exceeded
-    // when updating state too often
     if (this.state.compareTime) {
+      // With a zero compareTime, maximum update depth will be exceeded
+      // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
       }));
