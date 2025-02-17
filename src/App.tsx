@@ -15,9 +15,10 @@ import './App.css';
 import { PlayCircle, StopCircle } from '@mui/icons-material';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 
-const initSwapTime = 0;
-const initColumnNbr = 100;
-const highlightColor = '#FFFFFF';
+const INIT_SWAP_TIME = 1;
+const INIT_COMPARE_TIME = 1;
+const INIT_COLUMN_NUMBER = 100;
+const HIGHLIGHT_COLOR = '#FFFFFF';
 
 function shuffleArray(arr: SortValue[]) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -40,9 +41,7 @@ function hsvToRgbHex(h: number, s: number, v: number) {
 
   return (
     '#' +
-    [f(5), f(3), f(1)]
-      .map((x) =>  x.toString(16).padStart(2, '0'))
-      .join('')
+    [f(5), f(3), f(1)].map((x) => x.toString(16).padStart(2, '0')).join('')
   );
 }
 
@@ -76,23 +75,30 @@ enum ResetPreset {
 
 type ResetFunction = () => void;
 
+type Operator = '<' | '>' | '<=' | '>=';
+
 class App extends React.Component {
   private sortingAlgorithms: Record<SortName, SortAlgorithm>;
   private resetPresets: Record<ResetPreset, ResetFunction>;
   private arr: SortValue[];
   private canvasRef: React.RefObject<HTMLCanvasElement>;
   private prevHighlightIndices: number[] | null = null;
+  private nbrOfSwaps: number = 0;
+  private nbrOfComparisons: number = 0;
   state: {
     isSorting: boolean;
     areSettingsOpen: boolean;
     chosenSortAlg: SortName;
     columnNbr: number;
+    compareTime: number;
     swapTime: number;
     isDrawing: boolean;
     canDraw: boolean;
     nbrOfSwaps: number;
     nbrOfComparisons: number;
     resetPreset: ResetPreset;
+    shouldHighlightSwaps: boolean;
+    shouldHighlightComparisons: boolean;
   };
   prevDrawIndex: number | null = null;
   prevDrawHeight: number | null = null;
@@ -100,19 +106,22 @@ class App extends React.Component {
   constructor(props: object) {
     super(props);
 
-    this.arr = createArr(initColumnNbr);
+    this.arr = createArr(INIT_COLUMN_NUMBER);
     shuffleArray(this.arr);
     this.state = {
       isSorting: false,
       areSettingsOpen: false,
       chosenSortAlg: SortName.InsertionSort,
-      columnNbr: initColumnNbr,
-      swapTime: initSwapTime,
+      columnNbr: INIT_COLUMN_NUMBER,
+      swapTime: INIT_SWAP_TIME,
+      compareTime: INIT_COMPARE_TIME,
       isDrawing: false,
       canDraw: false,
       nbrOfSwaps: 0,
       nbrOfComparisons: 0,
       resetPreset: ResetPreset.Shuffle,
+      shouldHighlightSwaps: true,
+      shouldHighlightComparisons: false,
     };
     this.sortingAlgorithms = {
       [SortName.InsertionSort]: this.insertionSort,
@@ -188,7 +197,7 @@ class App extends React.Component {
 
     for (const idx of indices) {
       this.clearColumn(context, idx);
-      this.drawColumn(context, arr, idx, idx, highlightColor);
+      this.drawColumn(context, arr, idx, idx, HIGHLIGHT_COLOR);
     }
   };
 
@@ -263,12 +272,20 @@ class App extends React.Component {
     ctx.clearRect(startX - 1, 0, Math.floor(width) + 2, Math.floor(ctxHeight));
   };
 
+  resetCounters = () => {
+    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
+    this.nbrOfComparisons = 0;
+    this.nbrOfSwaps = 0;
+  };
+
   sort = async (arr: SortValue[]) => {
     if (this.state.isSorting) {
       this.stopSorting();
       return;
     }
 
+    this.nbrOfSwaps = 0;
+    this.nbrOfComparisons = 0;
     this.setState(
       { isSorting: true, nbrOfSwaps: 0, nbrOfComparisons: 0 },
       async () => {
@@ -277,6 +294,11 @@ class App extends React.Component {
         } catch (e) {
           console.log('Sorting interrupted! Reason: ' + e);
         }
+        // This is due to React reaching maximum update depth with no sleep time
+        this.setState({
+          nbrOfSwaps: this.nbrOfSwaps,
+          nbrOfComparisons: this.nbrOfComparisons,
+        });
         this.stopSorting();
       },
     );
@@ -288,14 +310,11 @@ class App extends React.Component {
     while (!isSorted) {
       isSorted = true;
       for (let i = 1; i < arr.length - sortedCount; i++) {
-        if (this.compare(arr[i - 1].x > arr[i].x)) {
-          this.drawAndSwap(arr, i - 1, i);
+        if (await this.compare(arr, i - 1, '>', i)) {
+          await this.drawAndSwap(arr, i - 1, i);
           isSorted = false;
         }
-        this.highlight(arr, [i - 1, i]);
-        await sleep(this.state.swapTime);
       }
-
       sortedCount++;
     }
   };
@@ -311,12 +330,10 @@ class App extends React.Component {
         isSorted = true;
       }
       for (let i = gap; i < arr.length; i++) {
-        if (this.compare(arr[i - gap].x > arr[i].x)) {
-          this.drawAndSwap(arr, i - gap, i);
+        if (await this.compare(arr, i - gap, '>', i)) {
+          await this.drawAndSwap(arr, i - gap, i);
           isSorted = false;
         }
-        this.highlight(arr, [i - gap, i]);
-        await sleep(this.state.swapTime);
       }
     }
   };
@@ -324,10 +341,8 @@ class App extends React.Component {
   insertionSort = async (arr: SortValue[]) => {
     for (let i = 1; i < arr.length; i++) {
       let j = i;
-      while (j > 0 && this.compare(arr[j - 1].x > arr[j].x)) {
-        this.drawAndSwap(arr, j - 1, j);
-        this.highlight(arr, [j - 1, j]);
-        await sleep(this.state.swapTime);
+      while (j > 0 && (await this.compare(arr, j - 1, '>', j))) {
+        await this.drawAndSwap(arr, j - 1, j);
         j--;
       }
     }
@@ -357,9 +372,7 @@ class App extends React.Component {
       for (const bucket of buckets) {
         for (const a of bucket) {
           const swapIndex = indexMap[a.id];
-          this.drawAndSwap(arr, currentIndex, swapIndex);
-          this.highlight(arr, [currentIndex, swapIndex]);
-          await sleep(this.state.swapTime);
+          await this.drawAndSwap(arr, currentIndex, swapIndex);
 
           indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
           currentIndex++;
@@ -397,9 +410,7 @@ class App extends React.Component {
       const bucketStart = currentIndex;
       for (const a of bucket) {
         const swapIndex = indexMap[a.id];
-        this.drawAndSwap(arr, currentIndex, swapIndex);
-        this.highlight(arr, [currentIndex, swapIndex]);
-        await sleep(this.state.swapTime);
+        await this.drawAndSwap(arr, currentIndex, swapIndex);
 
         indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
         currentIndex++;
@@ -417,15 +428,12 @@ class App extends React.Component {
     for (let i = 0; i < arr.length; i++) {
       let curJ = i;
       for (let j = i + 1; j < arr.length; j++) {
-        this.highlight(arr, [curJ, j]);
-        await sleep(this.state.swapTime);
-        if (this.compare(arr[j].x < arr[curJ].x)) {
+        if (await this.compare(arr, j, '<', curJ)) {
           curJ = j;
         }
       }
       if (curJ !== i) {
-        this.drawAndSwap(arr, curJ, i);
-        await sleep(this.state.swapTime);
+        await this.drawAndSwap(arr, curJ, i);
       }
     }
   };
@@ -443,12 +451,10 @@ class App extends React.Component {
           i < arr.length - sortedCountRight;
           i++
         ) {
-          if (this.compare(arr[i - 1].x > arr[i].x)) {
-            this.drawAndSwap(arr, i - 1, i);
+          if (await this.compare(arr, i - 1, '>', i)) {
+            await this.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
-          this.highlight(arr, [i - 1, i]);
-          await sleep(this.state.swapTime);
         }
         sortedCountRight++;
       } else {
@@ -457,12 +463,10 @@ class App extends React.Component {
           i > sortedCountLeft;
           i--
         ) {
-          if (this.compare(arr[i - 1].x > arr[i].x)) {
-            this.drawAndSwap(arr, i - 1, i);
+          if (await this.compare(arr, i - 1, '>', i)) {
+            await this.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
-          this.highlight(arr, [i - 1, i]);
-          await sleep(this.state.swapTime);
         }
         sortedCountLeft++;
       }
@@ -478,19 +482,18 @@ class App extends React.Component {
       let swapIndex = 0;
       for (let i = 1; i < arr.length; i++) {
         if (
-          this.compare(arr[i - 1].x > arr[i].x) &&
-          this.compare((arr[i + 1]?.x ?? Infinity) >= arr[i].x)
+          (await this.compare(arr, i - 1, '>', i)) &&
+          (i + 1 >= arr.length || (await this.compare(arr, i + 1, '>=', i)))
         ) {
           for (let j = swapIndex; j < i; j++) {
             if (
               !(
-                this.compare(arr[i - 1].x > arr[j].x) &&
-                this.compare((arr[i + 1]?.x ?? Infinity) >= arr[j].x)
+                (await this.compare(arr, i - 1, '>', j)) &&
+                (i + 1 >= arr.length ||
+                  (await this.compare(arr, i + 1, '>=', j)))
               )
             ) {
-              this.drawAndSwap(arr, j, i);
-              this.highlight(arr, [j, i]);
-              await sleep(this.state.swapTime);
+              await this.drawAndSwap(arr, j, i);
               isSorted = false;
               swapIndex++;
               break;
@@ -511,7 +514,7 @@ class App extends React.Component {
         if (arr[i - 1].x > arr[i].x && (arr[i+1]?.x ?? Infinity) > arr[i].x) {
           if (!((arr[i - 1]?.x ?? -Infinity) > arr[swapIndex].x && (arr[i+1]?.x ?? Infinity) > arr[swapIndex].x)) {
             isSorted = false;
-            this.drawAndSwap(arr, swapIndex, i);
+            await this.drawAndSwap(arr, swapIndex, i);
             this.highlight(arr, [swapIndex, i])
             await sleep(this.state.swapTime);
             if (swapIndex > 0) {
@@ -538,7 +541,7 @@ class App extends React.Component {
     if (start >= end) return
     if (end-start === 1) {
       if (arr[start] > arr[end]) {
-        this.drawAndSwap(arr, start, end);
+        await this.drawAndSwap(arr, start, end);
         await sleep(this.state.swapTime);
       }
     }
@@ -550,7 +553,7 @@ class App extends React.Component {
     let j = mid+1
     while (i < mid && j < end) {
       if (arr[i] > arr[j]) {
-        this.drawAndSwap(arr, i, j);
+        await this.drawAndSwap(arr, i, j);
         await sleep(this.state.swapTime);
       }
     }
@@ -563,39 +566,28 @@ class App extends React.Component {
     start = 0,
     end = this.state.columnNbr - 1,
   ) => {
-    if (this.compare(start >= end)) return;
+    if (start >= end) return;
 
     const mid = Math.floor((start + end) / 2);
 
-    if (this.compare(arr[mid].x < arr[start].x)) {
-      this.drawAndSwap(arr, start, mid);
-      this.highlight(arr, [start, mid]);
-      await sleep(this.state.swapTime);
+    if (await this.compare(arr, mid, '<', start)) {
+      await this.drawAndSwap(arr, start, mid);
     }
-    if (this.compare(arr[end].x < arr[start].x)) {
-      this.drawAndSwap(arr, start, end);
-      this.highlight(arr, [start, end]);
-      await sleep(this.state.swapTime);
+    if (await this.compare(arr, end, '<', start)) {
+      await this.drawAndSwap(arr, start, end);
     }
-    if (this.compare(arr[mid].x < arr[end].x)) {
-      this.drawAndSwap(arr, mid, end);
-      this.highlight(arr, [mid, end]);
-      await sleep(this.state.swapTime);
+    if (await this.compare(arr, mid, '<', end)) {
+      await this.drawAndSwap(arr, mid, end);
     }
 
-    const pivot = arr[end].x;
     let i = start;
     for (let j = start; j < end; j++) {
-      if (this.compare(arr[j].x < pivot)) {
-        this.drawAndSwap(arr, i, j);
-        this.highlight(arr, [i, j]);
-        await sleep(this.state.swapTime);
+      if (await this.compare(arr, j, '<', end)) {
+        await this.drawAndSwap(arr, i, j);
         i++;
       }
     }
-    this.drawAndSwap(arr, i, end);
-    this.highlight(arr, [i, end]);
-    await sleep(this.state.swapTime);
+    await this.drawAndSwap(arr, i, end);
 
     await this.quickSort(arr, start, i - 1);
     await this.quickSort(arr, i + 1, end);
@@ -607,13 +599,9 @@ class App extends React.Component {
       if (gap > this.state.columnNbr) continue;
       for (let i = gap; i < this.state.columnNbr; i++) {
         for (let j = i; j >= gap; j -= gap) {
-          // TODO: clean up
-          if (this.compare(arr[j - gap].x > arr[j].x)) {
-            this.drawAndSwap(arr, j - gap, j);
-          } else break;
-
-          this.highlight(arr, [j - gap, j]);
-          await sleep(this.state.swapTime);
+          if (await this.compare(arr, j - gap, '>', j)) {
+            await this.drawAndSwap(arr, j - gap, j);
+          }
         }
       }
     }
@@ -623,30 +611,61 @@ class App extends React.Component {
     if (this.prevHighlightIndices) {
       this.removeHighlight(this.arr);
     }
-    this.setState({ isSorting: false });
+    this.setState({
+      isSorting: false,
+    });
     this.prevHighlightIndices = null;
   };
 
-  drawAndSwap = (arr: SortValue[], i1: number, i2: number) => {
+  drawAndSwap = async (arr: SortValue[], i1: number, i2: number) => {
     this.drawDiff(arr, i1, i2);
     this.drawDiff(arr, i2, i1);
     this.swap(arr, i1, i2);
+    this.nbrOfSwaps++;
+    if (this.state.swapTime) {
+      // With a zero compareTime, maximum update depth will be exceeded
+      // when updating state too often
+      this.setState((prevState: typeof this.state) => ({
+        nbrOfSwaps: prevState.nbrOfSwaps + 1,
+      }));
+      this.highlight(arr, [i1, i2]);
+      await sleep(this.state.swapTime);
+    }
   };
 
-  compare = (comparison: boolean): boolean => {
+  compare = async (
+    arr: SortValue[],
+    i1: number,
+    operator: Operator,
+    i2: number,
+  ): Promise<boolean> => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
-    this.setState((prevState: typeof this.state) => ({
-      nbrOfComparisons: prevState.nbrOfComparisons + 1,
-    }));
-    return comparison;
+    this.nbrOfComparisons++;
+    // With a zero compareTime, maximum update depth will be exceeded
+    // when updating state too often
+    if (this.state.compareTime) {
+      this.setState((prevState: typeof this.state) => ({
+        nbrOfComparisons: prevState.nbrOfComparisons + 1,
+      }));
+      this.highlight(arr, [i1, i2]);
+      await sleep(this.state.compareTime);
+    }
+
+    switch (operator) {
+      case '<':
+        return arr[i1].x < arr[i2].x;
+      case '>':
+        return arr[i1].x > arr[i2].x;
+      case '<=':
+        return arr[i1].x <= arr[i2].x;
+      case '>=':
+        return arr[i1].x >= arr[i2].x;
+    }
   };
 
   swap = (arr: SortValue[], i1: number, i2: number) => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
-    this.setState((prevState: typeof this.state) => ({
-      nbrOfSwaps: prevState.nbrOfSwaps + 1,
-    }));
   };
 
   toggleDisplaySettings = () => {
@@ -668,8 +687,6 @@ class App extends React.Component {
   };
 
   changeColumnNbr = (_: unknown, value: number | number[]) => {
-    this.stopSorting();
-
     this.arr = createArr(value instanceof Array ? value[0] : value);
     this.setState({ columnNbr: value }, () => this.resetAndDraw());
   };
@@ -680,11 +697,16 @@ class App extends React.Component {
     });
   };
 
+  changeCompareTime = (_: unknown, value: number | number[]) => {
+    this.setState({
+      compareTime: timeScale(value instanceof Array ? value[0] : value),
+    });
+  };
+
   resetAndDraw = () => {
     this.stopSorting();
+    this.resetCounters();
     this.arr = createArr(this.state.columnNbr);
-    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
-
     this.resetPresets[this.state.resetPreset]();
 
     const canvas = this.canvasRef.current;
@@ -700,7 +722,7 @@ class App extends React.Component {
 
   shuffleAndDraw = () => {
     this.stopSorting();
-    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
+    this.resetCounters();
 
     shuffleArray(this.arr);
 
@@ -749,7 +771,8 @@ class App extends React.Component {
         i += indexIncr
       ) {
         curHeight +=
-          (colHeight - this.prevDrawHeight) / Math.abs(colIndex - this.prevDrawIndex);
+          (colHeight - this.prevDrawHeight) /
+          Math.abs(colIndex - this.prevDrawIndex);
         this.arr[i].x = Math.round(curHeight);
         this.clearColumn(context, i);
         this.drawColumn(context, this.arr, i, i);
@@ -883,7 +906,7 @@ class App extends React.Component {
                 <ChevronRightIcon />
               </IconButton>
             </div>
-            <div className="sortAlgChoice-wrapper">
+            <div className="select-wrapper">
               <FormControl component="fieldset">
                 <Typography
                   align="left"
@@ -899,7 +922,7 @@ class App extends React.Component {
                   size="small"
                 >
                   {Object.values(SortName).map((v) => (
-                    <MenuItem className="choice" value={v}>
+                    <MenuItem value={v}>
                       <Typography
                         align="left"
                         variant="body1"
@@ -923,7 +946,7 @@ class App extends React.Component {
               </Typography>
               <div className="col-slider">
                 <Slider
-                  defaultValue={initColumnNbr}
+                  defaultValue={INIT_COLUMN_NUMBER}
                   aria-labelledby="discrete-slider"
                   valueLabelDisplay="auto"
                   min={10}
@@ -943,7 +966,7 @@ class App extends React.Component {
               </Typography>
               <div className="col-slider">
                 <Slider
-                  defaultValue={initSwapTime}
+                  defaultValue={INIT_SWAP_TIME}
                   aria-labelledby="discrete-slider"
                   valueLabelDisplay="auto"
                   min={0}
@@ -954,7 +977,29 @@ class App extends React.Component {
                 />
               </div>
             </div>
-            <div className="sortAlgChoice-wrapper">
+            <div>
+              <Typography
+                align="left"
+                variant="h6"
+                color="textSecondary"
+                gutterBottom
+              >
+                Time per comparison (ms)
+              </Typography>
+              <div className="col-slider">
+                <Slider
+                  defaultValue={INIT_COMPARE_TIME}
+                  aria-labelledby="discrete-slider"
+                  valueLabelDisplay="auto"
+                  min={0}
+                  step={0.1}
+                  max={10}
+                  scale={(x) => timeScale(x)}
+                  onChangeCommitted={this.changeCompareTime}
+                />
+              </div>
+            </div>
+            <div className="select-wrapper">
               <FormControl component="fieldset">
                 <Typography
                   align="left"
@@ -970,7 +1015,7 @@ class App extends React.Component {
                   size="small"
                 >
                   {Object.values(ResetPreset).map((v) => (
-                    <MenuItem className="choice" value={v}>
+                    <MenuItem value={v}>
                       <Typography
                         align="left"
                         variant="body1"
