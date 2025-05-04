@@ -110,6 +110,7 @@ class App extends React.Component {
       throw Error('parent is null!');
     }
 
+    context.canvas.height = 0;
     context.canvas.width = parent.offsetWidth;
     context.canvas.height = parent.offsetHeight;
 
