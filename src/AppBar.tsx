@@ -1,0 +1,120 @@
+import { PlayCircle, StopCircle } from '@mui/icons-material';
+import {
+  Toolbar,
+  Button,
+  FormControlLabel,
+  Switch,
+  Typography,
+  CircularProgress,
+  IconButton,
+  AppBar,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { SortValue } from './types';
+
+interface AppBarProps {
+  sort: (arr: SortValue[]) => Promise<void>;
+  arr: SortValue[];
+  isSorting: boolean;
+  shuffleAndDraw: () => void;
+  resetAndDraw: () => void;
+  canDraw: boolean;
+  toggleCanDraw: () => void;
+  swapTime: number;
+  nbrOfSwaps: number;
+  compareTime: number;
+  nbrOfComparisons: number;
+  toggleDisplaySettings: () => void;
+}
+
+export function SortAppBar(props: AppBarProps) {
+  return (
+    <AppBar position="relative">
+      <Toolbar className="toolbar">
+        <div>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => props.sort(props.arr)}
+            disableElevation
+            startIcon={!props.isSorting ? <PlayCircle /> : <StopCircle />}
+          >
+            Sort
+          </Button>
+        </div>
+        <div>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={props.shuffleAndDraw}
+            disableElevation
+          >
+            Shuffle
+          </Button>
+        </div>
+        <div>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={props.resetAndDraw}
+            disableElevation
+          >
+            Reset
+          </Button>
+        </div>
+        <div>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={props.canDraw}
+                onChange={props.toggleCanDraw}
+                name="canDraw"
+                color="secondary"
+              />
+            }
+            label="Draw Mode"
+          />
+        </div>
+        <div>
+          <Typography className="counter" align="left" color="white">
+            Swaps:{' '}
+            {props.swapTime || !props.isSorting ? (
+              props.nbrOfSwaps
+            ) : (
+              <CircularProgress
+                className="counter-spinner"
+                size={15}
+                thickness={10}
+                color="secondary"
+              />
+            )}
+          </Typography>
+        </div>
+        <div>
+          <Typography className="counter" align="left" color="white">
+            Comparisons:{' '}
+            {props.compareTime || !props.isSorting ? (
+              props.nbrOfComparisons
+            ) : (
+              <CircularProgress
+                className="counter-spinner"
+                size={15}
+                thickness={10}
+                color="secondary"
+              />
+            )}
+          </Typography>
+        </div>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="end"
+          className="open-drawer-button"
+          onClick={props.toggleDisplaySettings}
+        >
+          <MenuIcon />
+        </IconButton>
+      </Toolbar>
+    </AppBar>
+  );
+}

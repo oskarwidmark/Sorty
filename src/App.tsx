@@ -1,89 +1,32 @@
 import React, { MouseEvent } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import Drawer from '@mui/material/Drawer';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import Typography from '@mui/material/Typography';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import Slider from '@mui/material/Slider';
-import Switch from '@mui/material/Switch';
 import './App.css';
-import { PlayCircle, StopCircle } from '@mui/icons-material';
+import { SelectChangeEvent } from '@mui/material';
 import {
-  CircularProgress,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from '@mui/material';
-
-const INIT_SWAP_TIME = 1;
-const INIT_COMPARE_TIME = 1;
-const INIT_COLUMN_NUMBER = 100;
-const HIGHLIGHT_COLOR = '#FFFFFF';
-
-function shuffleArray(arr: SortValue[]) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-const timeScale = (x: number) => Math.round(2 ** x) - 1;
-
-const sleep = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
-function hsvToRgbHex(h: number, s: number, v: number) {
-  const f = (n: number) => {
-    const k = (n + h / 60) % 6;
-    return Math.round((v - v * s * Math.max(Math.min(k, 4 - k, 1), 0)) * 255);
-  };
-
-  return (
-    '#' +
-    [f(5), f(3), f(1)].map((x) => x.toString(16).padStart(2, '0')).join('')
-  );
-}
-
-const createArr = (columnNbr: number) =>
-  [...Array(columnNbr).keys()].map((a, idx) => {
-    return { x: a, id: idx };
-  });
-
-enum SortName {
-  InsertionSort = 'Insertion Sort',
-  SelectionSort = 'Selection Sort',
-  CocktailShakerSort = 'Cocktail Shaker Sort',
-  BubbleSort = 'Bubble Sort',
-  RadixSortLSD = 'Radix Sort (LSD)',
-  RadixSortMSD = 'Radix Sort (MSD)',
-  QuickSort = 'Quick Sort',
-  CombSort = 'Comb Sort',
-  ShellSort = 'Shell Sort',
-  BullySort = 'Bully Sort',
-}
-
-type SortAlgorithm = (arr: SortValue[]) => Promise<void>;
-
-type SortValue = { x: number; id: number };
-
-enum ResetPreset {
-  Shuffle = 'Shuffle',
-  Sorted = 'Sorted',
-  ReverseSorted = 'Reverse Sorted',
-}
-
-type ResetFunction = () => void;
-
-type Operator = '<' | '>' | '<=' | '>=';
+  SortValue,
+  SortName,
+  ResetPreset,
+  ResetFunction,
+  Operator,
+} from './types';
+import { SortingAlgorithms } from './sorting-algorithms';
+import {
+  createArr,
+  shuffleArray,
+  hsvToRgbHex,
+  sleep,
+  timeScale,
+} from './utils';
+import { SideDrawer } from './SideDrawer';
+import {
+  INIT_COLUMN_NUMBER,
+  INIT_SWAP_TIME,
+  INIT_COMPARE_TIME,
+  HIGHLIGHT_COLOR,
+} from './constants';
+import { SortAppBar } from './AppBar';
 
 class App extends React.Component {
-  private sortingAlgorithms: Record<SortName, SortAlgorithm>;
+  private sortingAlgorithms: SortingAlgorithms;
   private resetPresets: Record<ResetPreset, ResetFunction>;
   private arr: SortValue[];
   private canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -111,6 +54,12 @@ class App extends React.Component {
   constructor(props: object) {
     super(props);
 
+    this.sortingAlgorithms = new SortingAlgorithms(
+      INIT_COLUMN_NUMBER,
+      this.compare,
+      this.drawAndSwap,
+    );
+
     this.arr = createArr(INIT_COLUMN_NUMBER);
     shuffleArray(this.arr);
     this.state = {
@@ -127,19 +76,6 @@ class App extends React.Component {
       resetPreset: ResetPreset.Shuffle,
       shouldHighlightSwaps: true,
       shouldHighlightComparisons: false,
-    };
-    this.sortingAlgorithms = {
-      [SortName.InsertionSort]: this.insertionSort,
-      [SortName.SelectionSort]: this.selectionSort,
-      [SortName.CocktailShakerSort]: this.cocktailShakerSort,
-      [SortName.BubbleSort]: this.bubbleSort,
-      [SortName.RadixSortLSD]: this.lsdRadixSort,
-      [SortName.RadixSortMSD]: this.msdRadixSort,
-      [SortName.QuickSort]: this.quickSort,
-      [SortName.CombSort]: this.combSort,
-      [SortName.ShellSort]: this.shellSort,
-      [SortName.BullySort]: this.bullySort,
-      // 'Bully Sort 2': this.bullySort2,
     };
 
     this.resetPresets = {
@@ -295,9 +231,11 @@ class App extends React.Component {
       { isSorting: true, nbrOfSwaps: 0, nbrOfComparisons: 0 },
       async () => {
         try {
-          await this.sortingAlgorithms[this.state.chosenSortAlg](arr);
+          await this.sortingAlgorithms.getSortingAlgorithm(
+            this.state.chosenSortAlg,
+          )(arr);
         } catch (e) {
-          console.log('Sorting interrupted! Reason: ' + e);
+          console.error('Sorting interrupted! Reason: ', e);
         }
         // This is due to React reaching maximum update depth with no sleep time
         this.setState({
@@ -307,309 +245,6 @@ class App extends React.Component {
         this.stopSorting();
       },
     );
-  };
-
-  bubbleSort = async (arr: SortValue[]) => {
-    let isSorted = false;
-    let sortedCount = 0;
-    while (!isSorted) {
-      isSorted = true;
-      for (let i = 1; i < arr.length - sortedCount; i++) {
-        if (await this.compare(arr, i - 1, '>', i)) {
-          await this.drawAndSwap(arr, i - 1, i);
-          isSorted = false;
-        }
-      }
-      sortedCount++;
-    }
-  };
-
-  combSort = async (arr: SortValue[]) => {
-    let gap = this.state.columnNbr;
-    const shrinkFactor = 1.3;
-    let isSorted = false;
-    while (!isSorted) {
-      gap = Math.floor(gap / shrinkFactor);
-      if (gap <= 1) {
-        gap = 1;
-        isSorted = true;
-      }
-      for (let i = gap; i < arr.length; i++) {
-        if (await this.compare(arr, i - gap, '>', i)) {
-          await this.drawAndSwap(arr, i - gap, i);
-          isSorted = false;
-        }
-      }
-    }
-  };
-
-  insertionSort = async (arr: SortValue[]) => {
-    for (let i = 1; i < arr.length; i++) {
-      let j = i;
-      while (j > 0 && (await this.compare(arr, j - 1, '>', j))) {
-        await this.drawAndSwap(arr, j - 1, j);
-        j--;
-      }
-    }
-  };
-
-  lsdRadixSort = async (arr: SortValue[], base = 4) => {
-    const buckets = Array(base);
-    const indexMap: Record<number, number> = {};
-    let shift = 0;
-    const isSorted = false;
-    while (!isSorted) {
-      for (let i = 0; i < base; i++) {
-        buckets[i] = [];
-      }
-      for (let i = 0; i < arr.length; i++) {
-        const index = Math.floor(arr[i].x / base ** shift) % base;
-        buckets[index].push(arr[i]);
-        indexMap[arr[i].id] = i;
-      }
-      shift++;
-      let currentIndex = 0;
-
-      if (buckets[0].length === arr.length) {
-        break;
-      }
-
-      for (const bucket of buckets) {
-        for (const a of bucket) {
-          const swapIndex = indexMap[a.id];
-          await this.drawAndSwap(arr, currentIndex, swapIndex);
-
-          indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
-          currentIndex++;
-        }
-      }
-    }
-  };
-
-  msdRadixSort = async (
-    arr: SortValue[],
-    base = 4,
-    start = 0,
-    end = this.state.columnNbr,
-    shift = Math.floor(Math.log(this.state.columnNbr) / Math.log(base)),
-  ) => {
-    const buckets = Array(base);
-    const indexMap: Record<number, number> = {};
-
-    if (end - start === 0) return;
-
-    for (let i = 0; i < base; i++) {
-      buckets[i] = [];
-    }
-    for (let i = start; i < end; i++) {
-      const index = Math.floor(arr[i].x / base ** shift) % base;
-      buckets[index].push(arr[i]);
-      indexMap[arr[i].id] = i;
-    }
-
-    const bucketIndices = [];
-
-    let currentIndex = start;
-
-    for (const bucket of buckets) {
-      const bucketStart = currentIndex;
-      for (const a of bucket) {
-        const swapIndex = indexMap[a.id];
-        await this.drawAndSwap(arr, currentIndex, swapIndex);
-
-        indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
-        currentIndex++;
-      }
-      if (shift === 0) continue;
-
-      bucketIndices.push([bucketStart, currentIndex]);
-    }
-    for (const [bucketStart, bucketEnd] of bucketIndices) {
-      await this.msdRadixSort(arr, base, bucketStart, bucketEnd, shift - 1);
-    }
-  };
-
-  selectionSort = async (arr: SortValue[]) => {
-    for (let i = 0; i < arr.length; i++) {
-      let curJ = i;
-      for (let j = i + 1; j < arr.length; j++) {
-        if (await this.compare(arr, j, '<', curJ)) {
-          curJ = j;
-        }
-      }
-      if (curJ !== i) {
-        await this.drawAndSwap(arr, curJ, i);
-      }
-    }
-  };
-
-  cocktailShakerSort = async (arr: SortValue[]) => {
-    let isSorted = false;
-    let shouldSortReversed = false;
-    let sortedCountRight = 0;
-    let sortedCountLeft = 0;
-    while (!isSorted) {
-      isSorted = true;
-      if (!shouldSortReversed) {
-        for (
-          let i = 1 + sortedCountLeft;
-          i < arr.length - sortedCountRight;
-          i++
-        ) {
-          if (await this.compare(arr, i - 1, '>', i)) {
-            await this.drawAndSwap(arr, i - 1, i);
-            isSorted = false;
-          }
-        }
-        sortedCountRight++;
-      } else {
-        for (
-          let i = arr.length - 1 - sortedCountRight;
-          i > sortedCountLeft;
-          i--
-        ) {
-          if (await this.compare(arr, i - 1, '>', i)) {
-            await this.drawAndSwap(arr, i - 1, i);
-            isSorted = false;
-          }
-        }
-        sortedCountLeft++;
-      }
-      shouldSortReversed = !shouldSortReversed;
-    }
-  };
-
-  // Elmayo's brain child
-  bullySort = async (arr: SortValue[]) => {
-    let isSorted = false;
-    while (!isSorted) {
-      isSorted = true;
-      let swapIndex = 0;
-      for (let i = 1; i < arr.length; i++) {
-        if (
-          (await this.compare(arr, i - 1, '>', i)) &&
-          (i + 1 >= arr.length || (await this.compare(arr, i + 1, '>=', i)))
-        ) {
-          for (let j = swapIndex; j < i; j++) {
-            if (
-              !(
-                (await this.compare(arr, i - 1, '>', j)) &&
-                (i + 1 >= arr.length ||
-                  (await this.compare(arr, i + 1, '>=', j)))
-              )
-            ) {
-              await this.drawAndSwap(arr, j, i);
-              isSorted = false;
-              swapIndex++;
-              break;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /* Not quite there yet
-  bullySort2 = async (arr: SortValue[]) => {
-    let isSorted = false;
-    while (!isSorted) {
-      isSorted = true;
-      let swapIndex = 0;
-      const test = async (arr, i) => { 
-        if (arr[i - 1].x > arr[i].x && (arr[i+1]?.x ?? Infinity) > arr[i].x) {
-          if (!((arr[i - 1]?.x ?? -Infinity) > arr[swapIndex].x && (arr[i+1]?.x ?? Infinity) > arr[swapIndex].x)) {
-            isSorted = false;
-            await this.drawAndSwap(arr, swapIndex, i);
-            this.highlight(arr, [swapIndex, i])
-            await sleep(this.state.swapTime);
-            if (swapIndex > 0) {
-              const temp = swapIndex;
-              swapIndex = 0;
-              await test(arr, temp);
-            }
-          } else {
-            swapIndex++;
-            await test(arr, i);
-          }
-        }
-      }
-      for (let i = 1; i < arr.length; i++) {
-        await test(arr, i);
-      }
-    }
-  }
-  */
-
-  //#region merge sort
-  /* In-place merge sort is complicated...
-  mergeSort = async (arr, start, end) => {
-    if (start >= end) return
-    if (end-start === 1) {
-      if (arr[start] > arr[end]) {
-        await this.drawAndSwap(arr, start, end);
-        await sleep(this.state.swapTime);
-      }
-    }
-
-    const mid = Math.floor((start+end) / 2)
-    this.mergeSort(arr, start, mid)
-    this.mergeSort(arr, mid+1, end)
-    let i = start
-    let j = mid+1
-    while (i < mid && j < end) {
-      if (arr[i] > arr[j]) {
-        await this.drawAndSwap(arr, i, j);
-        await sleep(this.state.swapTime);
-      }
-    }
-  }
-  */
-  //#endregion
-
-  quickSort = async (
-    arr: SortValue[],
-    start = 0,
-    end = this.state.columnNbr - 1,
-  ) => {
-    if (start >= end) return;
-
-    const mid = Math.floor((start + end) / 2);
-
-    if (await this.compare(arr, mid, '<', start)) {
-      await this.drawAndSwap(arr, start, mid);
-    }
-    if (await this.compare(arr, end, '<', start)) {
-      await this.drawAndSwap(arr, start, end);
-    }
-    if (await this.compare(arr, mid, '<', end)) {
-      await this.drawAndSwap(arr, mid, end);
-    }
-
-    let i = start;
-    for (let j = start; j < end; j++) {
-      if (await this.compare(arr, j, '<', end)) {
-        await this.drawAndSwap(arr, i, j);
-        i++;
-      }
-    }
-    await this.drawAndSwap(arr, i, end);
-
-    await this.quickSort(arr, start, i - 1);
-    await this.quickSort(arr, i + 1, end);
-  };
-
-  shellSort = async (arr: SortValue[]) => {
-    const gaps = [701, 301, 132, 57, 23, 10, 4, 1]; // from https://oeis.org/A102549
-    for (const gap of gaps) {
-      if (gap > this.state.columnNbr) continue;
-      for (let i = gap; i < this.state.columnNbr; i++) {
-        for (let j = i; j >= gap; j -= gap) {
-          if (await this.compare(arr, j - gap, '>', j)) {
-            await this.drawAndSwap(arr, j - gap, j);
-          }
-        }
-      }
-    }
   };
 
   stopSorting = () => {
@@ -668,10 +303,10 @@ class App extends React.Component {
     }
   };
 
-  swap = (arr: SortValue[], i1: number, i2: number) => {
+  public async swap(arr: SortValue[], i1: number, i2: number) {
     if (!this.state.isSorting) throw Error('isSorting is false!');
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
-  };
+  }
 
   toggleDisplaySettings = () => {
     this.setState({ areSettingsOpen: !this.state.areSettingsOpen });
@@ -692,8 +327,10 @@ class App extends React.Component {
   };
 
   changeColumnNbr = (_: unknown, value: number | number[]) => {
-    this.arr = createArr(value instanceof Array ? value[0] : value);
-    this.setState({ columnNbr: value }, () => this.resetAndDraw());
+    const columnNbr = value instanceof Array ? value[0] : value;
+    this.arr = createArr(columnNbr);
+    this.sortingAlgorithms.columnNbr = columnNbr;
+    this.setState({ columnNbr }, () => this.resetAndDraw());
   };
 
   changeSwapTime = (_: unknown, value: number | number[]) => {
@@ -812,96 +449,20 @@ class App extends React.Component {
     return (
       <div className="App">
         <div className="App-header">
-          <AppBar position="relative">
-            <Toolbar className="toolbar">
-              <div>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => this.sort(this.arr)}
-                  disableElevation
-                  startIcon={
-                    !this.state.isSorting ? <PlayCircle /> : <StopCircle />
-                  }
-                >
-                  Sort
-                </Button>
-              </div>
-              <div>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={this.shuffleAndDraw}
-                  disableElevation
-                >
-                  Shuffle
-                </Button>
-              </div>
-              <div>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={this.resetAndDraw}
-                  disableElevation
-                >
-                  Reset
-                </Button>
-              </div>
-              <div>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={this.state.canDraw}
-                      onChange={this.toggleCanDraw}
-                      name="canDraw"
-                      color="secondary"
-                    />
-                  }
-                  label="Draw Mode"
-                />
-              </div>
-              <div>
-                <Typography className="counter" align="left" color="white">
-                  Swaps:{' '}
-                  {this.state.swapTime || !this.state.isSorting ? (
-                    this.state.nbrOfSwaps
-                  ) : (
-                    <CircularProgress
-                      className="counter-spinner"
-                      size={15}
-                      thickness={10}
-                      color="secondary"
-                    />
-                  )}
-                </Typography>
-              </div>
-              <div>
-                <Typography className="counter" align="left" color="white">
-                  Comparisons:{' '}
-                  {this.state.compareTime || !this.state.isSorting ? (
-                    this.state.nbrOfComparisons
-                  ) : (
-                    <CircularProgress
-                      className="counter-spinner"
-                      size={15}
-                      thickness={10}
-                      color="secondary"
-                    />
-                  )}
-                </Typography>
-              </div>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="end"
-                className="open-drawer-button"
-                onClick={this.toggleDisplaySettings}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Toolbar>
-          </AppBar>
-
+          <SortAppBar
+            arr={this.arr}
+            swapTime={this.state.swapTime}
+            compareTime={this.state.compareTime}
+            canDraw={this.state.canDraw}
+            isSorting={this.state.isSorting}
+            nbrOfSwaps={this.state.nbrOfSwaps}
+            nbrOfComparisons={this.state.nbrOfComparisons}
+            sort={this.sort}
+            shuffleAndDraw={this.shuffleAndDraw}
+            resetAndDraw={this.resetAndDraw}
+            toggleCanDraw={this.toggleCanDraw}
+            toggleDisplaySettings={this.toggleDisplaySettings}
+          />
           <div
             className="canvas-wrapper"
             id="canvas-wrapper"
@@ -916,144 +477,17 @@ class App extends React.Component {
               onMouseLeave={this.endDrawOnCanvas}
             />
           </div>
-
-          <Drawer
-            variant="persistent"
-            anchor="right"
-            className="drawer"
-            open={this.state.areSettingsOpen}
-            PaperProps={{
-              sx: { width: '20%' },
-            }}
-          >
-            <div className="chevron-wrapper">
-              <IconButton onClick={this.toggleDisplaySettings}>
-                <ChevronRightIcon />
-              </IconButton>
-            </div>
-            <div className="select-wrapper">
-              <FormControl component="fieldset">
-                <Typography
-                  align="left"
-                  variant="h6"
-                  color="textSecondary"
-                  gutterBottom
-                >
-                  Sorting Algorithm
-                </Typography>
-                <Select
-                  value={this.state.chosenSortAlg}
-                  onChange={this.chooseSortAlg}
-                  size="small"
-                >
-                  {Object.values(SortName).map((v) => (
-                    <MenuItem value={v}>
-                      <Typography
-                        align="left"
-                        variant="body1"
-                        color="textSecondary"
-                      >
-                        {v}
-                      </Typography>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-            <div>
-              <Typography
-                align="left"
-                variant="h6"
-                color="textSecondary"
-                gutterBottom
-              >
-                # Columns
-              </Typography>
-              <div className="col-slider">
-                <Slider
-                  defaultValue={INIT_COLUMN_NUMBER}
-                  aria-labelledby="discrete-slider"
-                  valueLabelDisplay="auto"
-                  min={10}
-                  max={1000}
-                  onChangeCommitted={this.changeColumnNbr}
-                />
-              </div>
-            </div>
-            <div>
-              <Typography
-                align="left"
-                variant="h6"
-                color="textSecondary"
-                gutterBottom
-              >
-                Time per swap (ms)
-              </Typography>
-              <div className="col-slider">
-                <Slider
-                  defaultValue={INIT_SWAP_TIME}
-                  aria-labelledby="discrete-slider"
-                  valueLabelDisplay="auto"
-                  min={0}
-                  step={0.1}
-                  max={10}
-                  scale={(x) => timeScale(x)}
-                  onChangeCommitted={this.changeSwapTime}
-                />
-              </div>
-            </div>
-            <div>
-              <Typography
-                align="left"
-                variant="h6"
-                color="textSecondary"
-                gutterBottom
-              >
-                Time per comparison (ms)
-              </Typography>
-              <div className="col-slider">
-                <Slider
-                  defaultValue={INIT_COMPARE_TIME}
-                  aria-labelledby="discrete-slider"
-                  valueLabelDisplay="auto"
-                  min={0}
-                  step={0.1}
-                  max={10}
-                  scale={(x) => timeScale(x)}
-                  onChangeCommitted={this.changeCompareTime}
-                />
-              </div>
-            </div>
-            <div className="select-wrapper">
-              <FormControl component="fieldset">
-                <Typography
-                  align="left"
-                  variant="h6"
-                  color="textSecondary"
-                  gutterBottom
-                >
-                  Reset Preset
-                </Typography>
-                <Select
-                  value={this.state.resetPreset}
-                  onChange={this.chooseResetPreset}
-                  size="small"
-                >
-                  {Object.values(ResetPreset).map((v) => (
-                    <MenuItem value={v}>
-                      <Typography
-                        align="left"
-                        variant="body1"
-                        color="textSecondary"
-                      >
-                        {v}
-                      </Typography>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
-          </Drawer>
+          <SideDrawer
+            areSettingsOpen={this.state.areSettingsOpen}
+            resetPreset={this.state.resetPreset}
+            chosenSortAlg={this.state.chosenSortAlg}
+            toggleDisplaySettings={this.toggleDisplaySettings}
+            chooseSortAlg={this.chooseSortAlg}
+            chooseResetPreset={this.chooseResetPreset}
+            changeColumnNbr={this.changeColumnNbr}
+            changeSwapTime={this.changeSwapTime}
+            changeCompareTime={this.changeCompareTime}
+          />
         </div>
       </div>
     );
