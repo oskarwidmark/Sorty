@@ -1,3 +1,5 @@
+import { SortValue } from './types';
+
 export function hsvToRgbHex(h: number, s: number, v: number) {
   const f = (n: number) => {
     const k = (n + h / 60) % 6;
@@ -17,9 +19,9 @@ export function shuffleArray(arr: unknown[]) {
   }
 }
 
-export const createArr = (columnNbr: number) =>
+export const createArr = (columnNbr: number): SortValue[] =>
   [...Array(columnNbr).keys()].map((a, idx) => {
-    return { x: a, id: idx };
+    return { value: a, id: idx };
   });
 
 export const timeScale = (x: number) => Math.round(2 ** x) - 1;

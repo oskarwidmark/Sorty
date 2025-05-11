@@ -13,7 +13,7 @@ export enum SortName {
 
 export type SortAlgorithm = (arr: SortValue[]) => Promise<void>;
 
-export type SortValue = { x: number; id: number };
+export type SortValue = { value: number; id: number };
 
 export enum ResetPreset {
   Shuffle = 'Shuffle',
@@ -24,3 +24,8 @@ export enum ResetPreset {
 export type ResetFunction = () => void;
 
 export type Operator = '<' | '>' | '<=' | '>=';
+
+export type DrawData = {
+  index: number;
+  value: number;
+};

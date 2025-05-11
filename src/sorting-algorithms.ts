@@ -100,7 +100,7 @@ export class SortingAlgorithms {
         buckets[i] = [];
       }
       for (let i = 0; i < arr.length; i++) {
-        const index = Math.floor(arr[i].x / base ** shift) % base;
+        const index = Math.floor(arr[i].value / base ** shift) % base;
         buckets[index].push(arr[i]);
         indexMap[arr[i].id] = i;
       }
@@ -139,7 +139,7 @@ export class SortingAlgorithms {
       buckets[i] = [];
     }
     for (let i = start; i < end; i++) {
-      const index = Math.floor(arr[i].x / base ** shift) % base;
+      const index = Math.floor(arr[i].value / base ** shift) % base;
       buckets[index].push(arr[i]);
       indexMap[arr[i].id] = i;
     }
