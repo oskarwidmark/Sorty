@@ -341,9 +341,10 @@ public async   mergeSort(arr, start, end){
       if (gap > this._columnNbr) continue;
       for (let i = gap; i < this._columnNbr; i++) {
         for (let j = i; j >= gap; j -= gap) {
-          if (await this.compare(arr, j - gap, '>', j)) {
-            await this.drawAndSwap(arr, j - gap, j);
+          if (await this.compare(arr, j - gap, '<', j)) {
+            break;
           }
+          await this.drawAndSwap(arr, j - gap, j);
         }
       }
     }
