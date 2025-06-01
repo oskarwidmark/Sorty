@@ -1,4 +1,4 @@
-import { SortValue } from './types';
+import { SortName, SortType, SortValue } from './types';
 
 export function hsvToRgbHex(h: number, s: number, v: number) {
   const f = (n: number) => {
@@ -28,4 +28,17 @@ export const timeScale = (x: number) => Math.round(2 ** x) - 1;
 
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+export const sortNameToSortType: Record<SortName, string> = {
+  [SortName.InsertionSort]: SortType.Comparison,
+  [SortName.SelectionSort]: SortType.Comparison,
+  [SortName.CocktailShakerSort]: SortType.Comparison,
+  [SortName.BubbleSort]: SortType.Comparison,
+  [SortName.RadixSortLSD]: SortType.Distribution,
+  [SortName.RadixSortMSD]: SortType.Distribution,
+  [SortName.QuickSort]: SortType.Comparison,
+  [SortName.CombSort]: SortType.Comparison,
+  [SortName.ShellSort]: SortType.Comparison,
+  [SortName.BullySort]: SortType.Comparison,
 };

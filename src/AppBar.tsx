@@ -25,6 +25,8 @@ interface AppBarProps {
   compareTime: number;
   nbrOfComparisons: number;
   toggleDisplaySettings: () => void;
+  shouldPlaySound: boolean;
+  togglePlaySound: () => void;
 }
 
 export function SortAppBar(props: AppBarProps) {
@@ -72,7 +74,21 @@ export function SortAppBar(props: AppBarProps) {
                 color="secondary"
               />
             }
+            sx={{ marginRight: '0px' }}
             label="Draw Mode"
+          />
+        </div>
+        <div>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={props.shouldPlaySound}
+                onChange={props.togglePlaySound}
+                name="shouldPlaySound"
+                color="secondary"
+              />
+            }
+            label="Play Sound"
           />
         </div>
         <div>

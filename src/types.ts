@@ -29,3 +29,8 @@ export type DrawData = {
   index: number;
   value: number;
 };
+
+export enum SortType {
+  Comparison = 'Comparison',
+  Distribution = 'Distribution',
+}

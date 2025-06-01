@@ -193,8 +193,8 @@ export class SortingAlgorithms {
           i < arr.length - sortedCountRight;
           i++
         ) {
-          if (await this.compare(arr, i - 1, '>', i)) {
-            await this.drawAndSwap(arr, i - 1, i);
+          if (await this.compare(arr, i, '<', i - 1)) {
+            await this.drawAndSwap(arr, i, i - 1);
             isSorted = false;
           }
         }

@@ -7,9 +7,16 @@ import {
   ResetPreset,
   ResetFunction,
   Operator,
+  SortType,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
-import { createArr, shuffleArray, sleep, timeScale } from './utils';
+import {
+  createArr,
+  shuffleArray,
+  sleep,
+  sortNameToSortType,
+  timeScale,
+} from './utils';
 import { SideDrawer } from './SideDrawer';
 import {
   INIT_COLUMN_NUMBER,
@@ -19,7 +26,13 @@ import {
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
 
-class App extends React.Component {
+type Props = {
+  playSound: () => void;
+  stopSounds: () => void;
+  setSoundPitch: (value: number) => void;
+};
+
+class App extends React.Component<Props> {
   private sortingAlgorithms: SortingAlgorithms;
   private resetPresets: Record<ResetPreset, ResetFunction>;
   private arr: SortValue[];
@@ -38,10 +51,11 @@ class App extends React.Component {
     resetPreset: ResetPreset;
     shouldHighlightSwaps: boolean;
     shouldHighlightComparisons: boolean;
+    shouldPlaySound: boolean;
   };
   canvasController: CanvasController;
 
-  constructor(props: object) {
+  constructor(public props: Props) {
     super(props);
 
     this.sortingAlgorithms = new SortingAlgorithms(
@@ -65,6 +79,7 @@ class App extends React.Component {
       resetPreset: ResetPreset.Shuffle,
       shouldHighlightSwaps: true,
       shouldHighlightComparisons: false,
+      shouldPlaySound: false,
     };
 
     this.resetPresets = {
@@ -146,6 +161,7 @@ class App extends React.Component {
       isSorting: false,
     });
     this.canvasController.stopSorting(this.arr);
+    this.props.stopSounds();
   };
 
   drawAndSwap = async (arr: SortValue[], i1: number, i2: number) => {
@@ -183,6 +199,10 @@ class App extends React.Component {
       await sleep(this.state.compareTime);
     }
 
+    if (sortNameToSortType[this.state.chosenSortAlg] === SortType.Comparison) {
+      this.playSoundForColumn(arr, i1);
+    }
+
     switch (operator) {
       case '<':
         return arr[i1].value < arr[i2].value;
@@ -197,8 +217,22 @@ class App extends React.Component {
 
   public async swap(arr: SortValue[], i1: number, i2: number) {
     if (!this.state.isSorting) throw Error('isSorting is false!');
+
+    if (
+      sortNameToSortType[this.state.chosenSortAlg] === SortType.Distribution
+    ) {
+      this.playSoundForColumn(arr, i1);
+    }
+
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
   }
+
+  playSoundForColumn = (arr: SortValue[], i: number) => {
+    if (!this.state.shouldPlaySound) return;
+
+    this.props.setSoundPitch((arr[i].value * 7) / this.state.columnNbr + 3);
+    this.props.playSound();
+  };
 
   toggleDisplaySettings = () => {
     this.setState({ areSettingsOpen: !this.state.areSettingsOpen });
@@ -272,6 +306,13 @@ class App extends React.Component {
     this.setState({ canDraw: !this.state.canDraw });
   };
 
+  togglePlaySound = () => {
+    this.setState((prevState: typeof this.state) => ({
+      shouldPlaySound: !prevState.shouldPlaySound,
+    }));
+    this.props.stopSounds();
+  };
+
   render() {
     return (
       <div className="App">
@@ -289,6 +330,8 @@ class App extends React.Component {
             resetAndDraw={this.resetAndDraw}
             toggleCanDraw={this.toggleCanDraw}
             toggleDisplaySettings={this.toggleDisplaySettings}
+            shouldPlaySound={this.state.shouldPlaySound}
+            togglePlaySound={this.togglePlaySound}
           />
           <div
             className="canvas-wrapper"
