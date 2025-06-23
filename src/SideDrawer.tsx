@@ -15,7 +15,9 @@ import {
   INIT_COLUMN_NUMBER,
   INIT_SWAP_TIME,
   INIT_COMPARE_TIME,
+  POWERS_OF_TWO,
 } from './constants';
+import { useEffect } from 'react';
 
 interface SideDrawerProps {
   areSettingsOpen: boolean;
@@ -27,21 +29,40 @@ interface SideDrawerProps {
   changeCompareTime: (_: unknown, value: number | number[]) => void;
   resetPreset: ResetPreset;
   chooseResetPreset: (event: SelectChangeEvent<ResetPreset>) => void;
+  columnNbr: number;
 }
 
-export function SideDrawer(props: SideDrawerProps) {
+export function SideDrawer({
+  chosenSortAlg,
+  changeColumnNbr,
+  columnNbr,
+  toggleDisplaySettings,
+  changeSwapTime,
+  changeCompareTime,
+  chooseSortAlg,
+  resetPreset,
+  chooseResetPreset,
+  areSettingsOpen,
+}: SideDrawerProps) {
+  useEffect(() => {
+    // Bitonic Sort requires a power of two
+    if (chosenSortAlg === SortName.BitonicSort) {
+      changeColumnNbr(undefined, 2 ** Math.floor(Math.log2(columnNbr)));
+    }
+  }, [chosenSortAlg, changeColumnNbr, columnNbr]);
+
   return (
     <Drawer
       variant="persistent"
       anchor="right"
       className="drawer"
-      open={props.areSettingsOpen}
+      open={areSettingsOpen}
       PaperProps={{
         sx: { width: '20%' },
       }}
     >
       <div className="chevron-wrapper">
-        <IconButton onClick={props.toggleDisplaySettings}>
+        <IconButton onClick={toggleDisplaySettings}>
           <ChevronRightIcon />
         </IconButton>
       </div>
@@ -55,11 +76,7 @@ export function SideDrawer(props: SideDrawerProps) {
           >
             Sorting Algorithm
           </Typography>
-          <Select
-            value={props.chosenSortAlg}
-            onChange={props.chooseSortAlg}
-            size="small"
-          >
+          <Select value={chosenSortAlg} onChange={chooseSortAlg} size="small">
             {Object.values(SortName).map((v) => (
               <MenuItem value={v} key={v}>
                 <Typography align="left" variant="body1" color="textSecondary">
@@ -84,9 +101,17 @@ export function SideDrawer(props: SideDrawerProps) {
             defaultValue={INIT_COLUMN_NUMBER}
             aria-labelledby="discrete-slider"
             valueLabelDisplay="auto"
-            min={10}
-            max={1000}
-            onChangeCommitted={props.changeColumnNbr}
+            min={8}
+            max={1024}
+            step={chosenSortAlg === SortName.BitonicSort ? null : 1}
+            marks={
+              chosenSortAlg === SortName.BitonicSort
+                ? POWERS_OF_TWO.map((value) => ({
+                    value,
+                  }))
+                : false
+            }
+            onChangeCommitted={changeColumnNbr}
           />
         </div>
       </div>
@@ -108,7 +133,7 @@ export function SideDrawer(props: SideDrawerProps) {
             step={0.1}
             max={10}
             scale={(x) => timeScale(x)}
-            onChangeCommitted={props.changeSwapTime}
+            onChangeCommitted={changeSwapTime}
           />
         </div>
       </div>
@@ -130,7 +155,7 @@ export function SideDrawer(props: SideDrawerProps) {
             step={0.1}
             max={10}
             scale={(x) => timeScale(x)}
-            onChangeCommitted={props.changeCompareTime}
+            onChangeCommitted={changeCompareTime}
           />
         </div>
       </div>
@@ -144,11 +169,7 @@ export function SideDrawer(props: SideDrawerProps) {
           >
             Reset Preset
           </Typography>
-          <Select
-            value={props.resetPreset}
-            onChange={props.chooseResetPreset}
-            size="small"
-          >
+          <Select value={resetPreset} onChange={chooseResetPreset} size="small">
             {Object.values(ResetPreset).map((v) => (
               <MenuItem value={v} key={v}>
                 <Typography align="left" variant="body1" color="textSecondary">

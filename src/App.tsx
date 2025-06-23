@@ -357,6 +357,7 @@ class App extends React.Component<Props> {
             changeColumnNbr={this.changeColumnNbr}
             changeSwapTime={this.changeSwapTime}
             changeCompareTime={this.changeCompareTime}
+            columnNbr={this.state.columnNbr}
           />
         </div>
       </div>

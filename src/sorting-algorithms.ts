@@ -12,6 +12,7 @@ export class SortingAlgorithms {
     [SortName.QuickSort]: this.quickSort,
     [SortName.CombSort]: this.combSort,
     [SortName.ShellSort]: this.shellSort,
+    [SortName.BitonicSort]: this.bitonicSort,
     [SortName.BullySort]: this.bullySort,
     // 'Bully Sort 2': this.bullySort2,
   };
@@ -241,6 +242,25 @@ export class SortingAlgorithms {
         sortedCountLeft++;
       }
       shouldSortReversed = !shouldSortReversed;
+    }
+  }
+
+  // TODO: make "parallel"(?)
+  public async bitonicSort(arr: SortValue[]) {
+    for (let k = 2; k <= arr.length; k *= 2) {
+      for (let j = k / 2; j > 0; j = Math.floor(j / 2)) {
+        for (let i = 0; i < arr.length; i++) {
+          const l = i ^ j;
+          if (l > i) {
+            if (!(i & k) && (await this.compare(arr, i, '>', l))) {
+              await this.drawAndSwap(arr, i, l);
+            }
+            if (i & k && (await this.compare(arr, i, '<', l))) {
+              await this.drawAndSwap(arr, l, i);
+            }
+          }
+        }
+      }
     }
   }
 
