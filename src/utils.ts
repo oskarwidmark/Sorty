@@ -35,6 +35,7 @@ export const sortNameToSortType: Record<SortName, string> = {
   [SortName.SelectionSort]: SortType.Comparison,
   [SortName.CocktailShakerSort]: SortType.Comparison,
   [SortName.BubbleSort]: SortType.Comparison,
+  [SortName.OddEvenSort]: SortType.Comparison,
   [SortName.RadixSortLSD]: SortType.Distribution,
   [SortName.RadixSortMSD]: SortType.Distribution,
   [SortName.QuickSort]: SortType.Comparison,

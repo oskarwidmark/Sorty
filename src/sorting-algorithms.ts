@@ -6,6 +6,7 @@ export class SortingAlgorithms {
     [SortName.SelectionSort]: this.selectionSort,
     [SortName.CocktailShakerSort]: this.cocktailShakerSort,
     [SortName.BubbleSort]: this.bubbleSort,
+    [SortName.OddEvenSort]: this.oddEvenSort,
     [SortName.RadixSortLSD]: this.lsdRadixSort,
     [SortName.RadixSortMSD]: this.msdRadixSort,
     [SortName.QuickSort]: this.quickSort,
@@ -58,6 +59,33 @@ export class SortingAlgorithms {
         }
       }
       sortedCount++;
+    }
+  }
+
+  public async oddEvenSort(arr: SortValue[]) {
+    let isSorted = false;
+    while (!isSorted) {
+      isSorted = true;
+      const oddSorter = async () => {
+        for (let i = 1; i < arr.length; i += 2) {
+          if (await this.compare(arr, i - 1, '>', i)) {
+            await this.drawAndSwap(arr, i - 1, i);
+            isSorted = false;
+          }
+        }
+      };
+      const evenSorter = async () => {
+        for (let i = 2; i < arr.length; i += 2) {
+          if (await this.compare(arr, i - 1, '>', i)) {
+            await this.drawAndSwap(arr, i - 1, i);
+            isSorted = false;
+          }
+        }
+      };
+      // TODO: run "in parallel" when drawing looks better
+      // await Promise.all([oddSorter(), evenSorter()]);
+      await oddSorter();
+      await evenSorter();
     }
   }
 
