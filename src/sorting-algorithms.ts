@@ -249,15 +249,20 @@ export class SortingAlgorithms {
   public async bitonicSort(arr: SortValue[]) {
     for (let k = 2; k <= arr.length; k *= 2) {
       for (let j = k / 2; j > 0; j = Math.floor(j / 2)) {
-        for (let i = 0; i < arr.length; i++) {
-          const l = i ^ j;
-          if (l > i) {
-            if (!(i & k) && (await this.compare(arr, i, '>', l))) {
-              await this.drawAndSwap(arr, i, l);
-            }
-            if (i & k && (await this.compare(arr, i, '<', l))) {
-              await this.drawAndSwap(arr, l, i);
-            }
+        for (let i = 0; i < arr.length - j; i++) {
+          // When we reach the bit for j, we can skip to the next part,
+          // since we already have compared all pairs for this j.
+          if (i & j) {
+            continue;
+          }
+          const l = i + j;
+          // i & k is false for the first half of the bitonic sequence (ex: k = 4, i = 0, 1, 2, 3, 8, 9, 10, 11)
+          if (!(i & k) && (await this.compare(arr, i, '>', l))) {
+            await this.drawAndSwap(arr, i, l);
+          }
+          // i & k is true for the second half of the bitonic sequence (ex: k = 4, i = 4, 5, 6, 7, 12, 13, 14, 15)
+          if (i & k && (await this.compare(arr, i, '<', l))) {
+            await this.drawAndSwap(arr, l, i);
           }
         }
       }
