@@ -4,6 +4,7 @@ export enum SortName {
   CocktailShakerSort = 'Cocktail Shaker Sort',
   BubbleSort = 'Bubble Sort',
   OddEvenSort = 'Odd-Even Sort',
+  BatchersOddEvenMergesort = `Batcher's Odd-Even Mergesort`,
   RadixSortLSD = 'Radix Sort (LSD)',
   RadixSortMSD = 'Radix Sort (MSD)',
   QuickSort = 'Quick Sort',

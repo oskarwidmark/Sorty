@@ -7,6 +7,7 @@ export class SortingAlgorithms {
     [SortName.CocktailShakerSort]: this.cocktailShakerSort,
     [SortName.BubbleSort]: this.bubbleSort,
     [SortName.OddEvenSort]: this.oddEvenSort,
+    [SortName.BatchersOddEvenMergesort]: this.batchersOddEvenMergesort,
     [SortName.RadixSortLSD]: this.lsdRadixSort,
     [SortName.RadixSortMSD]: this.msdRadixSort,
     [SortName.QuickSort]: this.quickSort,
@@ -87,6 +88,25 @@ export class SortingAlgorithms {
       // await Promise.all([oddSorter(), evenSorter()]);
       await oddSorter();
       await evenSorter();
+    }
+  }
+
+  // TODO: make "parallel"(?)
+  public async batchersOddEvenMergesort(arr: SortValue[]) {
+    for (let p = 1; p < arr.length; p *= 2) {
+      for (let k = p; k > 0; k = Math.floor(k / 2)) {
+        for (let j = k % p; j < arr.length - k; j += 2 * k) {
+          for (let i = 0; i < k && i < arr.length - j - k; i++) {
+            const index1 = i + j;
+            const index2 = i + j + k;
+            if (Math.floor(index1 / (p * 2)) == Math.floor(index2 / (p * 2))) {
+              if (await this.compare(arr, index1, '>', index2)) {
+                await this.drawAndSwap(arr, index1, index2);
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -251,7 +271,7 @@ export class SortingAlgorithms {
       for (let j = k / 2; j > 0; j = Math.floor(j / 2)) {
         for (let i = 0; i < arr.length - j; i++) {
           // When we reach the bit for j, we can skip to the next part,
-          // since we already have compared all pairs for this j.
+          // since we already have compared all pairs for this sequence.
           if (i & j) {
             continue;
           }
