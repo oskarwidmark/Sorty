@@ -44,12 +44,16 @@ export function SideDrawer({
   chooseResetPreset,
   areSettingsOpen,
 }: SideDrawerProps) {
+  const isBitonicSort =
+    chosenSortAlg === SortName.IterBitonicSort ||
+    chosenSortAlg === SortName.RecBitonicSort;
+
   useEffect(() => {
     // Bitonic Sort requires a power of two
-    if (chosenSortAlg === SortName.BitonicSort) {
+    if (isBitonicSort) {
       changeColumnNbr(undefined, 2 ** Math.floor(Math.log2(columnNbr)));
     }
-  }, [chosenSortAlg, changeColumnNbr, columnNbr]);
+  }, [isBitonicSort, changeColumnNbr, columnNbr]);
 
   return (
     <Drawer
@@ -103,9 +107,9 @@ export function SideDrawer({
             valueLabelDisplay="auto"
             min={8}
             max={1024}
-            step={chosenSortAlg === SortName.BitonicSort ? null : 1}
+            step={isBitonicSort ? null : 1}
             marks={
-              chosenSortAlg === SortName.BitonicSort
+              isBitonicSort
                 ? POWERS_OF_TWO.map((value) => ({
                     value,
                   }))

@@ -10,7 +10,8 @@ export enum SortName {
   QuickSort = 'Quick Sort',
   CombSort = 'Comb Sort',
   ShellSort = 'Shell Sort',
-  BitonicSort = 'Bitonic Sort',
+  IterBitonicSort = 'Iterative Bitonic Sort',
+  RecBitonicSort = 'Recursive Bitonic Sort',
   BullySort = 'Bully Sort',
 }
 

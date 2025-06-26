@@ -13,7 +13,8 @@ export class SortingAlgorithms {
     [SortName.QuickSort]: this.quickSort,
     [SortName.CombSort]: this.combSort,
     [SortName.ShellSort]: this.shellSort,
-    [SortName.BitonicSort]: this.bitonicSort,
+    [SortName.IterBitonicSort]: this.iterBitonicSort,
+    [SortName.RecBitonicSort]: this.recBitonicSort,
     [SortName.BullySort]: this.bullySort,
     // 'Bully Sort 2': this.bullySort2,
   };
@@ -266,7 +267,7 @@ export class SortingAlgorithms {
   }
 
   // TODO: make "parallel"(?)
-  public async bitonicSort(arr: SortValue[]) {
+  public async iterBitonicSort(arr: SortValue[]) {
     for (let k = 2; k <= arr.length; k *= 2) {
       for (let j = k / 2; j > 0; j = Math.floor(j / 2)) {
         for (let i = 0; i < arr.length - j; i++) {
@@ -287,6 +288,50 @@ export class SortingAlgorithms {
         }
       }
     }
+  }
+
+  // TODO: make "parallel"(?)
+  public async recBitonicSort(arr: SortValue[]) {
+    return await this._bitonicSort(arr, 0, this._columnNbr, 'asc');
+  }
+
+  private async _bitonicSort(
+    arr: SortValue[],
+    start: number,
+    end: number,
+    direction: 'asc' | 'desc',
+  ) {
+    if (end - start <= 1) return;
+
+    const mid = Math.floor((start + end) / 2);
+    await this._bitonicSort(arr, start, mid, 'asc');
+    await this._bitonicSort(arr, mid, end, 'desc');
+
+    await this.bitonicMerge(arr, start, end, direction);
+  }
+
+  private async bitonicMerge(
+    arr: SortValue[],
+    start: number,
+    end: number,
+    direction: 'asc' | 'desc',
+  ) {
+    if (end - start <= 1) return;
+
+    const mid = Math.floor((start + end) / 2);
+    const j = Math.floor((end - start) / 2);
+
+    for (let i = start; i < mid && i + j < arr.length; i++) {
+      if (direction === 'asc' && (await this.compare(arr, i, '>', i + j))) {
+        await this.drawAndSwap(arr, i, i + j);
+      }
+      if (direction === 'desc' && (await this.compare(arr, i, '<', i + j))) {
+        await this.drawAndSwap(arr, i, i + j);
+      }
+    }
+
+    await this.bitonicMerge(arr, start, mid, direction);
+    await this.bitonicMerge(arr, mid, end, direction);
   }
 
   // Elmayo's brain child

@@ -42,6 +42,7 @@ export const sortNameToSortType: Record<SortName, string> = {
   [SortName.QuickSort]: SortType.Comparison,
   [SortName.CombSort]: SortType.Comparison,
   [SortName.ShellSort]: SortType.Comparison,
-  [SortName.BitonicSort]: SortType.Comparison,
+  [SortName.RecBitonicSort]: SortType.Comparison,
+  [SortName.IterBitonicSort]: SortType.Comparison,
   [SortName.BullySort]: SortType.Comparison,
 };
