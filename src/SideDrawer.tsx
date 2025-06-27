@@ -8,7 +8,7 @@ import {
   Slider,
   SelectChangeEvent,
 } from '@mui/material';
-import { SortName, ResetPreset } from './types';
+import { SortName, ResetPreset, AlgorithmOptions } from './types';
 import { timeScale } from './utils';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import {
@@ -18,6 +18,7 @@ import {
   POWERS_OF_TWO,
 } from './constants';
 import { useEffect } from 'react';
+import { Options } from './Options';
 
 interface SideDrawerProps {
   areSettingsOpen: boolean;
@@ -30,6 +31,11 @@ interface SideDrawerProps {
   resetPreset: ResetPreset;
   chooseResetPreset: (event: SelectChangeEvent<ResetPreset>) => void;
   columnNbr: number;
+  algorithmOptions: AlgorithmOptions;
+  setAlgorithmOption: (
+    key: keyof AlgorithmOptions,
+    value: AlgorithmOptions[typeof key],
+  ) => void;
 }
 
 export function SideDrawer({
@@ -43,10 +49,10 @@ export function SideDrawer({
   resetPreset,
   chooseResetPreset,
   areSettingsOpen,
+  algorithmOptions,
+  setAlgorithmOption,
 }: SideDrawerProps) {
-  const isBitonicSort =
-    chosenSortAlg === SortName.IterBitonicSort ||
-    chosenSortAlg === SortName.RecBitonicSort;
+  const isBitonicSort = chosenSortAlg === SortName.BitonicSort;
 
   useEffect(() => {
     // Bitonic Sort requires a power of two
@@ -91,6 +97,11 @@ export function SideDrawer({
           </Select>
         </FormControl>
       </div>
+      <Options
+        chosenSortAlg={chosenSortAlg}
+        algorithmOptions={algorithmOptions}
+        setAlgorithmOption={setAlgorithmOption}
+      />
       <div>
         <Typography
           align="left"

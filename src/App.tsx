@@ -8,6 +8,7 @@ import {
   ResetFunction,
   Operator,
   SortType,
+  AlgorithmOptions,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
 import {
@@ -22,6 +23,7 @@ import {
   INIT_COLUMN_NUMBER,
   INIT_SWAP_TIME,
   INIT_COMPARE_TIME,
+  DEFAULT_ALGORITHM_OPTIONS,
 } from './constants';
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
@@ -52,6 +54,7 @@ class App extends React.Component<Props> {
     shouldHighlightSwaps: boolean;
     shouldHighlightComparisons: boolean;
     shouldPlaySound: boolean;
+    algorithmOptions: AlgorithmOptions;
   };
   canvasController: CanvasController;
 
@@ -80,6 +83,7 @@ class App extends React.Component<Props> {
       shouldHighlightSwaps: true,
       shouldHighlightComparisons: false,
       shouldPlaySound: false,
+      algorithmOptions: DEFAULT_ALGORITHM_OPTIONS,
     };
 
     this.resetPresets = {
@@ -142,7 +146,7 @@ class App extends React.Component<Props> {
         try {
           await this.sortingAlgorithms.getSortingAlgorithm(
             this.state.chosenSortAlg,
-          )(arr);
+          )(arr, this.state.algorithmOptions);
         } catch (e) {
           console.error('Sorting interrupted! Reason: ', e);
         }
@@ -313,6 +317,15 @@ class App extends React.Component<Props> {
     this.props.stopSounds();
   };
 
+  setAlgorithmOption = (
+    key: keyof AlgorithmOptions,
+    value: AlgorithmOptions[typeof key],
+  ) => {
+    this.setState((prevState: typeof this.state) => ({
+      algorithmOptions: { ...prevState.algorithmOptions, [key]: value },
+    }));
+  };
+
   render() {
     return (
       <div className="App">
@@ -358,6 +371,8 @@ class App extends React.Component<Props> {
             changeSwapTime={this.changeSwapTime}
             changeCompareTime={this.changeCompareTime}
             columnNbr={this.state.columnNbr}
+            algorithmOptions={this.state.algorithmOptions}
+            setAlgorithmOption={this.setAlgorithmOption}
           />
         </div>
       </div>

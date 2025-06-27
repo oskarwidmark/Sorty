@@ -4,20 +4,28 @@ export enum SortName {
   CocktailShakerSort = 'Cocktail Shaker Sort',
   BubbleSort = 'Bubble Sort',
   OddEvenSort = 'Odd-Even Sort',
-  BatchersOddEvenMergesort = `Batcher's Odd-Even Mergesort`,
+  OddEvenMergesort = `Odd-Even Mergesort`,
   RadixSortLSD = 'Radix Sort (LSD)',
   RadixSortMSD = 'Radix Sort (MSD)',
   QuickSort = 'Quick Sort',
   CombSort = 'Comb Sort',
   ShellSort = 'Shell Sort',
-  IterBitonicSort = 'Iterative Bitonic Sort',
-  RecBitonicSort = 'Recursive Bitonic Sort',
+  BitonicSort = 'Bitonic Sort',
   BullySort = 'Bully Sort',
 }
 
-export type SortAlgorithm = (arr: SortValue[]) => Promise<void>;
+export type SortAlgorithm = (
+  arr: SortValue[],
+  options: AlgorithmOptions,
+) => Promise<void>;
 
 export type SortValue = { value: number; id: number };
+
+export type AlgorithmOptions = {
+  type: 'iterative' | 'recursive';
+  base: number;
+  shrinkFactor: number;
+};
 
 export enum ResetPreset {
   Shuffle = 'Shuffle',

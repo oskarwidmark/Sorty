@@ -1,4 +1,10 @@
-import { Operator, SortAlgorithm, SortName, SortValue } from './types';
+import {
+  Operator,
+  SortAlgorithm,
+  SortName,
+  AlgorithmOptions,
+  SortValue,
+} from './types';
 
 export class SortingAlgorithms {
   private sortingAlgorithms: Record<SortName, SortAlgorithm> = {
@@ -7,14 +13,13 @@ export class SortingAlgorithms {
     [SortName.CocktailShakerSort]: this.cocktailShakerSort,
     [SortName.BubbleSort]: this.bubbleSort,
     [SortName.OddEvenSort]: this.oddEvenSort,
-    [SortName.BatchersOddEvenMergesort]: this.batchersOddEvenMergesort,
+    [SortName.OddEvenMergesort]: this.oddEvenMergesort,
     [SortName.RadixSortLSD]: this.lsdRadixSort,
     [SortName.RadixSortMSD]: this.msdRadixSort,
     [SortName.QuickSort]: this.quickSort,
     [SortName.CombSort]: this.combSort,
     [SortName.ShellSort]: this.shellSort,
-    [SortName.IterBitonicSort]: this.iterBitonicSort,
-    [SortName.RecBitonicSort]: this.recBitonicSort,
+    [SortName.BitonicSort]: this.bitonicSort,
     [SortName.BullySort]: this.bullySort,
     // 'Bully Sort 2': this.bullySort2,
   };
@@ -93,7 +98,7 @@ export class SortingAlgorithms {
   }
 
   // TODO: make "parallel"(?)
-  public async batchersOddEvenMergesort(arr: SortValue[]) {
+  public async oddEvenMergesort(arr: SortValue[]) {
     for (let p = 1; p < arr.length; p *= 2) {
       for (let k = p; k > 0; k = Math.floor(k / 2)) {
         for (let j = k % p; j < arr.length - k; j += 2 * k) {
@@ -111,9 +116,9 @@ export class SortingAlgorithms {
     }
   }
 
-  public async combSort(arr: SortValue[]) {
+  public async combSort(arr: SortValue[], options: AlgorithmOptions) {
     let gap = this._columnNbr;
-    const shrinkFactor = 1.3;
+    const { shrinkFactor } = options;
     let isSorted = false;
     while (!isSorted) {
       gap = Math.floor(gap / shrinkFactor);
@@ -140,7 +145,8 @@ export class SortingAlgorithms {
     }
   }
 
-  public async lsdRadixSort(arr: SortValue[], base = 4) {
+  public async lsdRadixSort(arr: SortValue[], options: AlgorithmOptions) {
+    const { base } = options;
     const buckets = Array(base);
     const indexMap: Record<number, number> = {};
     let shift = 0;
@@ -175,11 +181,12 @@ export class SortingAlgorithms {
 
   public async msdRadixSort(
     arr: SortValue[],
-    base = 4,
+    options: AlgorithmOptions,
     start = 0,
     end = this._columnNbr,
-    shift = Math.floor(Math.log(this._columnNbr) / Math.log(base)),
+    shift = Math.floor(Math.log(this._columnNbr) / Math.log(options.base)),
   ) {
+    const { base } = options;
     const buckets = Array(base);
     const indexMap: Record<number, number> = {};
 
@@ -212,7 +219,7 @@ export class SortingAlgorithms {
       bucketIndices.push([bucketStart, currentIndex]);
     }
     for (const [bucketStart, bucketEnd] of bucketIndices) {
-      await this.msdRadixSort(arr, base, bucketStart, bucketEnd, shift - 1);
+      await this.msdRadixSort(arr, options, bucketStart, bucketEnd, shift - 1);
     }
   }
 
@@ -291,11 +298,16 @@ export class SortingAlgorithms {
   }
 
   // TODO: make "parallel"(?)
-  public async recBitonicSort(arr: SortValue[]) {
-    return await this._bitonicSort(arr, 0, this._columnNbr, 'asc');
+  public async bitonicSort(arr: SortValue[], options: AlgorithmOptions) {
+    switch (options.type) {
+      case 'iterative':
+        return await this.iterBitonicSort(arr);
+      case 'recursive':
+        return await this.recBitonicSort(arr, 0, this._columnNbr, 'asc');
+    }
   }
 
-  private async _bitonicSort(
+  private async recBitonicSort(
     arr: SortValue[],
     start: number,
     end: number,
@@ -304,8 +316,8 @@ export class SortingAlgorithms {
     if (end - start <= 1) return;
 
     const mid = Math.floor((start + end) / 2);
-    await this._bitonicSort(arr, start, mid, 'asc');
-    await this._bitonicSort(arr, mid, end, 'desc');
+    await this.recBitonicSort(arr, start, mid, 'asc');
+    await this.recBitonicSort(arr, mid, end, 'desc');
 
     await this.bitonicMerge(arr, start, end, direction);
   }
@@ -421,11 +433,11 @@ public async   mergeSort(arr, start, end){
   */
   //#endregion
 
-  public async quickSort(
-    arr: SortValue[],
-    start = 0,
-    end = this._columnNbr - 1,
-  ) {
+  public async quickSort(arr: SortValue[]) {
+    await this._quickSort(arr, 0, this._columnNbr - 1);
+  }
+
+  private async _quickSort(arr: SortValue[], start: number, end: number) {
     if (start >= end) return;
 
     const mid = Math.floor((start + end) / 2);
@@ -449,8 +461,8 @@ public async   mergeSort(arr, start, end){
     }
     await this.drawAndSwap(arr, i, end);
 
-    await this.quickSort(arr, start, i - 1);
-    await this.quickSort(arr, i + 1, end);
+    await this._quickSort(arr, start, i - 1);
+    await this._quickSort(arr, i + 1, end);
   }
 
   public async shellSort(arr: SortValue[]) {
