@@ -27,6 +27,12 @@ import {
 } from './constants';
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
+import { Colors } from './Colors';
+import { ColumnSlider } from './ColumnSlider';
+import { Options } from './Options';
+import { ResetPresetSelect } from './ResetPresetSelect';
+import { SortingAlgorithmSelect } from './SortingAlgorithmSelect';
+import { TimeSlider } from './TimeSlider';
 
 type Props = {
   playSound: () => void;
@@ -431,28 +437,48 @@ class App extends React.Component<Props> {
           </div>
           <SideDrawer
             areSettingsOpen={this.state.areSettingsOpen}
-            resetPreset={this.state.settings.resetPreset}
-            chosenSortAlg={this.state.settings.chosenSortAlg}
             toggleDisplaySettings={this.toggleDisplaySettings}
-            chooseSortAlg={this.chooseSortAlg}
-            chooseResetPreset={this.chooseResetPreset}
-            changeColumnNbr={this.changeColumnNbr}
-            changeSwapTime={this.changeSwapTime}
-            changeCompareTime={this.changeCompareTime}
-            columnNbr={this.state.settings.columnNbr}
-            swapTime={this.state.settings.swapTime}
-            compareTime={this.state.settings.compareTime}
-            algorithmOptions={this.state.settings.algorithmOptions}
-            setAlgorithmOption={this.setAlgorithmOption}
-            colorPreset={this.state.settings.colorPreset}
-            columnColor={this.state.settings.columnColor}
-            backgroundColor={this.state.settings.backgroundColor}
-            highlightColor={this.state.settings.highlightColor}
-            setColorPreset={this.setColorPreset}
-            setColumnColor={this.setColumnColor}
-            setBackgroundColor={this.setBackgroundColor}
-            setHighlightColor={this.setHighlightColor}
-          />
+          >
+            <SortingAlgorithmSelect
+              chosenSortAlg={this.state.settings.chosenSortAlg}
+              chooseSortAlg={this.chooseSortAlg}
+            />
+            <Options
+              chosenSortAlg={this.state.settings.chosenSortAlg}
+              algorithmOptions={this.state.settings.algorithmOptions}
+              setAlgorithmOption={this.setAlgorithmOption}
+            />
+            <ColumnSlider
+              columnNbr={this.state.settings.columnNbr}
+              chosenSortAlg={this.state.settings.chosenSortAlg}
+              algorithmOptions={this.state.settings.algorithmOptions}
+              changeColumnNbr={this.changeColumnNbr}
+            />
+            <TimeSlider
+              title="Time per swap (ms)"
+              time={this.state.settings.swapTime}
+              changeTime={this.changeSwapTime}
+            />
+            <TimeSlider
+              title="Time per comparison (ms)"
+              time={this.state.settings.compareTime}
+              changeTime={this.changeCompareTime}
+            />
+            <ResetPresetSelect
+              resetPreset={this.state.settings.resetPreset}
+              chooseResetPreset={this.chooseResetPreset}
+            />
+            <Colors
+              colorPreset={this.state.settings.colorPreset}
+              columnColor={this.state.settings.columnColor}
+              backgroundColor={this.state.settings.backgroundColor}
+              highlightColor={this.state.settings.highlightColor}
+              setColorPreset={this.setColorPreset}
+              setColumnColor={this.setColumnColor}
+              setBackgroundColor={this.setBackgroundColor}
+              setHighlightColor={this.setHighlightColor}
+            />
+          </SideDrawer>
         </div>
       </div>
     );
