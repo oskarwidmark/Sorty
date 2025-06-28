@@ -1,6 +1,6 @@
 import { MouseEvent } from 'react';
 import { ColorPreset, DrawData, SortValue } from './types';
-import { hsvToRgbHex } from './utils';
+import { hsvToRgbHex, rgbHexToHsv } from './utils';
 
 export class CanvasController {
   private prevHighlightIndices: number[] | null = null;
@@ -14,7 +14,8 @@ export class CanvasController {
     public canvasRef: React.RefObject<HTMLCanvasElement>,
     public columnNbr: number,
     public colorPreset: ColorPreset,
-    public columnColor: string,
+    public columnColor1: string,
+    public columnColor2: string,
     public highlightColor: string,
   ) {}
 
@@ -43,10 +44,40 @@ export class CanvasController {
     return context;
   }
 
-  getColumnColor(value: number) {
+  getGradientColor(value: number) {
+    // eslint-disable-next-line prefer-const
+    let [h1, s1, v1] = rgbHexToHsv(this.columnColor1);
+    // eslint-disable-next-line prefer-const
+    let [h2, s2, v2] = rgbHexToHsv(this.columnColor2);
+    if (h1 === 0 && s1 === 0) {
+      h1 = h2;
+    }
+    if (h2 === 0 && s2 === 0) {
+      h2 = h1;
+    }
+
+    // Use the shortest path in the hue circle
+    let hDiff = h2 - h1;
+    hDiff += hDiff > 180 ? -360 : hDiff < -180 ? 360 : 0;
+
+    const sDiff = s2 - s1;
+    const vDiff = v2 - v1;
+    const multiplier = value / this.columnNbr;
+
+    return hsvToRgbHex(
+      // TODO: Use additive/subtractive color mixing instead of hue shifting?
+      (h1 + hDiff * multiplier + 360) % 360,
+      s1 + sDiff * multiplier,
+      v1 + vDiff * multiplier,
+    );
+  }
+
+  getColumnColor1(value: number) {
     switch (this.colorPreset) {
       case ColorPreset.Custom:
-        return this.columnColor;
+        return this.columnColor1;
+      case ColorPreset.CustomGradient:
+        return this.getGradientColor(value);
       case ColorPreset.Rainbow:
         return hsvToRgbHex((360 * value) / this.columnNbr, 1, 1);
     }
@@ -55,6 +86,7 @@ export class CanvasController {
   getHighlightColor() {
     switch (this.colorPreset) {
       case ColorPreset.Custom:
+      case ColorPreset.CustomGradient:
         return this.highlightColor;
       case ColorPreset.Rainbow:
         return '#FFFFFF';
@@ -192,7 +224,7 @@ export class CanvasController {
       (this.canvas2dCtx.canvas.height / this.columnNbr) * (arr[i].value + 1);
     const startX = width * i;
 
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor1(arr[i].value);
     this.fillRect(startX, 0, width, height);
   };
 

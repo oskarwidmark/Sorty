@@ -50,4 +50,5 @@ export enum SortType {
 export enum ColorPreset {
   Rainbow = 'Rainbow',
   Custom = 'Custom',
+  CustomGradient = 'Custom (gradient)',
 }

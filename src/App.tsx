@@ -61,7 +61,8 @@ class App extends React.Component<Props> {
       resetPreset: ResetPreset;
       algorithmOptions: AlgorithmOptions;
       colorPreset: ColorPreset;
-      columnColor: string;
+      columnColor1: string;
+      columnColor2: string;
       backgroundColor: string;
       highlightColor: string;
     };
@@ -101,7 +102,8 @@ class App extends React.Component<Props> {
       ref as React.RefObject<HTMLCanvasElement>,
       this.state.settings.columnNbr,
       this.state.settings.colorPreset,
-      this.state.settings.columnColor,
+      this.state.settings.columnColor1,
+      this.state.settings.columnColor2,
       this.state.settings.highlightColor,
     );
   }
@@ -371,9 +373,16 @@ class App extends React.Component<Props> {
     this.canvasController.redraw(this.arr);
   };
 
-  setColumnColor = (columnColor: string) => {
-    this.setSettings({ columnColor });
-    this.canvasController.columnColor = columnColor;
+  setColumnColor1 = (columnColor1: string) => {
+    this.setSettings({ columnColor1 });
+    this.canvasController.columnColor1 = columnColor1;
+    this.stopSorting();
+    this.canvasController.redraw(this.arr);
+  };
+
+  setColumnColor2 = (columnColor2: string) => {
+    this.setSettings({ columnColor2 });
+    this.canvasController.columnColor2 = columnColor2;
     this.stopSorting();
     this.canvasController.redraw(this.arr);
   };
@@ -394,6 +403,7 @@ class App extends React.Component<Props> {
       case ColorPreset.Rainbow:
         return RAINBOW_BACKGROUND_COLOR;
       case ColorPreset.Custom:
+      case ColorPreset.CustomGradient:
         return this.state.settings.backgroundColor;
     }
   };
@@ -470,11 +480,13 @@ class App extends React.Component<Props> {
             />
             <Colors
               colorPreset={this.state.settings.colorPreset}
-              columnColor={this.state.settings.columnColor}
+              columnColor1={this.state.settings.columnColor1}
+              columnColor2={this.state.settings.columnColor2}
               backgroundColor={this.state.settings.backgroundColor}
               highlightColor={this.state.settings.highlightColor}
               setColorPreset={this.setColorPreset}
-              setColumnColor={this.setColumnColor}
+              setColumnColor1={this.setColumnColor1}
+              setColumnColor2={this.setColumnColor2}
               setBackgroundColor={this.setBackgroundColor}
               setHighlightColor={this.setHighlightColor}
             />

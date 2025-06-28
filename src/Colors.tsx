@@ -11,8 +11,10 @@ import { ColorPreset } from './types';
 export function Colors(props: {
   colorPreset: ColorPreset;
   setColorPreset: (string: ColorPreset) => void;
-  columnColor: string;
-  setColumnColor: (string: string) => void;
+  columnColor1: string;
+  setColumnColor1: (string: string) => void;
+  columnColor2: string;
+  setColumnColor2: (string: string) => void;
   backgroundColor: string;
   setBackgroundColor: (string: string) => void;
   highlightColor: string;
@@ -21,8 +23,10 @@ export function Colors(props: {
   const {
     colorPreset,
     setColorPreset,
-    columnColor,
-    setColumnColor,
+    columnColor1,
+    setColumnColor1,
+    columnColor2,
+    setColumnColor2,
     backgroundColor,
     setBackgroundColor,
     highlightColor,
@@ -56,16 +60,29 @@ export function Colors(props: {
               </MenuItem>
             ))}
           </TextField>
-          {colorPreset === ColorPreset.Custom && (
+          {(colorPreset === ColorPreset.Custom ||
+            colorPreset === ColorPreset.CustomGradient) && (
             <Grid2 container spacing={2}>
               <TextField
-                label="Columns"
-                value={columnColor}
+                label={
+                  colorPreset === ColorPreset.Custom ? 'Columns' : 'Columns(1)'
+                }
+                value={columnColor1}
                 type="color"
                 size="small"
                 sx={{ width: 100 }}
-                onChange={(e) => setColumnColor(e.target.value)}
+                onChange={(e) => setColumnColor1(e.target.value)}
               />
+              {colorPreset === ColorPreset.CustomGradient && (
+                <TextField
+                  label="Columns(2)"
+                  value={columnColor2}
+                  type="color"
+                  size="small"
+                  sx={{ width: 100 }}
+                  onChange={(e) => setColumnColor2(e.target.value)}
+                />
+              )}
               <TextField
                 label="Background"
                 value={backgroundColor}

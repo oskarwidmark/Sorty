@@ -119,6 +119,7 @@ export function Options({
         {algorithmOptionFields.map((field) => (
           <FormControl component="fieldset">
             <TextField
+              key={field}
               select={ALGORITHM_OPTION_TEXT_FIELD_TYPES[field] === 'select'}
               label={ALGORITHM_OPTION_LABELS[field]}
               value={nonValidatedOptions[field]}
