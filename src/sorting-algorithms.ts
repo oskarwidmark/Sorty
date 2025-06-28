@@ -97,8 +97,17 @@ export class SortingAlgorithms {
     }
   }
 
+  public async oddEvenMergesort(arr: SortValue[], options: AlgorithmOptions) {
+    switch (options.type) {
+      case 'iterative':
+        return await this.iterOddEvenMergesort(arr);
+      case 'recursive':
+        return await this.recOddEvenMergesort(arr, 0, this._columnNbr);
+    }
+  }
+
   // TODO: make "parallel"(?)
-  public async oddEvenMergesort(arr: SortValue[]) {
+  public async iterOddEvenMergesort(arr: SortValue[]) {
     for (let p = 1; p < arr.length; p *= 2) {
       for (let k = p; k > 0; k = Math.floor(k / 2)) {
         for (let j = k % p; j < arr.length - k; j += 2 * k) {
@@ -112,6 +121,47 @@ export class SortingAlgorithms {
             }
           }
         }
+      }
+    }
+  }
+
+  private async recOddEvenMergesort(
+    arr: SortValue[],
+    start: number,
+    end: number,
+  ) {
+    if (end - start <= 1) return;
+
+    const mid = Math.floor((start + end) / 2);
+    await this.recOddEvenMergesort(arr, start, mid);
+    await this.recOddEvenMergesort(arr, mid, end);
+
+    await this.oddEvenMerge(arr, start, end, 1);
+  }
+
+  private async oddEvenMerge(
+    arr: SortValue[],
+    start: number,
+    end: number,
+    dist: number,
+  ) {
+    const newDist = dist * 2;
+    if (end - start <= newDist && start + dist < arr.length) {
+      if (await this.compare(arr, start, '>', start + dist)) {
+        await this.drawAndSwap(arr, start, start + dist);
+      }
+      return;
+    }
+
+    // Even indices
+    await this.oddEvenMerge(arr, start, end, newDist);
+    // Odd indices
+    await this.oddEvenMerge(arr, start + dist, end, newDist);
+
+    for (let i = start + dist; i < end - dist; i += newDist) {
+      const j = i + dist;
+      if (await this.compare(arr, i, '>', j)) {
+        await this.drawAndSwap(arr, i, j);
       }
     }
   }

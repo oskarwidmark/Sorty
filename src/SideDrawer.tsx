@@ -71,14 +71,17 @@ export function SideDrawer({
   setBackgroundColor,
   setHighlightColor,
 }: SideDrawerProps) {
-  const isBitonicSort = chosenSortAlg === SortName.BitonicSort;
+  // Bitonic Sort and recursive Odd-even mergesort requires a power of two
+  const requiresPowerOfTwoColumns =
+    chosenSortAlg === SortName.BitonicSort ||
+    (chosenSortAlg === SortName.OddEvenMergesort &&
+      algorithmOptions.type === 'recursive');
 
   useEffect(() => {
-    // Bitonic Sort requires a power of two
-    if (isBitonicSort) {
+    if (requiresPowerOfTwoColumns) {
       changeColumnNbr(undefined, 2 ** Math.floor(Math.log2(columnNbr)));
     }
-  }, [isBitonicSort, changeColumnNbr, columnNbr]);
+  }, [requiresPowerOfTwoColumns, changeColumnNbr, columnNbr]);
 
   return (
     <Drawer
@@ -137,9 +140,9 @@ export function SideDrawer({
             valueLabelDisplay="auto"
             min={8}
             max={1024}
-            step={isBitonicSort ? null : 1}
+            step={requiresPowerOfTwoColumns ? null : 1}
             marks={
-              isBitonicSort
+              requiresPowerOfTwoColumns
                 ? POWERS_OF_TWO.map((value) => ({
                     value,
                   }))

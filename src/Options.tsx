@@ -13,6 +13,7 @@ const getAlgorithmOptionFields = (
 ): (keyof AlgorithmOptions)[] => {
   switch (sortName) {
     case SortName.BitonicSort:
+    case SortName.OddEvenMergesort:
       return ['type'];
     case SortName.RadixSortLSD:
     case SortName.RadixSortMSD:
