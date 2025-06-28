@@ -1,4 +1,4 @@
-import { AlgorithmOptions } from './types';
+import { AlgorithmOptions, ColorPreset, ResetPreset, SortName } from './types';
 
 export const INIT_SWAP_TIME = 1;
 export const INIT_COMPARE_TIME = 1;
@@ -12,4 +12,25 @@ export const DEFAULT_ALGORITHM_OPTIONS: AlgorithmOptions = {
   type: 'iterative',
   base: 4,
   shrinkFactor: 1.3,
+};
+export const INIT_STATE = {
+  isSorting: false,
+  areSettingsOpen: false,
+  shouldPlaySound: false,
+  canDraw: false,
+  nbrOfSwaps: 0,
+  nbrOfComparisons: 0,
+};
+
+export const INIT_SETTINGS = {
+  columnNbr: INIT_COLUMN_NUMBER,
+  chosenSortAlg: SortName.InsertionSort,
+  swapTime: INIT_SWAP_TIME,
+  compareTime: INIT_COMPARE_TIME,
+  resetPreset: ResetPreset.Shuffle,
+  algorithmOptions: DEFAULT_ALGORITHM_OPTIONS,
+  colorPreset: ColorPreset.Rainbow,
+  columnColor: DEFAULT_COLUMN_COLOR,
+  backgroundColor: DEFAULT_BACKGROUND_COLOR,
+  highlightColor: DEFAULT_HIGHLIGHT_COLOR,
 };

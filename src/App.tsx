@@ -21,14 +21,9 @@ import {
 } from './utils';
 import { SideDrawer } from './SideDrawer';
 import {
-  INIT_COLUMN_NUMBER,
-  INIT_SWAP_TIME,
-  INIT_COMPARE_TIME,
-  DEFAULT_ALGORITHM_OPTIONS,
-  DEFAULT_COLUMN_COLOR,
-  DEFAULT_BACKGROUND_COLOR,
-  DEFAULT_HIGHLIGHT_COLOR,
   RAINBOW_BACKGROUND_COLOR,
+  INIT_STATE,
+  INIT_SETTINGS,
 } from './constants';
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
@@ -48,56 +43,42 @@ class App extends React.Component<Props> {
   state: {
     isSorting: boolean;
     areSettingsOpen: boolean;
-    chosenSortAlg: SortName;
-    columnNbr: number;
-    compareTime: number;
-    swapTime: number;
     canDraw: boolean;
+    shouldPlaySound: boolean;
     nbrOfSwaps: number;
     nbrOfComparisons: number;
-    resetPreset: ResetPreset;
-    shouldHighlightSwaps: boolean;
-    shouldHighlightComparisons: boolean;
-    shouldPlaySound: boolean;
-    algorithmOptions: AlgorithmOptions;
-    colorPreset: ColorPreset;
-    columnColor: string;
-    backgroundColor: string;
-    highlightColor: string;
+    settings: {
+      chosenSortAlg: SortName;
+      columnNbr: number;
+      swapTime: number;
+      compareTime: number;
+      resetPreset: ResetPreset;
+      algorithmOptions: AlgorithmOptions;
+      colorPreset: ColorPreset;
+      columnColor: string;
+      backgroundColor: string;
+      highlightColor: string;
+    };
   };
   canvasController: CanvasController;
 
   constructor(public props: Props) {
     super(props);
 
+    const storedSettings = localStorage.getItem('settings');
+    this.state = {
+      ...INIT_STATE,
+      settings: {
+        ...INIT_SETTINGS,
+        ...(storedSettings ? JSON.parse(storedSettings) : {}),
+      },
+    };
+
     this.sortingAlgorithms = new SortingAlgorithms(
-      INIT_COLUMN_NUMBER,
+      this.state.settings.columnNbr,
       this.compare,
       this.drawAndSwap,
     );
-
-    this.arr = createArr(INIT_COLUMN_NUMBER);
-    shuffleArray(this.arr);
-    this.state = {
-      isSorting: false,
-      areSettingsOpen: false,
-      chosenSortAlg: SortName.InsertionSort,
-      columnNbr: INIT_COLUMN_NUMBER,
-      swapTime: INIT_SWAP_TIME,
-      compareTime: INIT_COMPARE_TIME,
-      canDraw: false,
-      nbrOfSwaps: 0,
-      nbrOfComparisons: 0,
-      resetPreset: ResetPreset.Shuffle,
-      shouldHighlightSwaps: true,
-      shouldHighlightComparisons: false,
-      shouldPlaySound: false,
-      algorithmOptions: DEFAULT_ALGORITHM_OPTIONS,
-      colorPreset: ColorPreset.Rainbow,
-      columnColor: DEFAULT_COLUMN_COLOR,
-      backgroundColor: DEFAULT_BACKGROUND_COLOR,
-      highlightColor: DEFAULT_HIGHLIGHT_COLOR,
-    };
 
     this.resetPresets = {
       [ResetPreset.Shuffle]: () => shuffleArray(this.arr),
@@ -106,15 +87,44 @@ class App extends React.Component<Props> {
         this.arr.sort((a, b) => b.value - a.value),
     };
 
+    this.arr = createArr(this.state.settings.columnNbr);
+    this.resetPresets[this.state.settings.resetPreset]();
+
     const ref = React.createRef<HTMLCanvasElement>();
     this.canvasController = new CanvasController(
       ref as React.RefObject<HTMLCanvasElement>,
-      INIT_COLUMN_NUMBER,
-      this.state.colorPreset,
-      this.state.columnColor,
-      this.state.highlightColor,
+      this.state.settings.columnNbr,
+      this.state.settings.colorPreset,
+      this.state.settings.columnColor,
+      this.state.settings.highlightColor,
     );
   }
+
+  setSettings = (
+    settings:
+      | Partial<typeof this.state.settings>
+      | ((
+          prevSettings: typeof this.state.settings,
+        ) => Partial<typeof this.state.settings>),
+    callback?: () => Promise<void> | void,
+  ) => {
+    this.setState(
+      (prevState: typeof this.state) => {
+        const newSettings =
+          settings instanceof Function
+            ? settings(prevState.settings)
+            : settings;
+        return {
+          ...prevState,
+          settings: { ...prevState.settings, ...newSettings },
+        };
+      },
+      async () => {
+        await callback?.();
+        localStorage.setItem('settings', JSON.stringify(this.state.settings));
+      },
+    );
+  };
 
   resizeCanvas = () => {
     this.canvasController.resizeCanvas(this.arr);
@@ -161,8 +171,8 @@ class App extends React.Component<Props> {
       async () => {
         try {
           await this.sortingAlgorithms.getSortingAlgorithm(
-            this.state.chosenSortAlg,
-          )(arr, this.state.algorithmOptions);
+            this.state.settings.chosenSortAlg,
+          )(arr, this.state.settings.algorithmOptions);
         } catch (e) {
           console.error('Sorting interrupted! Reason: ', e);
         }
@@ -190,14 +200,14 @@ class App extends React.Component<Props> {
     this.swap(arr, i1, i2);
     this.canvasController.redrawColumns(arr, [i1, i2]);
     this.nbrOfSwaps++;
-    if (this.state.swapTime) {
+    if (this.state.settings.swapTime) {
       // With a zero swapTime, maximum update depth will be exceeded
       // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
       }));
       this.canvasController.highlightColumns(arr, [i1, i2]);
-      await sleep(this.state.swapTime);
+      await sleep(this.state.settings.swapTime);
     }
   };
 
@@ -209,17 +219,20 @@ class App extends React.Component<Props> {
   ): Promise<boolean> => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
     this.nbrOfComparisons++;
-    if (this.state.compareTime) {
+    if (this.state.settings.compareTime) {
       // With a zero compareTime, maximum update depth will be exceeded
       // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
       }));
       this.canvasController.highlightColumns(arr, [i1, i2]);
-      await sleep(this.state.compareTime);
+      await sleep(this.state.settings.compareTime);
     }
 
-    if (sortNameToSortType[this.state.chosenSortAlg] === SortType.Comparison) {
+    if (
+      sortNameToSortType[this.state.settings.chosenSortAlg] ===
+      SortType.Comparison
+    ) {
       this.playSoundForColumn(arr, i1);
     }
 
@@ -239,7 +252,8 @@ class App extends React.Component<Props> {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
     if (
-      sortNameToSortType[this.state.chosenSortAlg] === SortType.Distribution
+      sortNameToSortType[this.state.settings.chosenSortAlg] ===
+      SortType.Distribution
     ) {
       this.playSoundForColumn(arr, i1);
     }
@@ -250,7 +264,9 @@ class App extends React.Component<Props> {
   playSoundForColumn = (arr: SortValue[], i: number) => {
     if (!this.state.shouldPlaySound) return;
 
-    this.props.setSoundPitch((arr[i].value * 7) / this.state.columnNbr + 3);
+    this.props.setSoundPitch(
+      (arr[i].value * 7) / this.state.settings.columnNbr + 3,
+    );
     this.props.playSound();
   };
 
@@ -265,28 +281,28 @@ class App extends React.Component<Props> {
   chooseSortAlg = (event: SelectChangeEvent<SortName>) => {
     this.stopSorting();
 
-    this.setState({ chosenSortAlg: event.target.value });
+    this.setSettings({ chosenSortAlg: event.target.value as SortName });
   };
 
   chooseResetPreset = (event: SelectChangeEvent<ResetPreset>) => {
-    this.setState({ resetPreset: event.target.value });
+    this.setSettings({ resetPreset: event.target.value as ResetPreset });
   };
 
   changeColumnNbr = (_: unknown, value: number | number[]) => {
     const columnNbr = value instanceof Array ? value[0] : value;
     this.sortingAlgorithms.columnNbr = columnNbr;
     this.canvasController.columnNbr = columnNbr;
-    this.setState({ columnNbr }, () => this.resetAndDraw());
+    this.setSettings({ columnNbr }, () => this.resetAndDraw());
   };
 
   changeSwapTime = (_: unknown, value: number | number[]) => {
-    this.setState({
+    this.setSettings({
       swapTime: timeScale(value instanceof Array ? value[0] : value),
     });
   };
 
   changeCompareTime = (_: unknown, value: number | number[]) => {
-    this.setState({
+    this.setSettings({
       compareTime: timeScale(value instanceof Array ? value[0] : value),
     });
   };
@@ -294,8 +310,8 @@ class App extends React.Component<Props> {
   resetAndDraw = () => {
     this.stopSorting();
     this.resetCounters();
-    this.arr = createArr(this.state.columnNbr);
-    this.resetPresets[this.state.resetPreset]();
+    this.arr = createArr(this.state.settings.columnNbr);
+    this.resetPresets[this.state.settings.resetPreset]();
     this.canvasController.redraw(this.arr);
   };
 
@@ -337,42 +353,42 @@ class App extends React.Component<Props> {
     key: keyof AlgorithmOptions,
     value: AlgorithmOptions[typeof key],
   ) => {
-    this.setState((prevState: typeof this.state) => ({
-      algorithmOptions: { ...prevState.algorithmOptions, [key]: value },
+    this.setSettings((prevSettings) => ({
+      algorithmOptions: { ...prevSettings.algorithmOptions, [key]: value },
     }));
   };
 
   setColorPreset = (colorPreset: ColorPreset) => {
-    this.setState({ colorPreset });
+    this.setSettings({ colorPreset });
     this.canvasController.colorPreset = colorPreset;
     this.stopSorting();
     this.canvasController.redraw(this.arr);
   };
 
   setColumnColor = (columnColor: string) => {
-    this.setState({ columnColor });
+    this.setSettings({ columnColor });
     this.canvasController.columnColor = columnColor;
     this.stopSorting();
     this.canvasController.redraw(this.arr);
   };
 
   setBackgroundColor = (backgroundColor: string) => {
-    this.setState({ backgroundColor });
+    this.setSettings({ backgroundColor });
   };
 
   setHighlightColor = (highlightColor: string) => {
-    this.setState({ highlightColor });
+    this.setSettings({ highlightColor });
     this.canvasController.highlightColor = highlightColor;
     this.stopSorting();
     this.canvasController.redraw(this.arr);
   };
 
   getBackgroundColor = () => {
-    switch (this.state.colorPreset) {
+    switch (this.state.settings.colorPreset) {
       case ColorPreset.Rainbow:
         return RAINBOW_BACKGROUND_COLOR;
       case ColorPreset.Custom:
-        return this.state.backgroundColor;
+        return this.state.settings.backgroundColor;
     }
   };
 
@@ -385,8 +401,8 @@ class App extends React.Component<Props> {
         <div className="App-header">
           <SortAppBar
             arr={this.arr}
-            swapTime={this.state.swapTime}
-            compareTime={this.state.compareTime}
+            swapTime={this.state.settings.swapTime}
+            compareTime={this.state.settings.compareTime}
             canDraw={this.state.canDraw}
             isSorting={this.state.isSorting}
             nbrOfSwaps={this.state.nbrOfSwaps}
@@ -415,21 +431,23 @@ class App extends React.Component<Props> {
           </div>
           <SideDrawer
             areSettingsOpen={this.state.areSettingsOpen}
-            resetPreset={this.state.resetPreset}
-            chosenSortAlg={this.state.chosenSortAlg}
+            resetPreset={this.state.settings.resetPreset}
+            chosenSortAlg={this.state.settings.chosenSortAlg}
             toggleDisplaySettings={this.toggleDisplaySettings}
             chooseSortAlg={this.chooseSortAlg}
             chooseResetPreset={this.chooseResetPreset}
             changeColumnNbr={this.changeColumnNbr}
             changeSwapTime={this.changeSwapTime}
             changeCompareTime={this.changeCompareTime}
-            columnNbr={this.state.columnNbr}
-            algorithmOptions={this.state.algorithmOptions}
+            columnNbr={this.state.settings.columnNbr}
+            swapTime={this.state.settings.swapTime}
+            compareTime={this.state.settings.compareTime}
+            algorithmOptions={this.state.settings.algorithmOptions}
             setAlgorithmOption={this.setAlgorithmOption}
-            colorPreset={this.state.colorPreset}
-            columnColor={this.state.columnColor}
-            backgroundColor={this.state.backgroundColor}
-            highlightColor={this.state.highlightColor}
+            colorPreset={this.state.settings.colorPreset}
+            columnColor={this.state.settings.columnColor}
+            backgroundColor={this.state.settings.backgroundColor}
+            highlightColor={this.state.settings.highlightColor}
             setColorPreset={this.setColorPreset}
             setColumnColor={this.setColumnColor}
             setBackgroundColor={this.setBackgroundColor}

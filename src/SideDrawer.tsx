@@ -12,14 +12,9 @@ import {
   Stack,
 } from '@mui/material';
 import { SortName, ResetPreset, AlgorithmOptions, ColorPreset } from './types';
-import { timeScale } from './utils';
+import { inverseTimeScale, timeScale } from './utils';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import {
-  INIT_COLUMN_NUMBER,
-  INIT_SWAP_TIME,
-  INIT_COMPARE_TIME,
-  POWERS_OF_TWO,
-} from './constants';
+import { POWERS_OF_TWO } from './constants';
 import { useEffect } from 'react';
 import { Options } from './Options';
 
@@ -34,6 +29,8 @@ interface SideDrawerProps {
   resetPreset: ResetPreset;
   chooseResetPreset: (event: SelectChangeEvent<ResetPreset>) => void;
   columnNbr: number;
+  swapTime: number;
+  compareTime: number;
   algorithmOptions: AlgorithmOptions;
   setAlgorithmOption: (
     key: keyof AlgorithmOptions,
@@ -53,6 +50,8 @@ export function SideDrawer({
   chosenSortAlg,
   changeColumnNbr,
   columnNbr,
+  swapTime,
+  compareTime,
   toggleDisplaySettings,
   changeSwapTime,
   changeCompareTime,
@@ -135,7 +134,7 @@ export function SideDrawer({
         </Typography>
         <div className="col-slider">
           <Slider
-            defaultValue={INIT_COLUMN_NUMBER}
+            defaultValue={columnNbr}
             aria-labelledby="discrete-slider"
             valueLabelDisplay="auto"
             min={8}
@@ -163,7 +162,7 @@ export function SideDrawer({
         </Typography>
         <div className="col-slider">
           <Slider
-            defaultValue={INIT_SWAP_TIME}
+            defaultValue={inverseTimeScale(swapTime)}
             aria-labelledby="discrete-slider"
             valueLabelDisplay="auto"
             min={0}
@@ -185,7 +184,7 @@ export function SideDrawer({
         </Typography>
         <div className="col-slider">
           <Slider
-            defaultValue={INIT_COMPARE_TIME}
+            defaultValue={inverseTimeScale(compareTime)}
             aria-labelledby="discrete-slider"
             valueLabelDisplay="auto"
             min={0}
@@ -206,7 +205,12 @@ export function SideDrawer({
           >
             Reset Preset
           </Typography>
-          <Select value={resetPreset} onChange={chooseResetPreset} size="small">
+          <Select
+            defaultValue={resetPreset}
+            value={resetPreset}
+            onChange={chooseResetPreset}
+            size="small"
+          >
             {Object.values(ResetPreset).map((v) => (
               <MenuItem value={v} key={v}>
                 <Typography align="left" variant="body1" color="textSecondary">
