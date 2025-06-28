@@ -7,8 +7,11 @@ import {
   MenuItem,
   Slider,
   SelectChangeEvent,
+  TextField,
+  Grid2,
+  Stack,
 } from '@mui/material';
-import { SortName, ResetPreset, AlgorithmOptions } from './types';
+import { SortName, ResetPreset, AlgorithmOptions, ColorPreset } from './types';
 import { timeScale } from './utils';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import {
@@ -36,6 +39,14 @@ interface SideDrawerProps {
     key: keyof AlgorithmOptions,
     value: AlgorithmOptions[typeof key],
   ) => void;
+  colorPreset: ColorPreset;
+  columnColor: string;
+  backgroundColor: string;
+  highlightColor: string;
+  setColorPreset: (string: ColorPreset) => void;
+  setColumnColor: (string: string) => void;
+  setBackgroundColor: (string: string) => void;
+  setHighlightColor: (string: string) => void;
 }
 
 export function SideDrawer({
@@ -51,6 +62,14 @@ export function SideDrawer({
   areSettingsOpen,
   algorithmOptions,
   setAlgorithmOption,
+  colorPreset,
+  columnColor,
+  backgroundColor,
+  highlightColor,
+  setColorPreset,
+  setColumnColor,
+  setBackgroundColor,
+  setHighlightColor,
 }: SideDrawerProps) {
   const isBitonicSort = chosenSortAlg === SortName.BitonicSort;
 
@@ -193,6 +212,67 @@ export function SideDrawer({
               </MenuItem>
             ))}
           </Select>
+        </FormControl>
+      </div>
+      <div className="select-wrapper">
+        <FormControl component="fieldset">
+          <Typography
+            align="left"
+            variant="h6"
+            color="textSecondary"
+            gutterBottom
+          >
+            Colors
+          </Typography>
+          <Stack direction="column" spacing={2} alignItems="left">
+            <TextField
+              value={colorPreset}
+              label="Preset"
+              size="small"
+              select
+              onChange={(e) => setColorPreset(e.target.value as ColorPreset)}
+            >
+              {Object.values(ColorPreset).map((v) => (
+                <MenuItem value={v} key={v}>
+                  <Typography
+                    align="left"
+                    variant="body1"
+                    color="textSecondary"
+                  >
+                    {v}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </TextField>
+            {colorPreset === ColorPreset.Custom && (
+              <Grid2 container spacing={2}>
+                <TextField
+                  label="Columns"
+                  value={columnColor}
+                  type="color"
+                  size="small"
+                  sx={{ width: 100 }}
+                  onChange={(e) => setColumnColor(e.target.value)}
+                />
+                <TextField
+                  label="Background"
+                  value={backgroundColor}
+                  type="color"
+                  size="small"
+                  sx={{ width: 100 }}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
+                />
+                <TextField
+                  label="Highlight"
+                  value={highlightColor}
+                  type="color"
+                  size="small"
+                  sx={{ width: 100 }}
+                  onChange={(e) => setHighlightColor(e.target.value)}
+                />
+              </Grid2>
+            )}
+          </Stack>
         </FormControl>
       </div>
     </Drawer>

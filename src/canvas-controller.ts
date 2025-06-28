@@ -1,6 +1,5 @@
 import { MouseEvent } from 'react';
-import { HIGHLIGHT_COLOR } from './constants';
-import { DrawData, SortValue } from './types';
+import { ColorPreset, DrawData, SortValue } from './types';
 import { hsvToRgbHex } from './utils';
 
 export class CanvasController {
@@ -14,6 +13,9 @@ export class CanvasController {
   constructor(
     public canvasRef: React.RefObject<HTMLCanvasElement>,
     public columnNbr: number,
+    public colorPreset: ColorPreset,
+    public columnColor: string,
+    public highlightColor: string,
   ) {}
 
   get refCurrent() {
@@ -41,6 +43,24 @@ export class CanvasController {
     return context;
   }
 
+  getColumnColor(value: number) {
+    switch (this.colorPreset) {
+      case ColorPreset.Custom:
+        return this.columnColor;
+      case ColorPreset.Rainbow:
+        return hsvToRgbHex((360 * value) / this.columnNbr, 1, 1);
+    }
+  }
+
+  getHighlightColor() {
+    switch (this.colorPreset) {
+      case ColorPreset.Custom:
+        return this.highlightColor;
+      case ColorPreset.Rainbow:
+        return '#FFFFFF';
+    }
+  }
+
   resizeCanvas = (arr: SortValue[]) => {
     const parent = document.getElementById('canvas-wrapper');
     if (parent === null) {
@@ -66,7 +86,7 @@ export class CanvasController {
     this.prevHighlightIndices = indices;
 
     for (const idx of indices) {
-      this.redrawColumn(arr, idx, HIGHLIGHT_COLOR);
+      this.redrawColumn(arr, idx, this.getHighlightColor());
     }
   };
 
@@ -167,14 +187,12 @@ export class CanvasController {
   };
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
-    const arrLength = arr.length;
     const width = this.canvas2dCtx.canvas.width / this.columnNbr;
     const height =
       (this.canvas2dCtx.canvas.height / this.columnNbr) * (arr[i].value + 1);
     const startX = width * i;
 
-    this.canvas2dCtx.fillStyle =
-      color || hsvToRgbHex((360 * arr[i].value) / arrLength, 1, 1);
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.fillRect(startX, 0, width, height);
   };
 

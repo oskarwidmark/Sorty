@@ -9,6 +9,7 @@ import {
   Operator,
   SortType,
   AlgorithmOptions,
+  ColorPreset,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
 import {
@@ -24,6 +25,10 @@ import {
   INIT_SWAP_TIME,
   INIT_COMPARE_TIME,
   DEFAULT_ALGORITHM_OPTIONS,
+  DEFAULT_COLUMN_COLOR,
+  DEFAULT_BACKGROUND_COLOR,
+  DEFAULT_HIGHLIGHT_COLOR,
+  RAINBOW_BACKGROUND_COLOR,
 } from './constants';
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
@@ -55,6 +60,10 @@ class App extends React.Component<Props> {
     shouldHighlightComparisons: boolean;
     shouldPlaySound: boolean;
     algorithmOptions: AlgorithmOptions;
+    colorPreset: ColorPreset;
+    columnColor: string;
+    backgroundColor: string;
+    highlightColor: string;
   };
   canvasController: CanvasController;
 
@@ -84,6 +93,10 @@ class App extends React.Component<Props> {
       shouldHighlightComparisons: false,
       shouldPlaySound: false,
       algorithmOptions: DEFAULT_ALGORITHM_OPTIONS,
+      colorPreset: ColorPreset.Rainbow,
+      columnColor: DEFAULT_COLUMN_COLOR,
+      backgroundColor: DEFAULT_BACKGROUND_COLOR,
+      highlightColor: DEFAULT_HIGHLIGHT_COLOR,
     };
 
     this.resetPresets = {
@@ -97,6 +110,9 @@ class App extends React.Component<Props> {
     this.canvasController = new CanvasController(
       ref as React.RefObject<HTMLCanvasElement>,
       INIT_COLUMN_NUMBER,
+      this.state.colorPreset,
+      this.state.columnColor,
+      this.state.highlightColor,
     );
   }
 
@@ -326,9 +342,46 @@ class App extends React.Component<Props> {
     }));
   };
 
+  setColorPreset = (colorPreset: ColorPreset) => {
+    this.setState({ colorPreset });
+    this.canvasController.colorPreset = colorPreset;
+    this.stopSorting();
+    this.canvasController.redraw(this.arr);
+  };
+
+  setColumnColor = (columnColor: string) => {
+    this.setState({ columnColor });
+    this.canvasController.columnColor = columnColor;
+    this.stopSorting();
+    this.canvasController.redraw(this.arr);
+  };
+
+  setBackgroundColor = (backgroundColor: string) => {
+    this.setState({ backgroundColor });
+  };
+
+  setHighlightColor = (highlightColor: string) => {
+    this.setState({ highlightColor });
+    this.canvasController.highlightColor = highlightColor;
+    this.stopSorting();
+    this.canvasController.redraw(this.arr);
+  };
+
+  getBackgroundColor = () => {
+    switch (this.state.colorPreset) {
+      case ColorPreset.Rainbow:
+        return RAINBOW_BACKGROUND_COLOR;
+      case ColorPreset.Custom:
+        return this.state.backgroundColor;
+    }
+  };
+
   render() {
     return (
-      <div className="App">
+      <div
+        className="App"
+        style={{ backgroundColor: this.getBackgroundColor() }}
+      >
         <div className="App-header">
           <SortAppBar
             arr={this.arr}
@@ -373,6 +426,14 @@ class App extends React.Component<Props> {
             columnNbr={this.state.columnNbr}
             algorithmOptions={this.state.algorithmOptions}
             setAlgorithmOption={this.setAlgorithmOption}
+            colorPreset={this.state.colorPreset}
+            columnColor={this.state.columnColor}
+            backgroundColor={this.state.backgroundColor}
+            highlightColor={this.state.highlightColor}
+            setColorPreset={this.setColorPreset}
+            setColumnColor={this.setColumnColor}
+            setBackgroundColor={this.setBackgroundColor}
+            setHighlightColor={this.setHighlightColor}
           />
         </div>
       </div>
