@@ -259,6 +259,10 @@ export class SortingAlgorithms {
       const bucketStart = currentIndex;
       for (const a of bucket) {
         const swapIndex = indexMap[a.id];
+        if (swapIndex === currentIndex) {
+          currentIndex++;
+          continue;
+        }
         await this.drawAndSwap(arr, currentIndex, swapIndex);
 
         indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
