@@ -16,7 +16,7 @@
     "@mui/material": "^6.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "use-sound": "^5.0.0"
+    "tone": "^15.1.22"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

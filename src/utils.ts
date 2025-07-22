@@ -59,3 +59,8 @@ export const sortNameToSortType: Record<SortName, string> = {
   [SortName.BitonicSort]: SortType.Comparison,
   [SortName.BullySort]: SortType.Comparison,
 };
+
+// something that sounds good
+export const toHz = (value: number, columnNbr: number) => {
+  return (440 * value) / columnNbr + 200;
+};

@@ -18,6 +18,7 @@ import {
   sleep,
   sortNameToSortType,
   timeScale,
+  toHz,
 } from './utils';
 import { SideDrawer } from './SideDrawer';
 import {
@@ -35,9 +36,8 @@ import { SortingAlgorithmSelect } from './SortingAlgorithmSelect';
 import { TimeSlider } from './TimeSlider';
 
 type Props = {
-  playSound: () => void;
+  playSound: (params: { frequency: number; duration?: string }) => void;
   stopSounds: () => void;
-  setSoundPitch: (value: number) => void;
 };
 
 class App extends React.Component<Props> {
@@ -272,10 +272,9 @@ class App extends React.Component<Props> {
   playSoundForColumn = (arr: SortValue[], i: number) => {
     if (!this.state.shouldPlaySound) return;
 
-    this.props.setSoundPitch(
-      (arr[i].value * 7) / this.state.settings.columnNbr + 3,
-    );
-    this.props.playSound();
+    this.props.playSound({
+      frequency: toHz(arr[i].value, this.state.settings.columnNbr),
+    });
   };
 
   toggleDisplaySettings = () => {
