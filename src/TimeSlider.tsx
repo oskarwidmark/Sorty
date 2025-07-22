@@ -10,7 +10,7 @@ export function TimeSlider(props: {
 
   return (
     <div>
-      <Typography align="left" variant="h6" color="textSecondary" gutterBottom>
+      <Typography align="left" variant="subtitle1" color="textSecondary">
         {title}
       </Typography>
       <div className="col-slider">

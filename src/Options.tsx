@@ -112,7 +112,12 @@ export function Options({
 
   return (
     <div>
-      <Typography align="left" variant="h6" color="textSecondary" gutterBottom>
+      <Typography
+        align="left"
+        variant="subtitle1"
+        color="textSecondary"
+        gutterBottom
+      >
         Options
       </Typography>
       <Grid2 container spacing={2}>
@@ -137,7 +142,7 @@ export function Options({
                 <MenuItem key={v} value={v}>
                   <Typography
                     align="left"
-                    variant="body1"
+                    variant="body2"
                     color="textSecondary"
                   >
                     {ALGORITHM_OPTION_VALUE_LABELS[v] ?? v}

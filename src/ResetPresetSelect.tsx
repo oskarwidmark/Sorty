@@ -17,7 +17,7 @@ export function ResetPresetSelect(props: {
       <FormControl component="fieldset">
         <Typography
           align="left"
-          variant="h6"
+          variant="subtitle1"
           color="textSecondary"
           gutterBottom
         >
@@ -31,7 +31,7 @@ export function ResetPresetSelect(props: {
         >
           {Object.values(ResetPreset).map((v) => (
             <MenuItem value={v} key={v}>
-              <Typography align="left" variant="body1" color="textSecondary">
+              <Typography align="left" variant="body2" color="textSecondary">
                 {v}
               </Typography>
             </MenuItem>

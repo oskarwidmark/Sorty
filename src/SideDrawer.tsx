@@ -19,7 +19,7 @@ export function SideDrawer({
       className="drawer"
       open={areSettingsOpen}
       PaperProps={{
-        sx: { width: '20%' },
+        sx: { width: '250px' },
       }}
     >
       <div className="chevron-wrapper">

@@ -2,11 +2,6 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
 .App-header {
   height: 100vh;
   color: white;
@@ -15,16 +10,13 @@
   overflow: hidden;
 }
 
-.App-link {
-  color: #61dafb;
-}
 
 .drawer > div {
-    background-color:rgba(255, 255, 255, 0.9);
+    background-color:rgba(40, 40, 40, 0.9);
 }
 
 .drawer > div > * {
-    border-bottom: lightgray solid 4px;
+    border-bottom: rgb(69, 69, 69) solid 4px;
     padding: 8px;
     
 }
