@@ -1,12 +1,6 @@
-import {
-  FormControl,
-  Typography,
-  Stack,
-  TextField,
-  MenuItem,
-  Grid2,
-} from '@mui/material';
+import { FormControl, Stack, TextField, Grid2 } from '@mui/material';
 import { ColorPreset } from './types';
+import { TitledSelect } from './TitledSelect';
 
 export function Colors(props: {
   colorPreset: ColorPreset;
@@ -36,30 +30,13 @@ export function Colors(props: {
   return (
     <div className="select-wrapper">
       <FormControl component="fieldset">
-        <Typography
-          align="left"
-          variant="subtitle1"
-          color="textSecondary"
-          gutterBottom
-        >
-          Colors
-        </Typography>
         <Stack direction="column" spacing={2} alignItems="left">
-          <TextField
+          <TitledSelect
+            title="Sort Algorithm"
             value={colorPreset}
-            label="Preset"
-            size="small"
-            select
             onChange={(e) => setColorPreset(e.target.value as ColorPreset)}
-          >
-            {Object.values(ColorPreset).map((v) => (
-              <MenuItem value={v} key={v}>
-                <Typography align="left" variant="body2" color="textSecondary">
-                  {v}
-                </Typography>
-              </MenuItem>
-            ))}
-          </TextField>
+            options={Object.values(ColorPreset)}
+          />
           {(colorPreset === ColorPreset.Custom ||
             colorPreset === ColorPreset.CustomGradient) && (
             <Grid2 container spacing={2}>

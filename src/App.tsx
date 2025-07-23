@@ -1,6 +1,12 @@
 import React, { MouseEvent } from 'react';
 import './App.css';
-import { SelectChangeEvent, Tab, Tabs } from '@mui/material';
+import {
+  SelectChangeEvent,
+  Slider,
+  Tab,
+  Tabs,
+  Typography,
+} from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -25,21 +31,25 @@ import {
   RAINBOW_BACKGROUND_COLOR,
   INIT_STATE,
   INIT_SETTINGS,
+  SOUND_TYPE_OPTIONS,
 } from './constants';
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
 import { Colors } from './Colors';
 import { ColumnSlider } from './ColumnSlider';
 import { Options } from './Options';
-import { ResetPresetSelect } from './ResetPresetSelect';
-import { SortingAlgorithmSelect } from './SortingAlgorithmSelect';
 import { TimeSlider } from './TimeSlider';
 import { Audiotrack, BarChart, Palette } from '@mui/icons-material';
 import { TabPanel } from './TabPanel';
+import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
+import { TitledSelect } from './TitledSelect';
 
 type Props = {
   playSound: (params: { frequency: number; duration?: string }) => void;
   stopSounds: () => void;
+  soundType: NonCustomOscillatorType;
+  setSoundType: (type: NonCustomOscillatorType) => void;
+  setVolume: (volume: number) => void;
 };
 
 class App extends React.Component<Props> {
@@ -68,6 +78,8 @@ class App extends React.Component<Props> {
       columnColor2: string;
       backgroundColor: string;
       highlightColor: string;
+      soundType: NonCustomOscillatorType;
+      soundVolume: number;
     };
   };
   canvasController: CanvasController;
@@ -109,6 +121,9 @@ class App extends React.Component<Props> {
       this.state.settings.columnColor2,
       this.state.settings.highlightColor,
     );
+
+    this.props.setVolume(this.state.settings.soundVolume);
+    this.props.setSoundType(this.state.settings.soundType);
   }
 
   setSettings = (
@@ -288,13 +303,13 @@ class App extends React.Component<Props> {
     this.setState({ areSettingsOpen: false });
   };
 
-  chooseSortAlg = (event: SelectChangeEvent<SortName>) => {
+  chooseSortAlg = (event: SelectChangeEvent<string>) => {
     this.stopSorting();
 
     this.setSettings({ chosenSortAlg: event.target.value as SortName });
   };
 
-  chooseResetPreset = (event: SelectChangeEvent<ResetPreset>) => {
+  chooseResetPreset = (event: SelectChangeEvent<string>) => {
     this.setSettings({ resetPreset: event.target.value as ResetPreset });
   };
 
@@ -418,6 +433,18 @@ class App extends React.Component<Props> {
     });
   };
 
+  setSoundType = (event: SelectChangeEvent<string>) => {
+    const soundType = event.target.value as NonCustomOscillatorType;
+    this.props.setSoundType(soundType);
+    this.setSettings({ soundType });
+  };
+
+  setVolume = (_: unknown, value: number | number[]) => {
+    const volume = value instanceof Array ? value[0] : value;
+    this.props.setVolume(volume);
+    this.setSettings({ soundVolume: volume });
+  };
+
   render() {
     return (
       <div
@@ -470,9 +497,11 @@ class App extends React.Component<Props> {
               <Tab icon={<Audiotrack />} sx={{ minWidth: 0 }} />
             </Tabs>
             <TabPanel value={this.state.tabIndex} index={0}>
-              <SortingAlgorithmSelect
-                chosenSortAlg={this.state.settings.chosenSortAlg}
-                chooseSortAlg={this.chooseSortAlg}
+              <TitledSelect
+                title="Sorting Algorithm"
+                value={this.state.settings.chosenSortAlg}
+                onChange={this.chooseSortAlg}
+                options={Object.values(SortName)}
               />
               <Options
                 chosenSortAlg={this.state.settings.chosenSortAlg}
@@ -495,9 +524,11 @@ class App extends React.Component<Props> {
                 time={this.state.settings.compareTime}
                 changeTime={this.changeCompareTime}
               />
-              <ResetPresetSelect
-                resetPreset={this.state.settings.resetPreset}
-                chooseResetPreset={this.chooseResetPreset}
+              <TitledSelect
+                title="Reset Preset"
+                value={this.state.settings.resetPreset}
+                onChange={this.chooseResetPreset}
+                options={Object.values(ResetPreset)}
               />
             </TabPanel>
             <TabPanel value={this.state.tabIndex} index={1}>
@@ -514,7 +545,34 @@ class App extends React.Component<Props> {
                 setHighlightColor={this.setHighlightColor}
               />
             </TabPanel>
-            <TabPanel value={this.state.tabIndex} index={2}></TabPanel>
+            <TabPanel value={this.state.tabIndex} index={2}>
+              <TitledSelect
+                title="Sound type"
+                value={this.props.soundType}
+                onChange={this.setSoundType}
+                options={SOUND_TYPE_OPTIONS}
+              />
+              <div>
+                <Typography
+                  align="left"
+                  variant="subtitle1"
+                  color="textSecondary"
+                >
+                  Volume
+                </Typography>
+                <div className="col-slider">
+                  <Slider
+                    defaultValue={this.state.settings.soundVolume}
+                    aria-labelledby="discrete-slider"
+                    valueLabelDisplay="auto"
+                    min={0}
+                    step={1}
+                    max={100}
+                    onChangeCommitted={this.setVolume}
+                  />
+                </div>
+              </div>
+            </TabPanel>
           </SideDrawer>
         </div>
       </div>

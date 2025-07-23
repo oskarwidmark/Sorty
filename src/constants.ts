@@ -1,3 +1,4 @@
+import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 import { AlgorithmOptions, ColorPreset, ResetPreset, SortName } from './types';
 
 export const INIT_SWAP_TIME = 1;
@@ -14,6 +15,15 @@ export const DEFAULT_ALGORITHM_OPTIONS: AlgorithmOptions = {
   base: 4,
   shrinkFactor: 1.3,
 };
+export const DEFAULT_SOUND_VOLUME = 50;
+export const DEFAULT_SOUND_TYPE = 'triangle';
+export const SOUND_TYPE_OPTIONS = [
+  'sine',
+  'square',
+  'triangle',
+  'sawtooth',
+] as NonCustomOscillatorType[];
+
 export const INIT_STATE = {
   isSorting: false,
   areSettingsOpen: false,
@@ -36,4 +46,6 @@ export const INIT_SETTINGS = {
   columnColor2: DEFAULT_COLUMN_COLOR_2,
   backgroundColor: DEFAULT_BACKGROUND_COLOR,
   highlightColor: DEFAULT_HIGHLIGHT_COLOR,
+  soundVolume: DEFAULT_SOUND_VOLUME,
+  soundType: DEFAULT_SOUND_TYPE,
 };

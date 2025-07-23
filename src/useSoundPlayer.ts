@@ -8,8 +8,12 @@ type PlayParams = {
 };
 
 export function useSoundPlayer({
-  type = 'sine' as NonCustomOscillatorType,
-} = {}) {
+  type,
+  volume,
+}: {
+  type: NonCustomOscillatorType;
+  volume: number; // Volume in decibels
+}) {
   const synthRef: RefObject<Tone.Synth | null> = useRef(null);
   const startedRef = useRef(false);
 
@@ -18,13 +22,14 @@ export function useSoundPlayer({
     const synth = new Tone.Synth({
       oscillator: { type },
       envelope: { attack: 0.05, decay: 0, sustain: 1, release: 0.05 },
+      volume,
     }).toDestination();
 
     synthRef.current = synth;
     return () => {
       synth.dispose();
     };
-  }, [type]);
+  }, [type, volume]);
 
   // ensure AudioContext is resumed once on first play
   const ensureStarted = useCallback(async () => {

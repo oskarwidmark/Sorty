@@ -1,17 +1,22 @@
 import {
-  SelectChangeEvent,
   FormControl,
   Typography,
   Select,
   MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
-import { ResetPreset } from './types';
 
-export function ResetPresetSelect(props: {
-  resetPreset: ResetPreset;
-  chooseResetPreset: (event: SelectChangeEvent<ResetPreset>) => void;
-}) {
-  const { resetPreset, chooseResetPreset } = props;
+export const TitledSelect = ({
+  title,
+  value,
+  onChange,
+  options,
+}: {
+  title: string;
+  value: string;
+  onChange: (event: SelectChangeEvent<string>) => void;
+  options: string[];
+}) => {
   return (
     <div className="select-wrapper">
       <FormControl component="fieldset">
@@ -21,18 +26,13 @@ export function ResetPresetSelect(props: {
           color="textSecondary"
           gutterBottom
         >
-          Reset Preset
+          {title}
         </Typography>
-        <Select
-          defaultValue={resetPreset}
-          value={resetPreset}
-          onChange={chooseResetPreset}
-          size="small"
-        >
-          {Object.values(ResetPreset).map((v) => (
+        <Select value={value} onChange={onChange} size="small">
+          {options.map((v) => (
             <MenuItem value={v} key={v}>
               <Typography align="left" variant="body2" color="textSecondary">
-                {v}
+                {v.charAt(0).toUpperCase() + v.slice(1)}
               </Typography>
             </MenuItem>
           ))}
@@ -40,4 +40,4 @@ export function ResetPresetSelect(props: {
       </FormControl>
     </div>
   );
-}
+};
