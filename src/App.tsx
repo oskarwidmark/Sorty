@@ -1,6 +1,6 @@
 import React, { MouseEvent } from 'react';
 import './App.css';
-import { SelectChangeEvent } from '@mui/material';
+import { SelectChangeEvent, Tab, Tabs } from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -34,6 +34,8 @@ import { Options } from './Options';
 import { ResetPresetSelect } from './ResetPresetSelect';
 import { SortingAlgorithmSelect } from './SortingAlgorithmSelect';
 import { TimeSlider } from './TimeSlider';
+import { Audiotrack, BarChart, Palette } from '@mui/icons-material';
+import { TabPanel } from './TabPanel';
 
 type Props = {
   playSound: (params: { frequency: number; duration?: string }) => void;
@@ -48,6 +50,7 @@ class App extends React.Component<Props> {
   private nbrOfComparisons: number = 0;
   state: {
     isSorting: boolean;
+    tabIndex: number;
     areSettingsOpen: boolean;
     canDraw: boolean;
     shouldPlaySound: boolean;
@@ -296,6 +299,8 @@ class App extends React.Component<Props> {
   };
 
   changeColumnNbr = (_: unknown, value: number | number[]) => {
+    if (this.state.settings.columnNbr === value) return;
+
     const columnNbr = value instanceof Array ? value[0] : value;
     this.sortingAlgorithms.columnNbr = columnNbr;
     this.canvasController.columnNbr = columnNbr;
@@ -407,6 +412,12 @@ class App extends React.Component<Props> {
     }
   };
 
+  setTabIndex = (_: unknown, newValue: number) => {
+    this.setState({
+      tabIndex: newValue,
+    });
+  };
+
   render() {
     return (
       <div
@@ -448,47 +459,62 @@ class App extends React.Component<Props> {
             areSettingsOpen={this.state.areSettingsOpen}
             toggleDisplaySettings={this.toggleDisplaySettings}
           >
-            <SortingAlgorithmSelect
-              chosenSortAlg={this.state.settings.chosenSortAlg}
-              chooseSortAlg={this.chooseSortAlg}
-            />
-            <Options
-              chosenSortAlg={this.state.settings.chosenSortAlg}
-              algorithmOptions={this.state.settings.algorithmOptions}
-              setAlgorithmOption={this.setAlgorithmOption}
-            />
-            <ColumnSlider
-              columnNbr={this.state.settings.columnNbr}
-              chosenSortAlg={this.state.settings.chosenSortAlg}
-              algorithmOptions={this.state.settings.algorithmOptions}
-              changeColumnNbr={this.changeColumnNbr}
-            />
-            <TimeSlider
-              title="Time per swap (ms)"
-              time={this.state.settings.swapTime}
-              changeTime={this.changeSwapTime}
-            />
-            <TimeSlider
-              title="Time per comparison (ms)"
-              time={this.state.settings.compareTime}
-              changeTime={this.changeCompareTime}
-            />
-            <ResetPresetSelect
-              resetPreset={this.state.settings.resetPreset}
-              chooseResetPreset={this.chooseResetPreset}
-            />
-            <Colors
-              colorPreset={this.state.settings.colorPreset}
-              columnColor1={this.state.settings.columnColor1}
-              columnColor2={this.state.settings.columnColor2}
-              backgroundColor={this.state.settings.backgroundColor}
-              highlightColor={this.state.settings.highlightColor}
-              setColorPreset={this.setColorPreset}
-              setColumnColor1={this.setColumnColor1}
-              setColumnColor2={this.setColumnColor2}
-              setBackgroundColor={this.setBackgroundColor}
-              setHighlightColor={this.setHighlightColor}
-            />
+            <Tabs
+              variant="fullWidth"
+              className="tabs"
+              onChange={this.setTabIndex}
+              value={this.state.tabIndex}
+            >
+              <Tab icon={<BarChart />} sx={{ minWidth: 0 }} />
+              <Tab icon={<Palette />} sx={{ minWidth: 0 }} />
+              <Tab icon={<Audiotrack />} sx={{ minWidth: 0 }} />
+            </Tabs>
+            <TabPanel value={this.state.tabIndex} index={0}>
+              <SortingAlgorithmSelect
+                chosenSortAlg={this.state.settings.chosenSortAlg}
+                chooseSortAlg={this.chooseSortAlg}
+              />
+              <Options
+                chosenSortAlg={this.state.settings.chosenSortAlg}
+                algorithmOptions={this.state.settings.algorithmOptions}
+                setAlgorithmOption={this.setAlgorithmOption}
+              />
+              <ColumnSlider
+                columnNbr={this.state.settings.columnNbr}
+                chosenSortAlg={this.state.settings.chosenSortAlg}
+                algorithmOptions={this.state.settings.algorithmOptions}
+                changeColumnNbr={this.changeColumnNbr}
+              />
+              <TimeSlider
+                title="Time per swap (ms)"
+                time={this.state.settings.swapTime}
+                changeTime={this.changeSwapTime}
+              />
+              <TimeSlider
+                title="Time per comparison (ms)"
+                time={this.state.settings.compareTime}
+                changeTime={this.changeCompareTime}
+              />
+              <ResetPresetSelect
+                resetPreset={this.state.settings.resetPreset}
+                chooseResetPreset={this.chooseResetPreset}
+              />
+            </TabPanel>
+            <TabPanel value={this.state.tabIndex} index={1}>
+              <Colors
+                colorPreset={this.state.settings.colorPreset}
+                columnColor1={this.state.settings.columnColor1}
+                columnColor2={this.state.settings.columnColor2}
+                backgroundColor={this.state.settings.backgroundColor}
+                highlightColor={this.state.settings.highlightColor}
+                setColorPreset={this.setColorPreset}
+                setColumnColor1={this.setColumnColor1}
+                setColumnColor2={this.setColumnColor2}
+                setBackgroundColor={this.setBackgroundColor}
+                setHighlightColor={this.setHighlightColor}
+              />
+            </TabPanel>
+            <TabPanel value={this.state.tabIndex} index={2}></TabPanel>
           </SideDrawer>
         </div>
       </div>

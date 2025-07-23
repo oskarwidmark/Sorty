@@ -1,5 +1,4 @@
-import { Drawer, IconButton } from '@mui/material';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { Drawer } from '@mui/material';
 
 interface SideDrawerProps {
   areSettingsOpen: boolean;
@@ -7,11 +6,7 @@ interface SideDrawerProps {
   children?: React.ReactNode;
 }
 
-export function SideDrawer({
-  toggleDisplaySettings,
-  areSettingsOpen,
-  children,
-}: SideDrawerProps) {
+export function SideDrawer({ areSettingsOpen, children }: SideDrawerProps) {
   return (
     <Drawer
       variant="persistent"
@@ -22,11 +17,6 @@ export function SideDrawer({
         sx: { width: '250px' },
       }}
     >
-      <div className="chevron-wrapper">
-        <IconButton onClick={toggleDisplaySettings}>
-          <ChevronRightIcon />
-        </IconButton>
-      </div>
       {children}
     </Drawer>
   );
