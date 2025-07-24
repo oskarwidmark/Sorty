@@ -27,12 +27,13 @@ interface AppBarProps {
   toggleDisplaySettings: () => void;
   shouldPlaySound: boolean;
   togglePlaySound: () => void;
+  onClick: () => void;
 }
 
 export function SortAppBar(props: AppBarProps) {
   return (
     <AppBar position="relative">
-      <Toolbar className="toolbar">
+      <Toolbar className="toolbar" onClick={props.onClick}>
         <div>
           <Button
             variant="contained"
@@ -126,7 +127,10 @@ export function SortAppBar(props: AppBarProps) {
           aria-label="open drawer"
           edge="end"
           className="open-drawer-button"
-          onClick={props.toggleDisplaySettings}
+          onClick={(e) => {
+            e.stopPropagation();
+            props.toggleDisplaySettings();
+          }}
         >
           <MenuIcon />
         </IconButton>

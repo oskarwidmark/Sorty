@@ -472,6 +472,7 @@ class App extends React.Component<Props> {
             toggleDisplaySettings={this.toggleDisplaySettings}
             shouldPlaySound={this.state.shouldPlaySound}
             togglePlaySound={this.togglePlaySound}
+            onClick={this.closeDisplaySettings}
           />
           <div
             className="canvas-wrapper"
