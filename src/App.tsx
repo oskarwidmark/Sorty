@@ -525,12 +525,12 @@ class App extends React.Component<Props> {
                 changeColumnNbr={this.changeColumnNbr}
               />
               <TimeSlider
-                title="Time per swap (ms)"
+                title="Time per swap"
                 time={this.state.settings.swapTime}
                 changeTime={this.changeSwapTime}
               />
               <TimeSlider
-                title="Time per comparison (ms)"
+                title="Time per comparison"
                 time={this.state.settings.compareTime}
                 changeTime={this.changeCompareTime}
               />
@@ -579,6 +579,7 @@ class App extends React.Component<Props> {
                     step={1}
                     max={100}
                     onChangeCommitted={this.setVolume}
+                    valueLabelFormat={(value: number) => `${value}%`}
                   />
                 </div>
               </div>

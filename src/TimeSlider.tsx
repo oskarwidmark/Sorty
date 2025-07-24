@@ -23,6 +23,7 @@ export function TimeSlider(props: {
           max={10}
           scale={(x) => timeScale(x)}
           onChangeCommitted={changeTime}
+          valueLabelFormat={(value: number) => `${value} ms`}
         />
       </div>
     </div>
