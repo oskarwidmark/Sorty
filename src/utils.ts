@@ -61,6 +61,12 @@ export const sortNameToSortType: Record<SortName, string> = {
 };
 
 // something that sounds good
-export const toHz = (value: number, columnNbr: number) => {
-  return (440 * value) / columnNbr + 200;
+export const toHz = (
+  value: number,
+  columnNbr: number,
+  frequencyRange: [number, number],
+) => {
+  const [minFreq, maxFreq] = frequencyRange;
+
+  return ((maxFreq - minFreq) * value) / columnNbr + minFreq;
 };

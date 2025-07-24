@@ -48,4 +48,5 @@ export const INIT_SETTINGS = {
   highlightColor: DEFAULT_HIGHLIGHT_COLOR,
   soundVolume: DEFAULT_SOUND_VOLUME,
   soundType: DEFAULT_SOUND_TYPE,
+  frequencyRange: [200, 640],
 };

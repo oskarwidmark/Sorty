@@ -80,6 +80,7 @@ class App extends React.Component<Props> {
       highlightColor: string;
       soundType: NonCustomOscillatorType;
       soundVolume: number;
+      frequencyRange: [number, number];
     };
   };
   canvasController: CanvasController;
@@ -291,7 +292,11 @@ class App extends React.Component<Props> {
     if (!this.state.shouldPlaySound) return;
 
     this.props.playSound({
-      frequency: toHz(arr[i].value, this.state.settings.columnNbr),
+      frequency: toHz(
+        arr[i].value,
+        this.state.settings.columnNbr,
+        this.state.settings.frequencyRange,
+      ),
     });
   };
 
@@ -445,6 +450,11 @@ class App extends React.Component<Props> {
     this.setSettings({ soundVolume: volume });
   };
 
+  setFrequencyRange = (_: unknown, value: number | number[]) => {
+    const frequencyRange = value instanceof Array ? value : [0, value];
+    this.setSettings({ frequencyRange: frequencyRange as [number, number] });
+  };
+
   render() {
     return (
       <div
@@ -569,6 +579,28 @@ class App extends React.Component<Props> {
                     step={1}
                     max={100}
                     onChangeCommitted={this.setVolume}
+                  />
+                </div>
+              </div>
+              <div>
+                <Typography
+                  align="left"
+                  variant="subtitle1"
+                  color="textSecondary"
+                >
+                  Frequency
+                </Typography>
+                <div className="col-slider">
+                  <Slider
+                    defaultValue={this.state.settings.frequencyRange}
+                    aria-labelledby="discrete-slider"
+                    valueLabelDisplay="auto"
+                    min={40}
+                    step={10}
+                    max={2000}
+                    onChangeCommitted={this.setFrequencyRange}
+                    disableSwap
+                    valueLabelFormat={(value: number) => `${value} Hz`}
                   />
                 </div>
               </div>
