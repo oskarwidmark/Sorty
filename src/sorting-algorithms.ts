@@ -560,10 +560,10 @@ public async   mergeSort(arr, start, end){
 
     let j = start;
     for (let i = mid; i < end; i++) {
-      while (await this.valueCompare(arr, j, '<', avg)) {
-        j++;
-      }
       if (await this.valueCompare(arr, i, '<', avg)) {
+        while (await this.valueCompare(arr, j, '<', avg)) {
+          j++;
+        }
         await this.drawAndSwap(arr, i, j);
         j++;
       }
