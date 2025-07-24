@@ -21,6 +21,7 @@ export class SortingAlgorithms {
     [SortName.ShellSort]: this.shellSort,
     [SortName.BitonicSort]: this.bitonicSort,
     [SortName.BullySort]: this.bullySort,
+    [SortName.AverageSort]: this.averageSort,
     // 'Bully Sort 2': this.bullySort2,
   };
 
@@ -31,6 +32,12 @@ export class SortingAlgorithms {
       i: number,
       operator: Operator,
       j: number,
+    ) => Promise<boolean>,
+    private valueCompare: (
+      arr: SortValue[],
+      i: number,
+      operator: Operator,
+      value: number,
     ) => Promise<boolean>,
     private drawAndSwap: (
       arr: SortValue[],
@@ -532,5 +539,37 @@ public async   mergeSort(arr, start, end){
         }
       }
     }
+  }
+
+  public async averageSort(arr: SortValue[]) {
+    await this._averageSort(arr, 0, this._columnNbr);
+  }
+
+  public async _averageSort(arr: SortValue[], start: number, end: number) {
+    if (end - start <= 1) return;
+
+    let sum = 0;
+    for (let i = start; i < end; i++) {
+      // for highlighting and counting comparison
+      // TODO: replace
+      await this.valueCompare(arr, i, '>', 0);
+      sum += arr[i].value;
+    }
+    const avg = sum / (end - start);
+    const mid = Math.floor((start + end) / 2);
+
+    let j = start;
+    for (let i = mid; i < end; i++) {
+      while (await this.valueCompare(arr, j, '<', avg)) {
+        j++;
+      }
+      if (await this.valueCompare(arr, i, '<', avg)) {
+        await this.drawAndSwap(arr, i, j);
+        j++;
+      }
+    }
+
+    await this._averageSort(arr, start, mid);
+    await this._averageSort(arr, mid, end);
   }
 }

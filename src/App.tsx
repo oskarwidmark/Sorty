@@ -95,6 +95,7 @@ class App extends React.Component<Props> {
     this.sortingAlgorithms = new SortingAlgorithms(
       this.state.settings.columnNbr,
       this.compare,
+      this.valueCompare,
       this.drawAndSwap,
     );
 
@@ -267,6 +268,43 @@ class App extends React.Component<Props> {
         return arr[i1].value <= arr[i2].value;
       case '>=':
         return arr[i1].value >= arr[i2].value;
+    }
+  };
+
+  valueCompare = async (
+    arr: SortValue[],
+    i: number,
+    operator: Operator,
+    value: number,
+  ): Promise<boolean> => {
+    if (!this.state.isSorting) throw Error('isSorting is false!');
+    this.nbrOfComparisons++;
+    if (this.state.settings.compareTime) {
+      // With a zero compareTime, maximum update depth will be exceeded
+      // when updating state too often
+      this.setState((prevState: typeof this.state) => ({
+        nbrOfComparisons: prevState.nbrOfComparisons + 1,
+      }));
+      this.canvasController.highlightColumns(arr, [i]);
+      await sleep(this.state.settings.compareTime);
+    }
+
+    if (
+      sortNameToSortType[this.state.settings.chosenSortAlg] ===
+      SortType.Comparison
+    ) {
+      this.playSoundForColumn(arr, i);
+    }
+
+    switch (operator) {
+      case '<':
+        return arr[i].value < value;
+      case '>':
+        return arr[i].value > value;
+      case '<=':
+        return arr[i].value <= value;
+      case '>=':
+        return arr[i].value >= value;
     }
   };
 

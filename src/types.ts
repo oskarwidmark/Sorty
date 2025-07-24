@@ -12,6 +12,7 @@ export enum SortName {
   ShellSort = 'Shell Sort',
   BitonicSort = 'Bitonic Sort',
   BullySort = 'Bully Sort',
+  AverageSort = 'Average Sort',
 }
 
 export type SortAlgorithm = (
