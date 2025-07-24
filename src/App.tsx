@@ -1,12 +1,6 @@
 import React, { MouseEvent } from 'react';
 import './App.css';
-import {
-  SelectChangeEvent,
-  Slider,
-  Tab,
-  Tabs,
-  Typography,
-} from '@mui/material';
+import { SelectChangeEvent, Tab, Tabs } from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -43,6 +37,7 @@ import { Audiotrack, BarChart, Palette } from '@mui/icons-material';
 import { TabPanel } from './TabPanel';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 import { TitledSelect } from './TitledSelect';
+import { TitledSlider } from './TitledSlider';
 
 type Props = {
   playSound: (params: { frequency: number; duration?: string }) => void;
@@ -562,49 +557,29 @@ class App extends React.Component<Props> {
                 onChange={this.setSoundType}
                 options={SOUND_TYPE_OPTIONS}
               />
-              <div>
-                <Typography
-                  align="left"
-                  variant="subtitle1"
-                  color="textSecondary"
-                >
-                  Volume
-                </Typography>
-                <div className="col-slider">
-                  <Slider
-                    defaultValue={this.state.settings.soundVolume}
-                    aria-labelledby="discrete-slider"
-                    valueLabelDisplay="auto"
-                    min={0}
-                    step={1}
-                    max={100}
-                    onChangeCommitted={this.setVolume}
-                    valueLabelFormat={(value: number) => `${value}%`}
-                  />
-                </div>
-              </div>
-              <div>
-                <Typography
-                  align="left"
-                  variant="subtitle1"
-                  color="textSecondary"
-                >
-                  Frequency
-                </Typography>
-                <div className="col-slider">
-                  <Slider
-                    defaultValue={this.state.settings.frequencyRange}
-                    aria-labelledby="discrete-slider"
-                    valueLabelDisplay="auto"
-                    min={40}
-                    step={10}
-                    max={2000}
-                    onChangeCommitted={this.setFrequencyRange}
-                    disableSwap
-                    valueLabelFormat={(value: number) => `${value} Hz`}
-                  />
-                </div>
-              </div>
+              <TitledSlider
+                title="Volume"
+                defaultValue={this.state.settings.soundVolume}
+                aria-labelledby="discrete-slider"
+                valueLabelDisplay="auto"
+                min={0}
+                step={1}
+                max={100}
+                onChangeCommitted={this.setVolume}
+                valueLabelFormat={(value: number) => `${value}%`}
+              />
+              <TitledSlider
+                title="Frequency"
+                defaultValue={this.state.settings.frequencyRange}
+                aria-labelledby="discrete-slider"
+                valueLabelDisplay="auto"
+                min={40}
+                step={10}
+                max={2000}
+                onChangeCommitted={this.setFrequencyRange}
+                disableSwap
+                valueLabelFormat={(value: number) => `${value} Hz`}
+              />
             </TabPanel>
           </SideDrawer>
         </div>

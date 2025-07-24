@@ -1,7 +1,7 @@
-import { Typography, Slider } from '@mui/material';
 import { POWERS_OF_TWO } from './constants';
 import { useEffect } from 'react';
 import { AlgorithmOptions, SortName } from './types';
+import { TitledSlider } from './TitledSlider';
 
 export function ColumnSlider(props: {
   columnNbr: number;
@@ -24,28 +24,22 @@ export function ColumnSlider(props: {
   }, [requiresPowerOfTwoColumns, changeColumnNbr, columnNbr]);
 
   return (
-    <div>
-      <Typography align="left" variant="subtitle1" color="textSecondary">
-        # Columns
-      </Typography>
-      <div className="col-slider">
-        <Slider
-          defaultValue={columnNbr}
-          aria-labelledby="discrete-slider"
-          valueLabelDisplay="auto"
-          min={8}
-          max={1024}
-          step={requiresPowerOfTwoColumns ? null : 1}
-          marks={
-            requiresPowerOfTwoColumns
-              ? POWERS_OF_TWO.map((value) => ({
-                  value,
-                }))
-              : false
-          }
-          onChangeCommitted={changeColumnNbr}
-        />
-      </div>
-    </div>
+    <TitledSlider
+      title="# Columns"
+      defaultValue={columnNbr}
+      aria-labelledby="discrete-slider"
+      valueLabelDisplay="auto"
+      min={8}
+      max={1024}
+      step={requiresPowerOfTwoColumns ? null : 1}
+      marks={
+        requiresPowerOfTwoColumns
+          ? POWERS_OF_TWO.map((value) => ({
+              value,
+            }))
+          : false
+      }
+      onChangeCommitted={changeColumnNbr}
+    />
   );
 }
