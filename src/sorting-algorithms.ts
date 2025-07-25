@@ -22,6 +22,7 @@ export class SortingAlgorithms {
     [SortName.BitonicSort]: this.bitonicSort,
     [SortName.BullySort]: this.bullySort,
     [SortName.AverageSort]: this.averageSort,
+    [SortName.Heapsort]: this.heapsort,
     // 'Bully Sort 2': this.bullySort2,
   };
 
@@ -571,5 +572,67 @@ public async   mergeSort(arr, start, end){
 
     await this._averageSort(arr, start, mid);
     await this._averageSort(arr, mid, end);
+  }
+
+  public async heapsort(arr: SortValue[], options: AlgorithmOptions) {
+    switch (options.heapType) {
+      case 'min':
+        return await this.minHeapsort(arr);
+      case 'max':
+        return await this.maxHeapsort(arr);
+    }
+  }
+
+  private async minHeapsort(arr: SortValue[]) {
+    for (let i = Math.ceil(arr.length / 2) + 1; i < arr.length; i++) {
+      await this.minHeapify(arr, 0, i);
+    }
+    for (let i = 0; i < arr.length; i++) {
+      await this.drawAndSwap(arr, arr.length - 1, i);
+      await this.minHeapify(arr, i, arr.length - 1);
+    }
+  }
+
+  private async maxHeapsort(arr: SortValue[]) {
+    for (let i = Math.floor(arr.length / 2) - 1; i >= 0; i--) {
+      await this.maxHeapify(arr, arr.length, i);
+    }
+    for (let i = arr.length - 1; i > 0; i--) {
+      await this.drawAndSwap(arr, 0, i);
+      await this.maxHeapify(arr, i, 0);
+    }
+  }
+
+  // This a reversed heap, with the smallest element at the last index
+  private async minHeapify(arr: SortValue[], n: number, i: number) {
+    let smallestIndex = i;
+    const left = arr.length - 1 - (2 * (arr.length - 1 - i) + 2);
+    const right = arr.length - 1 - (2 * (arr.length - 1 - i) + 1);
+    if (left > n && (await this.compare(arr, smallestIndex, '>', left))) {
+      smallestIndex = left;
+    }
+    if (right > n && (await this.compare(arr, smallestIndex, '>', right))) {
+      smallestIndex = right;
+    }
+    if (smallestIndex !== i) {
+      await this.drawAndSwap(arr, i, smallestIndex);
+      await this.minHeapify(arr, n, smallestIndex);
+    }
+  }
+
+  private async maxHeapify(arr: SortValue[], n: number, i: number) {
+    let largestIndex = i;
+    const left = 2 * i + 1;
+    const right = 2 * i + 2;
+    if (left < n && (await this.compare(arr, left, '>', largestIndex))) {
+      largestIndex = left;
+    }
+    if (right < n && (await this.compare(arr, right, '>', largestIndex))) {
+      largestIndex = right;
+    }
+    if (largestIndex !== i) {
+      await this.drawAndSwap(arr, i, largestIndex);
+      await this.maxHeapify(arr, n, largestIndex);
+    }
   }
 }

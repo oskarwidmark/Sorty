@@ -13,6 +13,7 @@ export enum SortName {
   BitonicSort = 'Bitonic Sort',
   BullySort = 'Bully Sort',
   AverageSort = 'Average Sort',
+  Heapsort = 'Heapsort',
 }
 
 export type SortAlgorithm = (
@@ -26,6 +27,7 @@ export type AlgorithmOptions = {
   type: 'iterative' | 'recursive';
   base: number;
   shrinkFactor: number;
+  heapType: 'max' | 'min';
 };
 
 export enum ResetPreset {

@@ -14,6 +14,7 @@ export const DEFAULT_ALGORITHM_OPTIONS: AlgorithmOptions = {
   type: 'iterative',
   base: 4,
   shrinkFactor: 1.3,
+  heapType: 'max',
 };
 export const DEFAULT_SOUND_VOLUME = 50;
 export const DEFAULT_SOUND_TYPE = 'triangle';

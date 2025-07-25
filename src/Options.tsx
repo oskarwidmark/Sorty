@@ -20,6 +20,8 @@ const getAlgorithmOptionFields = (
       return ['base'];
     case SortName.CombSort:
       return ['shrinkFactor'];
+    case SortName.Heapsort:
+      return ['heapType'];
     default:
       return [];
   }
@@ -40,6 +42,7 @@ const ALGORITHM_OPTION_LABELS: Record<keyof AlgorithmOptions, string> = {
   type: 'Type',
   base: 'Base',
   shrinkFactor: 'Shrink Factor',
+  heapType: 'Heap Type',
 };
 
 const ALGORITHM_OPTION_TEXT_FIELD_TYPES: Record<
@@ -49,6 +52,7 @@ const ALGORITHM_OPTION_TEXT_FIELD_TYPES: Record<
   type: 'select',
   base: 'number',
   shrinkFactor: 'number',
+  heapType: 'select',
 };
 
 const ALGORITHM_OPTION_VALUES: Record<
@@ -58,6 +62,7 @@ const ALGORITHM_OPTION_VALUES: Record<
   type: ['iterative', 'recursive'],
   base: [],
   shrinkFactor: [],
+  heapType: ['max', 'min'],
 };
 
 const ALGORITHM_OPTION_VALUE_LABELS: Record<
@@ -66,6 +71,8 @@ const ALGORITHM_OPTION_VALUE_LABELS: Record<
 > = {
   iterative: 'Iterative',
   recursive: 'Recursive',
+  max: 'Max Heap',
+  min: 'Min Heap',
 };
 
 interface OptionsProps {

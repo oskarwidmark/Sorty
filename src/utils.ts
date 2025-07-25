@@ -59,6 +59,7 @@ export const sortNameToSortType: Record<SortName, string> = {
   [SortName.BitonicSort]: SortType.Comparison,
   [SortName.BullySort]: SortType.Comparison,
   [SortName.AverageSort]: SortType.Comparison,
+  [SortName.Heapsort]: SortType.Comparison,
 };
 
 // something that sounds good
