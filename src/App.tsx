@@ -1,25 +1,25 @@
 import React, { MouseEvent } from 'react';
 import './App.css';
-import { SelectChangeEvent, Tab, Tabs } from '@mui/material';
+import {
+  Checkbox,
+  FormControlLabel,
+  SelectChangeEvent,
+  Stack,
+  Tab,
+  Tabs,
+  Typography,
+} from '@mui/material';
 import {
   SortValue,
   SortName,
   ResetPreset,
   ResetFunction,
   Operator,
-  SortType,
   AlgorithmOptions,
   ColorPreset,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
-import {
-  createArr,
-  shuffleArray,
-  sleep,
-  sortNameToSortType,
-  timeScale,
-  toHz,
-} from './utils';
+import { createArr, shuffleArray, sleep, timeScale, toHz } from './utils';
 import { SideDrawer } from './SideDrawer';
 import {
   RAINBOW_BACKGROUND_COLOR,
@@ -76,6 +76,8 @@ class App extends React.Component<Props> {
       soundType: NonCustomOscillatorType;
       soundVolume: number;
       frequencyRange: [number, number];
+      playSoundOnSwap: boolean;
+      playSoundOnComparison: boolean;
     };
   };
   canvasController: CanvasController;
@@ -252,10 +254,7 @@ class App extends React.Component<Props> {
       await sleep(this.state.settings.compareTime);
     }
 
-    if (
-      sortNameToSortType[this.state.settings.chosenSortAlg] ===
-      SortType.Comparison
-    ) {
+    if (this.state.settings.playSoundOnComparison) {
       this.playSoundForColumn(arr, i1);
     }
 
@@ -289,10 +288,7 @@ class App extends React.Component<Props> {
       await sleep(this.state.settings.compareTime);
     }
 
-    if (
-      sortNameToSortType[this.state.settings.chosenSortAlg] ===
-      SortType.Comparison
-    ) {
+    if (this.state.settings.playSoundOnComparison) {
       this.playSoundForColumn(arr, i);
     }
 
@@ -311,10 +307,7 @@ class App extends React.Component<Props> {
   public async swap(arr: SortValue[], i1: number, i2: number) {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
-    if (
-      sortNameToSortType[this.state.settings.chosenSortAlg] ===
-      SortType.Distribution
-    ) {
+    if (this.state.settings.playSoundOnSwap) {
       this.playSoundForColumn(arr, i1);
     }
 
@@ -619,6 +612,59 @@ class App extends React.Component<Props> {
                 disableSwap
                 valueLabelFormat={(value: number) => `${value} Hz`}
               />
+              <div>
+                <Typography
+                  align="left"
+                  variant="subtitle1"
+                  color="textSecondary"
+                >
+                  Play sound on
+                </Typography>
+                <Stack>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={this.state.settings.playSoundOnComparison}
+                        onChange={(e) =>
+                          this.setSettings({
+                            playSoundOnComparison: !!e.target.checked,
+                          })
+                        }
+                      />
+                    }
+                    label={
+                      <Typography
+                        align="left"
+                        variant="subtitle1"
+                        color="textSecondary"
+                      >
+                        Comparison
+                      </Typography>
+                    }
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={this.state.settings.playSoundOnSwap}
+                        onChange={(e) =>
+                          this.setSettings({
+                            playSoundOnSwap: !!e.target.checked,
+                          })
+                        }
+                      />
+                    }
+                    label={
+                      <Typography
+                        align="left"
+                        variant="subtitle1"
+                        color="textSecondary"
+                      >
+                        Swap
+                      </Typography>
+                    }
+                  />
+                </Stack>
+              </div>
             </TabPanel>
           </SideDrawer>
         </div>

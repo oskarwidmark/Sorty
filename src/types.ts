@@ -46,11 +46,6 @@ export type DrawData = {
   value: number;
 };
 
-export enum SortType {
-  Comparison = 'Comparison',
-  Distribution = 'Distribution',
-}
-
 export enum ColorPreset {
   Rainbow = 'Rainbow',
   Custom = 'Custom',

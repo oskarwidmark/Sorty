@@ -50,4 +50,6 @@ export const INIT_SETTINGS = {
   soundVolume: DEFAULT_SOUND_VOLUME,
   soundType: DEFAULT_SOUND_TYPE,
   frequencyRange: [200, 640],
+  playSoundOnSwap: false,
+  playSoundOnComparison: true,
 };
