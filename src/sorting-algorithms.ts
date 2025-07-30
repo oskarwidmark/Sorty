@@ -23,6 +23,7 @@ export class SortingAlgorithms {
     [SortName.BullySort]: this.bullySort,
     [SortName.AverageSort]: this.averageSort,
     [SortName.Heapsort]: this.heapsort,
+    [SortName.PushSort]: this.pushSort,
     // 'Bully Sort 2': this.bullySort2,
   };
 
@@ -633,6 +634,27 @@ public async   mergeSort(arr, start, end){
     if (largestIndex !== i) {
       await this.drawAndSwap(arr, i, largestIndex);
       await this.maxHeapify(arr, n, largestIndex);
+    }
+  }
+
+  public async pushSort(arr: SortValue[]) {
+    let isSorted = false;
+    let completed = 0;
+    while (!isSorted) {
+      isSorted = true;
+      let stackSize = 0;
+      for (let i = 0; i < arr.length - 1 - completed; i++) {
+        if (await this.compare(arr, i, '>', i + 1)) {
+          isSorted = false;
+          await this.drawAndSwap(arr, i, i + 1);
+          for (let j = i; j > i - stackSize; j--) {
+            await this.drawAndSwap(arr, j - 1, j);
+          }
+        } else {
+          stackSize++;
+        }
+      }
+      completed++;
     }
   }
 }

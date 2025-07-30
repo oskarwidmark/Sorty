@@ -14,6 +14,7 @@ export enum SortName {
   BullySort = 'Bully Sort',
   AverageSort = 'Average Sort',
   Heapsort = 'Heapsort',
+  PushSort = 'Push Sort',
 }
 
 export type SortAlgorithm = (
