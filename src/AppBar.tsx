@@ -24,6 +24,7 @@ interface AppBarProps {
   nbrOfSwaps: number;
   compareTime: number;
   nbrOfComparisons: number;
+  nbrOfAuxWrites: number;
   toggleDisplaySettings: () => void;
   shouldPlaySound: boolean;
   togglePlaySound: () => void;
@@ -112,6 +113,21 @@ export function SortAppBar(props: AppBarProps) {
             Comparisons:{' '}
             {props.compareTime || !props.isSorting ? (
               props.nbrOfComparisons
+            ) : (
+              <CircularProgress
+                className="counter-spinner"
+                size={15}
+                thickness={10}
+                color="secondary"
+              />
+            )}
+          </Typography>
+        </div>
+        <div>
+          <Typography className="counter" align="left" color="white">
+            Aux. writes:{' '}
+            {props.compareTime || props.swapTime || !props.isSorting ? (
+              props.nbrOfAuxWrites
             ) : (
               <CircularProgress
                 className="counter-spinner"

@@ -32,6 +32,7 @@ export const INIT_STATE = {
   canDraw: false,
   nbrOfSwaps: 0,
   nbrOfComparisons: 0,
+  nbrOfAuxWrites: 0,
   tabIndex: 0,
 };
 

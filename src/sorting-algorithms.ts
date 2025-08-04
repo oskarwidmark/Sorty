@@ -46,6 +46,7 @@ export class SortingAlgorithms {
       i: number,
       j: number,
     ) => Promise<void>,
+    private registerAuxWrite: () => Promise<void>,
   ) {
     this.bindAll();
   }
@@ -211,12 +212,16 @@ export class SortingAlgorithms {
     let shift = 0;
     const isSorted = false;
     while (!isSorted) {
+      if (base ** shift > arr.length) {
+        break;
+      }
       for (let i = 0; i < base; i++) {
         buckets[i] = [];
       }
       for (let i = 0; i < arr.length; i++) {
         const index = Math.floor(arr[i].value / base ** shift) % base;
         buckets[index].push(arr[i]);
+        await this.registerAuxWrite();
         indexMap[arr[i].id] = i;
       }
       shift++;
@@ -257,6 +262,7 @@ export class SortingAlgorithms {
     for (let i = start; i < end; i++) {
       const index = Math.floor(arr[i].value / base ** shift) % base;
       buckets[index].push(arr[i]);
+      await this.registerAuxWrite();
       indexMap[arr[i].id] = i;
     }
 

@@ -53,6 +53,7 @@ class App extends React.Component<Props> {
   private arr: SortValue[];
   private nbrOfSwaps: number = 0;
   private nbrOfComparisons: number = 0;
+  private nbrOfAuxWrites: number = 0;
   state: {
     isSorting: boolean;
     tabIndex: number;
@@ -61,6 +62,7 @@ class App extends React.Component<Props> {
     shouldPlaySound: boolean;
     nbrOfSwaps: number;
     nbrOfComparisons: number;
+    nbrOfAuxWrites: number;
     settings: {
       chosenSortAlg: SortName;
       columnNbr: number;
@@ -99,6 +101,7 @@ class App extends React.Component<Props> {
       this.compare,
       this.valueCompare,
       this.drawAndSwap,
+      this.registerAuxWrite,
     );
 
     this.resetPresets = {
@@ -178,9 +181,10 @@ class App extends React.Component<Props> {
   };
 
   resetCounters = () => {
-    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0 });
+    this.setState({ nbrOfSwaps: 0, nbrOfComparisons: 0, nbrOfAuxWrites: 0 });
     this.nbrOfComparisons = 0;
     this.nbrOfSwaps = 0;
+    this.nbrOfAuxWrites = 0;
   };
 
   sort = async (arr: SortValue[]) => {
@@ -205,6 +209,7 @@ class App extends React.Component<Props> {
         this.setState({
           nbrOfSwaps: this.nbrOfSwaps,
           nbrOfComparisons: this.nbrOfComparisons,
+          nbrOfAuxWrites: this.nbrOfAuxWrites,
         });
         this.stopSorting();
       },
@@ -230,6 +235,7 @@ class App extends React.Component<Props> {
       // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
+        nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
       this.canvasController.highlightColumns(arr, [i1, i2]);
       await sleep(this.state.settings.swapTime);
@@ -249,6 +255,7 @@ class App extends React.Component<Props> {
       // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
+        nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
       this.canvasController.highlightColumns(arr, [i1, i2]);
       await sleep(this.state.settings.compareTime);
@@ -283,6 +290,7 @@ class App extends React.Component<Props> {
       // when updating state too often
       this.setState((prevState: typeof this.state) => ({
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
+        nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
       this.canvasController.highlightColumns(arr, [i]);
       await sleep(this.state.settings.compareTime);
@@ -313,6 +321,12 @@ class App extends React.Component<Props> {
 
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
   }
+
+  registerAuxWrite = async () => {
+    if (!this.state.isSorting) throw Error('isSorting is false!');
+
+    this.nbrOfAuxWrites++;
+  };
 
   playSoundForColumn = (arr: SortValue[], i: number) => {
     if (!this.state.shouldPlaySound) return;
@@ -496,6 +510,7 @@ class App extends React.Component<Props> {
             isSorting={this.state.isSorting}
             nbrOfSwaps={this.state.nbrOfSwaps}
             nbrOfComparisons={this.state.nbrOfComparisons}
+            nbrOfAuxWrites={this.state.nbrOfAuxWrites}
             sort={this.sort}
             shuffleAndDraw={this.shuffleAndDraw}
             resetAndDraw={this.resetAndDraw}
