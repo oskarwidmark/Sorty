@@ -28,25 +28,23 @@ export class SortingAlgorithms {
   };
 
   constructor(
-    private _columnNbr: number,
-    private compare: (
-      arr: SortValue[],
-      i: number,
-      operator: Operator,
-      j: number,
-    ) => Promise<boolean>,
-    private valueCompare: (
-      arr: SortValue[],
-      i: number,
-      operator: Operator,
-      value: number,
-    ) => Promise<boolean>,
-    private drawAndSwap: (
-      arr: SortValue[],
-      i: number,
-      j: number,
-    ) => Promise<void>,
-    private registerAuxWrite: () => Promise<void>,
+    private context: {
+      columnNbr: number;
+      compare: (
+        arr: SortValue[],
+        i: number,
+        operator: Operator,
+        j: number,
+      ) => Promise<boolean>;
+      valueCompare: (
+        arr: SortValue[],
+        i: number,
+        operator: Operator,
+        value: number,
+      ) => Promise<boolean>;
+      drawAndSwap: (arr: SortValue[], i: number, j: number) => Promise<void>;
+      registerAuxWrite: () => Promise<void>;
+    },
   ) {
     this.bindAll();
   }
@@ -58,7 +56,7 @@ export class SortingAlgorithms {
   }
 
   public set columnNbr(columnNbr: number) {
-    this._columnNbr = columnNbr;
+    this.context.columnNbr = columnNbr;
   }
 
   getSortingAlgorithm(name: SortName): SortAlgorithm {
@@ -71,8 +69,8 @@ export class SortingAlgorithms {
     while (!isSorted) {
       isSorted = true;
       for (let i = 1; i < arr.length - sortedCount; i++) {
-        if (await this.compare(arr, i - 1, '>', i)) {
-          await this.drawAndSwap(arr, i - 1, i);
+        if (await this.context.compare(arr, i - 1, '>', i)) {
+          await this.context.drawAndSwap(arr, i - 1, i);
           isSorted = false;
         }
       }
@@ -86,16 +84,16 @@ export class SortingAlgorithms {
       isSorted = true;
       const oddSorter = async () => {
         for (let i = 1; i < arr.length; i += 2) {
-          if (await this.compare(arr, i - 1, '>', i)) {
-            await this.drawAndSwap(arr, i - 1, i);
+          if (await this.context.compare(arr, i - 1, '>', i)) {
+            await this.context.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
         }
       };
       const evenSorter = async () => {
         for (let i = 2; i < arr.length; i += 2) {
-          if (await this.compare(arr, i - 1, '>', i)) {
-            await this.drawAndSwap(arr, i - 1, i);
+          if (await this.context.compare(arr, i - 1, '>', i)) {
+            await this.context.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
         }
@@ -112,7 +110,7 @@ export class SortingAlgorithms {
       case 'iterative':
         return await this.iterOddEvenMergesort(arr);
       case 'recursive':
-        return await this.recOddEvenMergesort(arr, 0, this._columnNbr);
+        return await this.recOddEvenMergesort(arr, 0, this.context.columnNbr);
     }
   }
 
@@ -125,8 +123,8 @@ export class SortingAlgorithms {
             const index1 = i + j;
             const index2 = i + j + k;
             if (Math.floor(index1 / (p * 2)) == Math.floor(index2 / (p * 2))) {
-              if (await this.compare(arr, index1, '>', index2)) {
-                await this.drawAndSwap(arr, index1, index2);
+              if (await this.context.compare(arr, index1, '>', index2)) {
+                await this.context.drawAndSwap(arr, index1, index2);
               }
             }
           }
@@ -157,8 +155,8 @@ export class SortingAlgorithms {
   ) {
     const newDist = dist * 2;
     if (end - start <= newDist && start + dist < arr.length) {
-      if (await this.compare(arr, start, '>', start + dist)) {
-        await this.drawAndSwap(arr, start, start + dist);
+      if (await this.context.compare(arr, start, '>', start + dist)) {
+        await this.context.drawAndSwap(arr, start, start + dist);
       }
       return;
     }
@@ -170,14 +168,14 @@ export class SortingAlgorithms {
 
     for (let i = start + dist; i < end - dist; i += newDist) {
       const j = i + dist;
-      if (await this.compare(arr, i, '>', j)) {
-        await this.drawAndSwap(arr, i, j);
+      if (await this.context.compare(arr, i, '>', j)) {
+        await this.context.drawAndSwap(arr, i, j);
       }
     }
   }
 
   public async combSort(arr: SortValue[], options: AlgorithmOptions) {
-    let gap = this._columnNbr;
+    let gap = this.context.columnNbr;
     const { shrinkFactor } = options;
     let isSorted = false;
     while (!isSorted) {
@@ -187,8 +185,8 @@ export class SortingAlgorithms {
         isSorted = true;
       }
       for (let i = gap; i < arr.length; i++) {
-        if (await this.compare(arr, i - gap, '>', i)) {
-          await this.drawAndSwap(arr, i - gap, i);
+        if (await this.context.compare(arr, i - gap, '>', i)) {
+          await this.context.drawAndSwap(arr, i - gap, i);
           isSorted = false;
         }
       }
@@ -198,8 +196,8 @@ export class SortingAlgorithms {
   public async insertionSort(arr: SortValue[]) {
     for (let i = 1; i < arr.length; i++) {
       let j = i;
-      while (j > 0 && (await this.compare(arr, j - 1, '>', j))) {
-        await this.drawAndSwap(arr, j - 1, j);
+      while (j > 0 && (await this.context.compare(arr, j - 1, '>', j))) {
+        await this.context.drawAndSwap(arr, j - 1, j);
         j--;
       }
     }
@@ -221,7 +219,7 @@ export class SortingAlgorithms {
       for (let i = 0; i < arr.length; i++) {
         const index = Math.floor(arr[i].value / base ** shift) % base;
         buckets[index].push(arr[i]);
-        await this.registerAuxWrite();
+        await this.context.registerAuxWrite();
         indexMap[arr[i].id] = i;
       }
       shift++;
@@ -234,7 +232,7 @@ export class SortingAlgorithms {
       for (const bucket of buckets) {
         for (const a of bucket) {
           const swapIndex = indexMap[a.id];
-          await this.drawAndSwap(arr, currentIndex, swapIndex);
+          await this.context.drawAndSwap(arr, currentIndex, swapIndex);
 
           indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
           currentIndex++;
@@ -247,8 +245,10 @@ export class SortingAlgorithms {
     arr: SortValue[],
     options: AlgorithmOptions,
     start = 0,
-    end = this._columnNbr,
-    shift = Math.floor(Math.log(this._columnNbr) / Math.log(options.base)),
+    end = this.context.columnNbr,
+    shift = Math.floor(
+      Math.log(this.context.columnNbr) / Math.log(options.base),
+    ),
   ) {
     const { base } = options;
     const buckets = Array(base);
@@ -262,7 +262,7 @@ export class SortingAlgorithms {
     for (let i = start; i < end; i++) {
       const index = Math.floor(arr[i].value / base ** shift) % base;
       buckets[index].push(arr[i]);
-      await this.registerAuxWrite();
+      await this.context.registerAuxWrite();
       indexMap[arr[i].id] = i;
     }
 
@@ -278,7 +278,7 @@ export class SortingAlgorithms {
           currentIndex++;
           continue;
         }
-        await this.drawAndSwap(arr, currentIndex, swapIndex);
+        await this.context.drawAndSwap(arr, currentIndex, swapIndex);
 
         indexMap[arr[swapIndex].id] = indexMap[arr[currentIndex].id];
         currentIndex++;
@@ -296,12 +296,12 @@ export class SortingAlgorithms {
     for (let i = 0; i < arr.length; i++) {
       let curJ = i;
       for (let j = i + 1; j < arr.length; j++) {
-        if (await this.compare(arr, j, '<', curJ)) {
+        if (await this.context.compare(arr, j, '<', curJ)) {
           curJ = j;
         }
       }
       if (curJ !== i) {
-        await this.drawAndSwap(arr, curJ, i);
+        await this.context.drawAndSwap(arr, curJ, i);
       }
     }
   }
@@ -319,8 +319,8 @@ export class SortingAlgorithms {
           i < arr.length - sortedCountRight;
           i++
         ) {
-          if (await this.compare(arr, i, '<', i - 1)) {
-            await this.drawAndSwap(arr, i, i - 1);
+          if (await this.context.compare(arr, i, '<', i - 1)) {
+            await this.context.drawAndSwap(arr, i, i - 1);
             isSorted = false;
           }
         }
@@ -331,8 +331,8 @@ export class SortingAlgorithms {
           i > sortedCountLeft;
           i--
         ) {
-          if (await this.compare(arr, i - 1, '>', i)) {
-            await this.drawAndSwap(arr, i - 1, i);
+          if (await this.context.compare(arr, i - 1, '>', i)) {
+            await this.context.drawAndSwap(arr, i - 1, i);
             isSorted = false;
           }
         }
@@ -354,12 +354,12 @@ export class SortingAlgorithms {
           }
           const l = i + j;
           // i & k is false for the first half of the bitonic sequence (ex: k = 4, i = 0, 1, 2, 3, 8, 9, 10, 11)
-          if (!(i & k) && (await this.compare(arr, i, '>', l))) {
-            await this.drawAndSwap(arr, i, l);
+          if (!(i & k) && (await this.context.compare(arr, i, '>', l))) {
+            await this.context.drawAndSwap(arr, i, l);
           }
           // i & k is true for the second half of the bitonic sequence (ex: k = 4, i = 4, 5, 6, 7, 12, 13, 14, 15)
-          if (i & k && (await this.compare(arr, i, '<', l))) {
-            await this.drawAndSwap(arr, l, i);
+          if (i & k && (await this.context.compare(arr, i, '<', l))) {
+            await this.context.drawAndSwap(arr, l, i);
           }
         }
       }
@@ -372,7 +372,7 @@ export class SortingAlgorithms {
       case 'iterative':
         return await this.iterBitonicSort(arr);
       case 'recursive':
-        return await this.recBitonicSort(arr, 0, this._columnNbr, 'asc');
+        return await this.recBitonicSort(arr, 0, this.context.columnNbr, 'asc');
     }
   }
 
@@ -403,11 +403,17 @@ export class SortingAlgorithms {
     const j = Math.floor((end - start) / 2);
 
     for (let i = start; i < mid && i + j < arr.length; i++) {
-      if (direction === 'asc' && (await this.compare(arr, i, '>', i + j))) {
-        await this.drawAndSwap(arr, i, i + j);
+      if (
+        direction === 'asc' &&
+        (await this.context.compare(arr, i, '>', i + j))
+      ) {
+        await this.context.drawAndSwap(arr, i, i + j);
       }
-      if (direction === 'desc' && (await this.compare(arr, i, '<', i + j))) {
-        await this.drawAndSwap(arr, i, i + j);
+      if (
+        direction === 'desc' &&
+        (await this.context.compare(arr, i, '<', i + j))
+      ) {
+        await this.context.drawAndSwap(arr, i, i + j);
       }
     }
 
@@ -423,18 +429,19 @@ export class SortingAlgorithms {
       let swapIndex = 0;
       for (let i = 1; i < arr.length; i++) {
         if (
-          (await this.compare(arr, i - 1, '>', i)) &&
-          (i + 1 >= arr.length || (await this.compare(arr, i + 1, '>=', i)))
+          (await this.context.compare(arr, i - 1, '>', i)) &&
+          (i + 1 >= arr.length ||
+            (await this.context.compare(arr, i + 1, '>=', i)))
         ) {
           for (let j = swapIndex; j < i; j++) {
             if (
               !(
-                (await this.compare(arr, i - 1, '>', j)) &&
+                (await this.context.compare(arr, i - 1, '>', j)) &&
                 (i + 1 >= arr.length ||
-                  (await this.compare(arr, i + 1, '>=', j)))
+                  (await this.context.compare(arr, i + 1, '>=', j)))
               )
             ) {
-              await this.drawAndSwap(arr, j, i);
+              await this.context.drawAndSwap(arr, j, i);
               isSorted = false;
               swapIndex++;
               break;
@@ -455,7 +462,7 @@ public async       const test(arr, i){
         if (arr[i - 1].x > arr[i].x && (arr[i+1]?.x ?? Infinity) > arr[i].x) {
           if (!((arr[i - 1]?.x ?? -Infinity) > arr[swapIndex].x && (arr[i+1]?.x ?? Infinity) > arr[swapIndex].x)) {
             isSorted = false;
-            await this.drawAndSwap(arr, swapIndex, i);
+            await this.context.drawAndSwap(arr, swapIndex, i);
             this.highlight(arr, [swapIndex, i])
             await sleep(this.state.swapTime);
             if (swapIndex > 0) {
@@ -482,7 +489,7 @@ public async   mergeSort(arr, start, end){
     if (start >= end) return
     if (end-start === 1) {
       if (arr[start] > arr[end]) {
-        await this.drawAndSwap(arr, start, end);
+        await this.context.drawAndSwap(arr, start, end);
         await sleep(this.state.swapTime);
       }
     }
@@ -494,7 +501,7 @@ public async   mergeSort(arr, start, end){
     let j = mid+1
     while (i < mid && j < end) {
       if (arr[i] > arr[j]) {
-        await this.drawAndSwap(arr, i, j);
+        await this.context.drawAndSwap(arr, i, j);
         await sleep(this.state.swapTime);
       }
     }
@@ -503,7 +510,7 @@ public async   mergeSort(arr, start, end){
   //#endregion
 
   public async quickSort(arr: SortValue[]) {
-    await this._quickSort(arr, 0, this._columnNbr - 1);
+    await this._quickSort(arr, 0, this.context.columnNbr - 1);
   }
 
   private async _quickSort(arr: SortValue[], start: number, end: number) {
@@ -511,24 +518,24 @@ public async   mergeSort(arr, start, end){
 
     const mid = Math.floor((start + end) / 2);
 
-    if (await this.compare(arr, mid, '<', start)) {
-      await this.drawAndSwap(arr, start, mid);
+    if (await this.context.compare(arr, mid, '<', start)) {
+      await this.context.drawAndSwap(arr, start, mid);
     }
-    if (await this.compare(arr, end, '<', start)) {
-      await this.drawAndSwap(arr, start, end);
+    if (await this.context.compare(arr, end, '<', start)) {
+      await this.context.drawAndSwap(arr, start, end);
     }
-    if (await this.compare(arr, mid, '<', end)) {
-      await this.drawAndSwap(arr, mid, end);
+    if (await this.context.compare(arr, mid, '<', end)) {
+      await this.context.drawAndSwap(arr, mid, end);
     }
 
     let i = start;
     for (let j = start; j < end; j++) {
-      if (await this.compare(arr, j, '<', end)) {
-        await this.drawAndSwap(arr, i, j);
+      if (await this.context.compare(arr, j, '<', end)) {
+        await this.context.drawAndSwap(arr, i, j);
         i++;
       }
     }
-    await this.drawAndSwap(arr, i, end);
+    await this.context.drawAndSwap(arr, i, end);
 
     await this._quickSort(arr, start, i - 1);
     await this._quickSort(arr, i + 1, end);
@@ -537,20 +544,20 @@ public async   mergeSort(arr, start, end){
   public async shellSort(arr: SortValue[]) {
     const gaps = [701, 301, 132, 57, 23, 10, 4, 1]; // from https://oeis.org/A102549
     for (const gap of gaps) {
-      if (gap > this._columnNbr) continue;
-      for (let i = gap; i < this._columnNbr; i++) {
+      if (gap > this.context.columnNbr) continue;
+      for (let i = gap; i < this.context.columnNbr; i++) {
         for (let j = i; j >= gap; j -= gap) {
-          if (await this.compare(arr, j - gap, '<', j)) {
+          if (await this.context.compare(arr, j - gap, '<', j)) {
             break;
           }
-          await this.drawAndSwap(arr, j - gap, j);
+          await this.context.drawAndSwap(arr, j - gap, j);
         }
       }
     }
   }
 
   public async averageSort(arr: SortValue[]) {
-    await this._averageSort(arr, 0, this._columnNbr);
+    await this._averageSort(arr, 0, this.context.columnNbr);
   }
 
   public async _averageSort(arr: SortValue[], start: number, end: number) {
@@ -560,7 +567,7 @@ public async   mergeSort(arr, start, end){
     for (let i = start; i < end; i++) {
       // for highlighting and counting comparison
       // TODO: replace
-      await this.valueCompare(arr, i, '>', 0);
+      await this.context.valueCompare(arr, i, '>', 0);
       sum += arr[i].value;
     }
     const avg = sum / (end - start);
@@ -568,11 +575,11 @@ public async   mergeSort(arr, start, end){
 
     let j = start;
     for (let i = mid; i < end; i++) {
-      if (await this.valueCompare(arr, i, '<', avg)) {
-        while (await this.valueCompare(arr, j, '<', avg)) {
+      if (await this.context.valueCompare(arr, i, '<', avg)) {
+        while (await this.context.valueCompare(arr, j, '<', avg)) {
           j++;
         }
-        await this.drawAndSwap(arr, i, j);
+        await this.context.drawAndSwap(arr, i, j);
         j++;
       }
     }
@@ -595,7 +602,7 @@ public async   mergeSort(arr, start, end){
       await this.minHeapify(arr, 0, i);
     }
     for (let i = 0; i < arr.length; i++) {
-      await this.drawAndSwap(arr, arr.length - 1, i);
+      await this.context.drawAndSwap(arr, arr.length - 1, i);
       await this.minHeapify(arr, i, arr.length - 1);
     }
   }
@@ -605,7 +612,7 @@ public async   mergeSort(arr, start, end){
       await this.maxHeapify(arr, arr.length, i);
     }
     for (let i = arr.length - 1; i > 0; i--) {
-      await this.drawAndSwap(arr, 0, i);
+      await this.context.drawAndSwap(arr, 0, i);
       await this.maxHeapify(arr, i, 0);
     }
   }
@@ -615,14 +622,20 @@ public async   mergeSort(arr, start, end){
     let smallestIndex = i;
     const left = arr.length - 1 - (2 * (arr.length - 1 - i) + 2);
     const right = arr.length - 1 - (2 * (arr.length - 1 - i) + 1);
-    if (left > n && (await this.compare(arr, smallestIndex, '>', left))) {
+    if (
+      left > n &&
+      (await this.context.compare(arr, smallestIndex, '>', left))
+    ) {
       smallestIndex = left;
     }
-    if (right > n && (await this.compare(arr, smallestIndex, '>', right))) {
+    if (
+      right > n &&
+      (await this.context.compare(arr, smallestIndex, '>', right))
+    ) {
       smallestIndex = right;
     }
     if (smallestIndex !== i) {
-      await this.drawAndSwap(arr, i, smallestIndex);
+      await this.context.drawAndSwap(arr, i, smallestIndex);
       await this.minHeapify(arr, n, smallestIndex);
     }
   }
@@ -631,14 +644,20 @@ public async   mergeSort(arr, start, end){
     let largestIndex = i;
     const left = 2 * i + 1;
     const right = 2 * i + 2;
-    if (left < n && (await this.compare(arr, left, '>', largestIndex))) {
+    if (
+      left < n &&
+      (await this.context.compare(arr, left, '>', largestIndex))
+    ) {
       largestIndex = left;
     }
-    if (right < n && (await this.compare(arr, right, '>', largestIndex))) {
+    if (
+      right < n &&
+      (await this.context.compare(arr, right, '>', largestIndex))
+    ) {
       largestIndex = right;
     }
     if (largestIndex !== i) {
-      await this.drawAndSwap(arr, i, largestIndex);
+      await this.context.drawAndSwap(arr, i, largestIndex);
       await this.maxHeapify(arr, n, largestIndex);
     }
   }
@@ -650,11 +669,11 @@ public async   mergeSort(arr, start, end){
       isSorted = true;
       let stackSize = 0;
       for (let i = 0; i < arr.length - 1 - completed; i++) {
-        if (await this.compare(arr, i, '>', i + 1)) {
+        if (await this.context.compare(arr, i, '>', i + 1)) {
           isSorted = false;
-          await this.drawAndSwap(arr, i, i + 1);
+          await this.context.drawAndSwap(arr, i, i + 1);
           for (let j = i; j > i - stackSize; j--) {
-            await this.drawAndSwap(arr, j - 1, j);
+            await this.context.drawAndSwap(arr, j - 1, j);
           }
         } else {
           stackSize++;

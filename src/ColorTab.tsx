@@ -2,7 +2,7 @@ import { FormControl, Stack, TextField, Grid2 } from '@mui/material';
 import { ColorPreset } from './types';
 import { TitledSelect } from './TitledSelect';
 
-export function Colors(props: {
+export function ColorTab(props: {
   colorPreset: ColorPreset;
   setColorPreset: (string: ColorPreset) => void;
   columnColor1: string;

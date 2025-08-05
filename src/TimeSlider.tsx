@@ -4,7 +4,7 @@ import { TitledSlider } from './TitledSlider';
 export function TimeSlider(props: {
   title: string;
   time: number;
-  changeTime: (_: unknown, value: number | number[]) => void;
+  changeTime: (value: number) => void;
 }) {
   const { title, time, changeTime } = props;
 
@@ -18,7 +18,7 @@ export function TimeSlider(props: {
       step={0.1}
       max={10}
       scale={(x) => timeScale(x)}
-      onChangeCommitted={changeTime}
+      onChangeCommitted={(_, value) => changeTime(timeScale(value as number))}
       valueLabelFormat={(value: number) => `${value} ms`}
     />
   );

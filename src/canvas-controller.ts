@@ -11,19 +11,25 @@ export class CanvasController {
   _canvas2dCtx: CanvasRenderingContext2D | null = null;
 
   constructor(
-    public canvasRef: React.RefObject<HTMLCanvasElement>,
-    public columnNbr: number,
-    public colorPreset: ColorPreset,
-    public columnColor1: string,
-    public columnColor2: string,
-    public highlightColor: string,
+    private context: {
+      canvasRef: React.RefObject<HTMLCanvasElement>;
+      columnNbr: number;
+      colorPreset: ColorPreset;
+      columnColor1: string;
+      columnColor2: string;
+      highlightColor: string;
+    },
   ) {}
+
+  get canvasRef() {
+    return this.context.canvasRef;
+  }
 
   get refCurrent() {
     if (this._refCurrent) {
       return this._refCurrent;
     }
-    const current = this.canvasRef.current;
+    const current = this.context.canvasRef.current;
     if (current == null) {
       throw Error('canvasRef.current is null!');
     }
@@ -44,11 +50,31 @@ export class CanvasController {
     return context;
   }
 
+  set columnNbr(value: number) {
+    this.context.columnNbr = value;
+  }
+
+  set colorPreset(value: ColorPreset) {
+    this.context.colorPreset = value;
+  }
+
+  set columnColor1(value: string) {
+    this.context.columnColor1 = value;
+  }
+
+  set columnColor2(value: string) {
+    this.context.columnColor2 = value;
+  }
+
+  set highlightColor(value: string) {
+    this.context.highlightColor = value;
+  }
+
   getGradientColor(value: number) {
     // eslint-disable-next-line prefer-const
-    let [h1, s1, v1] = rgbHexToHsv(this.columnColor1);
+    let [h1, s1, v1] = rgbHexToHsv(this.context.columnColor1);
     // eslint-disable-next-line prefer-const
-    let [h2, s2, v2] = rgbHexToHsv(this.columnColor2);
+    let [h2, s2, v2] = rgbHexToHsv(this.context.columnColor2);
     if (h1 === 0 && s1 === 0) {
       h1 = h2;
     }
@@ -62,7 +88,7 @@ export class CanvasController {
 
     const sDiff = s2 - s1;
     const vDiff = v2 - v1;
-    const multiplier = value / this.columnNbr;
+    const multiplier = value / this.context.columnNbr;
 
     return hsvToRgbHex(
       // TODO: Use additive/subtractive color mixing instead of hue shifting?
@@ -73,21 +99,21 @@ export class CanvasController {
   }
 
   getColumnColor1(value: number) {
-    switch (this.colorPreset) {
+    switch (this.context.colorPreset) {
       case ColorPreset.Custom:
-        return this.columnColor1;
+        return this.context.columnColor1;
       case ColorPreset.CustomGradient:
         return this.getGradientColor(value);
       case ColorPreset.Rainbow:
-        return hsvToRgbHex((360 * value) / this.columnNbr, 1, 1);
+        return hsvToRgbHex((360 * value) / this.context.columnNbr, 1, 1);
     }
   }
 
   getHighlightColor() {
-    switch (this.colorPreset) {
+    switch (this.context.colorPreset) {
       case ColorPreset.Custom:
       case ColorPreset.CustomGradient:
-        return this.highlightColor;
+        return this.context.highlightColor;
       case ColorPreset.Rainbow:
         return '#FFFFFF';
     }
@@ -138,7 +164,7 @@ export class CanvasController {
 
     const drawData = [];
 
-    const canvas = this.canvasRef.current;
+    const canvas = this.context.canvasRef.current;
     if (canvas == null) {
       throw Error('canvas is null!');
     }
@@ -150,11 +176,11 @@ export class CanvasController {
     const rect = canvas.getBoundingClientRect();
 
     const colIndex = Math.floor(
-      ((event.clientX - rect.left) / canvas.width) * this.columnNbr,
+      ((event.clientX - rect.left) / canvas.width) * this.context.columnNbr,
     );
     const colHeight = Math.floor(
       ((canvas.height - (event.clientY - rect.top)) / canvas.height) *
-        this.columnNbr,
+        this.context.columnNbr,
     );
 
     // If the mouse is moved too fast, we will set the height of the columns in
@@ -219,9 +245,10 @@ export class CanvasController {
   };
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
-    const width = this.canvas2dCtx.canvas.width / this.columnNbr;
+    const width = this.canvas2dCtx.canvas.width / this.context.columnNbr;
     const height =
-      (this.canvas2dCtx.canvas.height / this.columnNbr) * (arr[i].value + 1);
+      (this.canvas2dCtx.canvas.height / this.context.columnNbr) *
+      (arr[i].value + 1);
     const startX = width * i;
 
     this.canvas2dCtx.fillStyle = color || this.getColumnColor1(arr[i].value);
@@ -244,7 +271,7 @@ export class CanvasController {
   };
 
   private clearColumn = (idx: number) => {
-    const width = this.canvas2dCtx.canvas.width / this.columnNbr;
+    const width = this.canvas2dCtx.canvas.width / this.context.columnNbr;
     const startX = width * idx;
 
     this.clearRect(startX, width);

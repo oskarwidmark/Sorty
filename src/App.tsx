@@ -1,14 +1,6 @@
 import React, { MouseEvent } from 'react';
 import './App.css';
-import {
-  Checkbox,
-  FormControlLabel,
-  SelectChangeEvent,
-  Stack,
-  Tab,
-  Tabs,
-  Typography,
-} from '@mui/material';
+import { SelectChangeEvent, Tab, Tabs } from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -19,17 +11,16 @@ import {
   ColorPreset,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
-import { createArr, shuffleArray, sleep, timeScale, toHz } from './utils';
+import { createArr, shuffleArray, sleep, toHz } from './utils';
 import { SideDrawer } from './SideDrawer';
 import {
   RAINBOW_BACKGROUND_COLOR,
   INIT_STATE,
   INIT_SETTINGS,
-  SOUND_TYPE_OPTIONS,
 } from './constants';
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
-import { Colors } from './Colors';
+import { ColorTab } from './ColorTab';
 import { ColumnSlider } from './ColumnSlider';
 import { Options } from './Options';
 import { TimeSlider } from './TimeSlider';
@@ -37,7 +28,7 @@ import { Audiotrack, BarChart, Palette } from '@mui/icons-material';
 import { TabPanel } from './TabPanel';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 import { TitledSelect } from './TitledSelect';
-import { TitledSlider } from './TitledSlider';
+import { SoundTab } from './SoundTab';
 
 type Props = {
   playSound: (params: { frequency: number; duration?: string }) => void;
@@ -96,33 +87,32 @@ class App extends React.Component<Props> {
       },
     };
 
-    this.sortingAlgorithms = new SortingAlgorithms(
-      this.state.settings.columnNbr,
-      this.compare,
-      this.valueCompare,
-      this.drawAndSwap,
-      this.registerAuxWrite,
-    );
+    this.sortingAlgorithms = new SortingAlgorithms({
+      columnNbr: this.state.settings.columnNbr,
+      compare: this.compare,
+      valueCompare: this.valueCompare,
+      drawAndSwap: this.drawAndSwap,
+      registerAuxWrite: this.registerAuxWrite,
+    });
 
+    this.canvasController = new CanvasController({
+      canvasRef:
+        React.createRef<HTMLCanvasElement>() as React.RefObject<HTMLCanvasElement>,
+      columnNbr: this.state.settings.columnNbr,
+      colorPreset: this.state.settings.colorPreset,
+      columnColor1: this.state.settings.columnColor1,
+      columnColor2: this.state.settings.columnColor2,
+      highlightColor: this.state.settings.highlightColor,
+    });
+
+    this.arr = createArr(this.state.settings.columnNbr);
     this.resetPresets = {
       [ResetPreset.Shuffle]: () => shuffleArray(this.arr),
       [ResetPreset.Sorted]: () => this.arr.sort((a, b) => a.value - b.value),
       [ResetPreset.ReverseSorted]: () =>
         this.arr.sort((a, b) => b.value - a.value),
     };
-
-    this.arr = createArr(this.state.settings.columnNbr);
     this.resetPresets[this.state.settings.resetPreset]();
-
-    const ref = React.createRef<HTMLCanvasElement>();
-    this.canvasController = new CanvasController(
-      ref as React.RefObject<HTMLCanvasElement>,
-      this.state.settings.columnNbr,
-      this.state.settings.colorPreset,
-      this.state.settings.columnColor1,
-      this.state.settings.columnColor2,
-      this.state.settings.highlightColor,
-    );
 
     this.props.setVolume(this.state.settings.soundVolume);
     this.props.setSoundType(this.state.settings.soundType);
@@ -354,10 +344,6 @@ class App extends React.Component<Props> {
     this.setSettings({ chosenSortAlg: event.target.value as SortName });
   };
 
-  chooseResetPreset = (event: SelectChangeEvent<string>) => {
-    this.setSettings({ resetPreset: event.target.value as ResetPreset });
-  };
-
   changeColumnNbr = (_: unknown, value: number | number[]) => {
     if (this.state.settings.columnNbr === value) return;
 
@@ -365,18 +351,6 @@ class App extends React.Component<Props> {
     this.sortingAlgorithms.columnNbr = columnNbr;
     this.canvasController.columnNbr = columnNbr;
     this.setSettings({ columnNbr }, () => this.resetAndDraw());
-  };
-
-  changeSwapTime = (_: unknown, value: number | number[]) => {
-    this.setSettings({
-      swapTime: timeScale(value instanceof Array ? value[0] : value),
-    });
-  };
-
-  changeCompareTime = (_: unknown, value: number | number[]) => {
-    this.setSettings({
-      compareTime: timeScale(value instanceof Array ? value[0] : value),
-    });
   };
 
   resetAndDraw = () => {
@@ -451,10 +425,6 @@ class App extends React.Component<Props> {
     this.canvasController.redraw(this.arr);
   };
 
-  setBackgroundColor = (backgroundColor: string) => {
-    this.setSettings({ backgroundColor });
-  };
-
   setHighlightColor = (highlightColor: string) => {
     this.setSettings({ highlightColor });
     this.canvasController.highlightColor = highlightColor;
@@ -478,21 +448,18 @@ class App extends React.Component<Props> {
     });
   };
 
-  setSoundType = (event: SelectChangeEvent<string>) => {
-    const soundType = event.target.value as NonCustomOscillatorType;
+  setSoundType = (soundType: NonCustomOscillatorType) => {
     this.props.setSoundType(soundType);
     this.setSettings({ soundType });
   };
 
-  setVolume = (_: unknown, value: number | number[]) => {
-    const volume = value instanceof Array ? value[0] : value;
+  setVolume = (volume: number) => {
     this.props.setVolume(volume);
     this.setSettings({ soundVolume: volume });
   };
 
-  setFrequencyRange = (_: unknown, value: number | number[]) => {
-    const frequencyRange = value instanceof Array ? value : [0, value];
-    this.setSettings({ frequencyRange: frequencyRange as [number, number] });
+  setFrequencyRange = (frequencyRange: [number, number]) => {
+    this.setSettings({ frequencyRange });
   };
 
   render() {
@@ -569,22 +536,26 @@ class App extends React.Component<Props> {
               <TimeSlider
                 title="Time per swap"
                 time={this.state.settings.swapTime}
-                changeTime={this.changeSwapTime}
+                changeTime={(swapTime) => this.setSettings({ swapTime })}
               />
               <TimeSlider
                 title="Time per comparison"
                 time={this.state.settings.compareTime}
-                changeTime={this.changeCompareTime}
+                changeTime={(compareTime) => this.setSettings({ compareTime })}
               />
               <TitledSelect
                 title="Reset Preset"
                 value={this.state.settings.resetPreset}
-                onChange={this.chooseResetPreset}
+                onChange={(event) => {
+                  this.setSettings({
+                    resetPreset: event.target.value as ResetPreset,
+                  });
+                }}
                 options={Object.values(ResetPreset)}
               />
             </TabPanel>
             <TabPanel value={this.state.tabIndex} index={1}>
-              <Colors
+              <ColorTab
                 colorPreset={this.state.settings.colorPreset}
                 columnColor1={this.state.settings.columnColor1}
                 columnColor2={this.state.settings.columnColor2}
@@ -593,93 +564,35 @@ class App extends React.Component<Props> {
                 setColorPreset={this.setColorPreset}
                 setColumnColor1={this.setColumnColor1}
                 setColumnColor2={this.setColumnColor2}
-                setBackgroundColor={this.setBackgroundColor}
+                setBackgroundColor={(backgroundColor) =>
+                  this.setSettings({ backgroundColor })
+                }
                 setHighlightColor={this.setHighlightColor}
               />
             </TabPanel>
             <TabPanel value={this.state.tabIndex} index={2}>
-              <TitledSelect
-                title="Sound type"
-                value={this.props.soundType}
-                onChange={this.setSoundType}
-                options={SOUND_TYPE_OPTIONS}
+              <SoundTab
+                soundType={this.state.settings.soundType}
+                setSoundType={this.setSoundType}
+                soundVolume={this.state.settings.soundVolume}
+                setVolume={this.setVolume}
+                frequencyRange={this.state.settings.frequencyRange}
+                setFrequencyRange={(frequencyRange) =>
+                  this.setSettings({ frequencyRange })
+                }
+                playSoundOnComparison={
+                  this.state.settings.playSoundOnComparison
+                }
+                setPlaySoundOnComparison={(playSoundOnComparison) =>
+                  this.setSettings({
+                    playSoundOnComparison,
+                  })
+                }
+                playSoundOnSwap={this.state.settings.playSoundOnSwap}
+                setPlaySoundOnSwap={(playSoundOnSwap) =>
+                  this.setSettings({ playSoundOnSwap })
+                }
               />
-              <TitledSlider
-                title="Volume"
-                defaultValue={this.state.settings.soundVolume}
-                aria-labelledby="discrete-slider"
-                valueLabelDisplay="auto"
-                min={0}
-                step={1}
-                max={100}
-                onChangeCommitted={this.setVolume}
-                valueLabelFormat={(value: number) => `${value}%`}
-              />
-              <TitledSlider
-                title="Frequency"
-                defaultValue={this.state.settings.frequencyRange}
-                aria-labelledby="discrete-slider"
-                valueLabelDisplay="auto"
-                min={40}
-                step={10}
-                max={2000}
-                onChangeCommitted={this.setFrequencyRange}
-                disableSwap
-                valueLabelFormat={(value: number) => `${value} Hz`}
-              />
-              <div>
-                <Typography
-                  align="left"
-                  variant="subtitle1"
-                  color="textSecondary"
-                >
-                  Play sound on
-                </Typography>
-                <Stack>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={this.state.settings.playSoundOnComparison}
-                        onChange={(e) =>
-                          this.setSettings({
-                            playSoundOnComparison: !!e.target.checked,
-                          })
-                        }
-                      />
-                    }
-                    label={
-                      <Typography
-                        align="left"
-                        variant="subtitle1"
-                        color="textSecondary"
-                      >
-                        Comparison
-                      </Typography>
-                    }
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={this.state.settings.playSoundOnSwap}
-                        onChange={(e) =>
-                          this.setSettings({
-                            playSoundOnSwap: !!e.target.checked,
-                          })
-                        }
-                      />
-                    }
-                    label={
-                      <Typography
-                        align="left"
-                        variant="subtitle1"
-                        color="textSecondary"
-                      >
-                        Swap
-                      </Typography>
-                    }
-                  />
-                </Stack>
-              </div>
             </TabPanel>
           </SideDrawer>
         </div>
