@@ -435,6 +435,7 @@ class App extends React.Component<Props> {
             arr={this.arr}
             swapTime={this.state.settings.swapTime}
             compareTime={this.state.settings.compareTime}
+            auxWriteTime={this.state.settings.auxWriteTime}
             canDraw={this.state.canDraw}
             isSorting={this.state.isSorting}
             nbrOfSwaps={this.state.nbrOfSwaps}
