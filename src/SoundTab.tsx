@@ -22,6 +22,8 @@ interface SoundTabProps {
   setPlaySoundOnComparison: (value: boolean) => void;
   playSoundOnSwap: boolean;
   setPlaySoundOnSwap: (value: boolean) => void;
+  playSoundOnAuxWrite: boolean;
+  setPlaySoundOnAuxWrite: (value: boolean) => void;
 }
 
 export const SoundTab = ({
@@ -35,6 +37,8 @@ export const SoundTab = ({
   setPlaySoundOnComparison,
   playSoundOnSwap,
   setPlaySoundOnSwap,
+  playSoundOnAuxWrite,
+  setPlaySoundOnAuxWrite,
 }: SoundTabProps) => (
   <>
     <TitledSelect
@@ -82,6 +86,11 @@ export const SoundTab = ({
           label="Swap"
           checked={playSoundOnSwap}
           onChecked={setPlaySoundOnSwap}
+        />
+        <LabeledCheckbox
+          label="Aux. write"
+          checked={playSoundOnAuxWrite}
+          onChecked={setPlaySoundOnAuxWrite}
         />
       </Stack>
     </div>

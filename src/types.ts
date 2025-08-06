@@ -71,6 +71,7 @@ export type Settings = {
   columnNbr: number;
   swapTime: number;
   compareTime: number;
+  auxWriteTime: number;
   resetPreset: ResetPreset;
   algorithmOptions: AlgorithmOptions;
   colorPreset: ColorPreset;
@@ -83,4 +84,5 @@ export type Settings = {
   frequencyRange: [number, number];
   playSoundOnSwap: boolean;
   playSoundOnComparison: boolean;
+  playSoundOnAuxWrite: boolean;
 };

@@ -1,6 +1,6 @@
 import React, { MouseEvent } from 'react';
 import './App.css';
-import { SelectChangeEvent, Tab, Tabs } from '@mui/material';
+import { SelectChangeEvent, Stack, Tab, Tabs } from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -155,8 +155,14 @@ class App extends React.Component<Props> {
 
     this.nbrOfSwaps = 0;
     this.nbrOfComparisons = 0;
+    this.nbrOfAuxWrites = 0;
     this.setState(
-      { isSorting: true, nbrOfSwaps: 0, nbrOfComparisons: 0 },
+      {
+        isSorting: true,
+        nbrOfSwaps: 0,
+        nbrOfComparisons: 0,
+        nbrOfAuxWrites: 0,
+      },
       async () => {
         try {
           await this.sortingAlgorithms.getSortingAlgorithm(
@@ -191,11 +197,14 @@ class App extends React.Component<Props> {
     this.canvasController.redrawColumns(arr, [i1, i2]);
     this.nbrOfSwaps++;
     if (this.state.settings.swapTime) {
+      if (this.state.settings.playSoundOnSwap) {
+        this.playSoundForColumn(arr, i1);
+      }
+
       // With a zero swapTime, maximum update depth will be exceeded
       // when updating state too often
       this.setState((prevState: AppState) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
-        nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
       this.canvasController.highlightColumns(arr, [i1, i2]);
       await sleep(this.state.settings.swapTime);
@@ -240,19 +249,17 @@ class App extends React.Component<Props> {
     if (!this.state.isSorting) throw Error('isSorting is false!');
     this.nbrOfComparisons++;
     if (this.state.settings.compareTime) {
+      if (this.state.settings.playSoundOnComparison) {
+        this.playSoundForColumn(arr, i1);
+      }
       // With a zero compareTime, maximum update depth will be exceeded
       // when updating state too often
       this.setState((prevState: AppState) => ({
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
-        nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
       const indexes = 'value' in params ? [i1] : [i1, params.i2];
       this.canvasController.highlightColumns(arr, indexes);
       await sleep(this.state.settings.compareTime);
-    }
-
-    if (this.state.settings.playSoundOnComparison) {
-      this.playSoundForColumn(arr, i1);
     }
 
     const value = 'value' in params ? params.value : arr[params.i2].value;
@@ -272,17 +279,25 @@ class App extends React.Component<Props> {
   public async swap(arr: SortValue[], i1: number, i2: number) {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
-    if (this.state.settings.playSoundOnSwap) {
-      this.playSoundForColumn(arr, i1);
-    }
-
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
   }
 
-  registerAuxWrite = async () => {
+  registerAuxWrite = async (arr: SortValue[], i: number) => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
     this.nbrOfAuxWrites++;
+    if (this.state.settings.auxWriteTime) {
+      if (this.state.settings.playSoundOnAuxWrite) {
+        this.playSoundForColumn(arr, i);
+      }
+      // With a zero auxWriteTime, maximum update depth will be exceeded
+      // when updating state too often
+      this.setState((prevState: AppState) => ({
+        nbrOfAuxWrites: prevState.nbrOfAuxWrites + 1,
+      }));
+      this.canvasController.highlightColumns(arr, [i]);
+      await sleep(this.state.settings.auxWriteTime);
+    }
   };
 
   playSoundForColumn = (arr: SortValue[], i: number) => {
@@ -480,16 +495,27 @@ class App extends React.Component<Props> {
                 algorithmOptions={this.state.settings.algorithmOptions}
                 changeColumnNbr={this.changeColumnNbr}
               />
-              <TimeSlider
-                title="Time per swap"
-                time={this.state.settings.swapTime}
-                changeTime={(swapTime) => this.setSettings({ swapTime })}
-              />
-              <TimeSlider
-                title="Time per comparison"
-                time={this.state.settings.compareTime}
-                changeTime={(compareTime) => this.setSettings({ compareTime })}
-              />
+              <Stack>
+                <TimeSlider
+                  title="Time per swap"
+                  time={this.state.settings.swapTime}
+                  changeTime={(swapTime) => this.setSettings({ swapTime })}
+                />
+                <TimeSlider
+                  title="Time per comparison"
+                  time={this.state.settings.compareTime}
+                  changeTime={(compareTime) =>
+                    this.setSettings({ compareTime })
+                  }
+                />
+                <TimeSlider
+                  title="Time per aux. write"
+                  time={this.state.settings.auxWriteTime}
+                  changeTime={(auxWriteTime) =>
+                    this.setSettings({ auxWriteTime })
+                  }
+                />
+              </Stack>
               <TitledSelect
                 title="Reset Preset"
                 value={this.state.settings.resetPreset}
@@ -538,6 +564,10 @@ class App extends React.Component<Props> {
                 playSoundOnSwap={this.state.settings.playSoundOnSwap}
                 setPlaySoundOnSwap={(playSoundOnSwap) =>
                   this.setSettings({ playSoundOnSwap })
+                }
+                playSoundOnAuxWrite={this.state.settings.playSoundOnAuxWrite}
+                setPlaySoundOnAuxWrite={(playSoundOnAuxWrite) =>
+                  this.setSettings({ playSoundOnAuxWrite })
                 }
               />
             </TabPanel>
