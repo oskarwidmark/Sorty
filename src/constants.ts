@@ -26,6 +26,7 @@ export const INIT_SETTINGS: Settings = {
   chosenSortAlg: SortName.InsertionSort,
   swapTime: 1,
   compareTime: 1,
+  auxWriteTime: 1,
   resetPreset: ResetPreset.Shuffle,
   algorithmOptions: {
     type: 'iterative',
@@ -43,4 +44,5 @@ export const INIT_SETTINGS: Settings = {
   frequencyRange: [200, 640],
   playSoundOnSwap: false,
   playSoundOnComparison: true,
+  playSoundOnAuxWrite: false,
 };
