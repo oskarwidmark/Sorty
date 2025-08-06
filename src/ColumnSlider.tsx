@@ -1,7 +1,11 @@
-import { POWERS_OF_TWO } from './constants';
 import { useEffect } from 'react';
 import { AlgorithmOptions, SortName } from './types';
 import { TitledSlider } from './TitledSlider';
+
+const POWERS_OF_TWO = [8, 16, 32, 64, 128, 256, 512, 1024];
+const POWERS_OF_TWO_MARKS = POWERS_OF_TWO.map((value) => ({
+  value,
+}));
 
 export function ColumnSlider(props: {
   columnNbr: number;
@@ -27,18 +31,11 @@ export function ColumnSlider(props: {
     <TitledSlider
       title="# Columns"
       defaultValue={columnNbr}
-      aria-labelledby="discrete-slider"
       valueLabelDisplay="auto"
       min={8}
       max={1024}
       step={requiresPowerOfTwoColumns ? null : 1}
-      marks={
-        requiresPowerOfTwoColumns
-          ? POWERS_OF_TWO.map((value) => ({
-              value,
-            }))
-          : false
-      }
+      marks={requiresPowerOfTwoColumns ? POWERS_OF_TWO_MARKS : false}
       onChangeCommitted={changeColumnNbr}
     />
   );

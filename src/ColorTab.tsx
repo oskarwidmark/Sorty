@@ -1,6 +1,7 @@
-import { FormControl, Stack, TextField, Grid2 } from '@mui/material';
+import { FormControl, Stack, Grid2 } from '@mui/material';
 import { ColorPreset } from './types';
 import { TitledSelect } from './TitledSelect';
+import { ColorField } from './ColorField';
 
 export function ColorTab(props: {
   colorPreset: ColorPreset;
@@ -28,58 +29,44 @@ export function ColorTab(props: {
   } = props;
 
   return (
-    <div className="select-wrapper">
-      <FormControl component="fieldset">
-        <Stack direction="column" spacing={2} alignItems="left">
-          <TitledSelect
-            title="Sort Algorithm"
-            value={colorPreset}
-            onChange={(e) => setColorPreset(e.target.value as ColorPreset)}
-            options={Object.values(ColorPreset)}
-          />
-          {(colorPreset === ColorPreset.Custom ||
-            colorPreset === ColorPreset.CustomGradient) && (
-            <Grid2 container spacing={2}>
-              <TextField
-                label={
-                  colorPreset === ColorPreset.Custom ? 'Columns' : 'Columns(1)'
-                }
-                value={columnColor1}
-                type="color"
-                size="small"
-                sx={{ width: 100 }}
-                onChange={(e) => setColumnColor1(e.target.value)}
+    <FormControl component="fieldset">
+      <Stack direction="column" spacing={2} alignItems="left">
+        <TitledSelect
+          title="Preset"
+          value={colorPreset}
+          onChange={(e) => setColorPreset(e.target.value as ColorPreset)}
+          options={Object.values(ColorPreset)}
+        />
+        {(colorPreset === ColorPreset.Custom ||
+          colorPreset === ColorPreset.CustomGradient) && (
+          <Grid2 container spacing={2}>
+            <ColorField
+              label={
+                colorPreset === ColorPreset.Custom ? 'Columns' : 'Columns(1)'
+              }
+              color={columnColor1}
+              setColor={setColumnColor1}
+            />
+            {colorPreset === ColorPreset.CustomGradient && (
+              <ColorField
+                label="Columns(2)"
+                color={columnColor2}
+                setColor={setColumnColor2}
               />
-              {colorPreset === ColorPreset.CustomGradient && (
-                <TextField
-                  label="Columns(2)"
-                  value={columnColor2}
-                  type="color"
-                  size="small"
-                  sx={{ width: 100 }}
-                  onChange={(e) => setColumnColor2(e.target.value)}
-                />
-              )}
-              <TextField
-                label="Background"
-                value={backgroundColor}
-                type="color"
-                size="small"
-                sx={{ width: 100 }}
-                onChange={(e) => setBackgroundColor(e.target.value)}
-              />
-              <TextField
-                label="Highlight"
-                value={highlightColor}
-                type="color"
-                size="small"
-                sx={{ width: 100 }}
-                onChange={(e) => setHighlightColor(e.target.value)}
-              />
-            </Grid2>
-          )}
-        </Stack>
-      </FormControl>
-    </div>
+            )}
+            <ColorField
+              label="Background"
+              color={backgroundColor}
+              setColor={setBackgroundColor}
+            />
+            <ColorField
+              label="Highlight"
+              color={highlightColor}
+              setColor={setHighlightColor}
+            />
+          </Grid2>
+        )}
+      </Stack>
+    </FormControl>
   );
 }

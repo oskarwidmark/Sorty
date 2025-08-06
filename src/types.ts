@@ -1,3 +1,5 @@
+import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
+
 export enum SortName {
   InsertionSort = 'Insertion Sort',
   SelectionSort = 'Selection Sort',
@@ -51,3 +53,34 @@ export enum ColorPreset {
   Custom = 'Custom',
   CustomGradient = 'Custom (gradient)',
 }
+
+export type AppState = {
+  isSorting: boolean;
+  tabIndex: number;
+  areSettingsOpen: boolean;
+  canDraw: boolean;
+  shouldPlaySound: boolean;
+  nbrOfSwaps: number;
+  nbrOfComparisons: number;
+  nbrOfAuxWrites: number;
+  settings: Settings;
+};
+
+export type Settings = {
+  chosenSortAlg: SortName;
+  columnNbr: number;
+  swapTime: number;
+  compareTime: number;
+  resetPreset: ResetPreset;
+  algorithmOptions: AlgorithmOptions;
+  colorPreset: ColorPreset;
+  columnColor1: string;
+  columnColor2: string;
+  backgroundColor: string;
+  highlightColor: string;
+  soundType: NonCustomOscillatorType;
+  soundVolume: number;
+  frequencyRange: [number, number];
+  playSoundOnSwap: boolean;
+  playSoundOnComparison: boolean;
+};

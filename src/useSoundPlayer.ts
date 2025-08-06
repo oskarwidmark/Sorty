@@ -2,11 +2,6 @@ import { useEffect, useRef, useCallback, RefObject } from 'react';
 import * as Tone from 'tone';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 
-type PlayParams = {
-  frequency: number;
-  duration?: string;
-};
-
 export function useSoundPlayer({
   type,
   volume,
@@ -40,7 +35,7 @@ export function useSoundPlayer({
   }, []);
 
   const play = useCallback(
-    async ({ frequency }: PlayParams) => {
+    async ({ frequency }: { frequency: number }) => {
       await ensureStarted();
       const synth = synthRef.current;
       if (!synth) return;
@@ -48,8 +43,8 @@ export function useSoundPlayer({
       // stop any currently playing note
       synth.triggerRelease();
 
-      // trigger new tone for 2 seconds max
-      synth.triggerAttackRelease(frequency, 2);
+      // trigger new tone for 0.5 seconds max
+      synth.triggerAttackRelease(frequency, 0.5);
     },
     [ensureStarted],
   );

@@ -1,8 +1,15 @@
-import { Typography, Stack, FormControlLabel, Checkbox } from '@mui/material';
-import { SOUND_TYPE_OPTIONS } from './constants';
+import { Typography, Stack } from '@mui/material';
 import { TitledSelect } from './TitledSelect';
 import { TitledSlider } from './TitledSlider';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
+import { LabeledCheckbox } from './LabeledCheckbox';
+
+const SOUND_TYPE_OPTIONS = [
+  'sine',
+  'square',
+  'triangle',
+  'sawtooth',
+] as NonCustomOscillatorType[];
 
 interface SoundTabProps {
   soundType: string;
@@ -41,7 +48,6 @@ export const SoundTab = ({
     <TitledSlider
       title="Volume"
       defaultValue={soundVolume}
-      aria-labelledby="discrete-slider"
       valueLabelDisplay="auto"
       min={0}
       step={1}
@@ -52,7 +58,6 @@ export const SoundTab = ({
     <TitledSlider
       title="Frequency"
       defaultValue={frequencyRange}
-      aria-labelledby="discrete-slider"
       valueLabelDisplay="auto"
       min={40}
       step={10}
@@ -68,31 +73,15 @@ export const SoundTab = ({
         Play sound on
       </Typography>
       <Stack>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={playSoundOnComparison}
-              onChange={(e) => setPlaySoundOnComparison(!!e.target.checked)}
-            />
-          }
-          label={
-            <Typography align="left" variant="subtitle1" color="textSecondary">
-              Comparison
-            </Typography>
-          }
+        <LabeledCheckbox
+          label="Comparison"
+          checked={playSoundOnComparison}
+          onChecked={setPlaySoundOnComparison}
         />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={playSoundOnSwap}
-              onChange={(e) => setPlaySoundOnSwap(!!e.target.checked)}
-            />
-          }
-          label={
-            <Typography align="left" variant="subtitle1" color="textSecondary">
-              Swap
-            </Typography>
-          }
+        <LabeledCheckbox
+          label="Swap"
+          checked={playSoundOnSwap}
+          onChecked={setPlaySoundOnSwap}
         />
       </Stack>
     </div>

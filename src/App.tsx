@@ -9,6 +9,8 @@ import {
   Operator,
   AlgorithmOptions,
   ColorPreset,
+  AppState,
+  Settings,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
 import { createArr, shuffleArray, sleep, toHz } from './utils';
@@ -45,34 +47,7 @@ class App extends React.Component<Props> {
   private nbrOfSwaps: number = 0;
   private nbrOfComparisons: number = 0;
   private nbrOfAuxWrites: number = 0;
-  state: {
-    isSorting: boolean;
-    tabIndex: number;
-    areSettingsOpen: boolean;
-    canDraw: boolean;
-    shouldPlaySound: boolean;
-    nbrOfSwaps: number;
-    nbrOfComparisons: number;
-    nbrOfAuxWrites: number;
-    settings: {
-      chosenSortAlg: SortName;
-      columnNbr: number;
-      swapTime: number;
-      compareTime: number;
-      resetPreset: ResetPreset;
-      algorithmOptions: AlgorithmOptions;
-      colorPreset: ColorPreset;
-      columnColor1: string;
-      columnColor2: string;
-      backgroundColor: string;
-      highlightColor: string;
-      soundType: NonCustomOscillatorType;
-      soundVolume: number;
-      frequencyRange: [number, number];
-      playSoundOnSwap: boolean;
-      playSoundOnComparison: boolean;
-    };
-  };
+  state: AppState;
   canvasController: CanvasController;
 
   constructor(public props: Props) {
@@ -120,28 +95,23 @@ class App extends React.Component<Props> {
 
   setSettings = (
     settings:
-      | Partial<typeof this.state.settings>
-      | ((
-          prevSettings: typeof this.state.settings,
-        ) => Partial<typeof this.state.settings>),
+      | Partial<Settings>
+      | ((prevSettings: Settings) => Partial<Settings>),
     callback?: () => Promise<void> | void,
   ) => {
-    this.setState(
-      (prevState: typeof this.state) => {
-        const newSettings =
-          settings instanceof Function
-            ? settings(prevState.settings)
-            : settings;
-        return {
-          ...prevState,
-          settings: { ...prevState.settings, ...newSettings },
-        };
-      },
-      async () => {
-        await callback?.();
-        localStorage.setItem('settings', JSON.stringify(this.state.settings));
-      },
-    );
+    const set = (prevState: AppState) => {
+      const newSettings =
+        settings instanceof Function ? settings(prevState.settings) : settings;
+      return {
+        ...prevState,
+        settings: { ...prevState.settings, ...newSettings },
+      };
+    };
+
+    this.setState(set, async () => {
+      await callback?.();
+      localStorage.setItem('settings', JSON.stringify(this.state.settings));
+    });
   };
 
   resizeCanvas = () => {
@@ -223,7 +193,7 @@ class App extends React.Component<Props> {
     if (this.state.settings.swapTime) {
       // With a zero swapTime, maximum update depth will be exceeded
       // when updating state too often
-      this.setState((prevState: typeof this.state) => ({
+      this.setState((prevState: AppState) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
         nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
@@ -238,33 +208,12 @@ class App extends React.Component<Props> {
     operator: Operator,
     i2: number,
   ): Promise<boolean> => {
-    if (!this.state.isSorting) throw Error('isSorting is false!');
-    this.nbrOfComparisons++;
-    if (this.state.settings.compareTime) {
-      // With a zero compareTime, maximum update depth will be exceeded
-      // when updating state too often
-      this.setState((prevState: typeof this.state) => ({
-        nbrOfComparisons: prevState.nbrOfComparisons + 1,
-        nbrOfAuxWrites: this.nbrOfAuxWrites,
-      }));
-      this.canvasController.highlightColumns(arr, [i1, i2]);
-      await sleep(this.state.settings.compareTime);
-    }
-
-    if (this.state.settings.playSoundOnComparison) {
-      this.playSoundForColumn(arr, i1);
-    }
-
-    switch (operator) {
-      case '<':
-        return arr[i1].value < arr[i2].value;
-      case '>':
-        return arr[i1].value > arr[i2].value;
-      case '<=':
-        return arr[i1].value <= arr[i2].value;
-      case '>=':
-        return arr[i1].value >= arr[i2].value;
-    }
+    return this._compare({
+      arr,
+      i1,
+      operator,
+      i2,
+    });
   };
 
   valueCompare = async (
@@ -273,34 +222,52 @@ class App extends React.Component<Props> {
     operator: Operator,
     value: number,
   ): Promise<boolean> => {
+    return this._compare({
+      arr,
+      i1: i,
+      operator,
+      value,
+    });
+  };
+
+  async _compare(
+    params: { arr: SortValue[]; i1: number; operator: Operator } & (
+      | { value: number }
+      | { i2: number }
+    ),
+  ) {
+    const { arr, i1, operator } = params;
     if (!this.state.isSorting) throw Error('isSorting is false!');
     this.nbrOfComparisons++;
     if (this.state.settings.compareTime) {
       // With a zero compareTime, maximum update depth will be exceeded
       // when updating state too often
-      this.setState((prevState: typeof this.state) => ({
+      this.setState((prevState: AppState) => ({
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
         nbrOfAuxWrites: this.nbrOfAuxWrites,
       }));
-      this.canvasController.highlightColumns(arr, [i]);
+      const indexes = 'value' in params ? [i1] : [i1, params.i2];
+      this.canvasController.highlightColumns(arr, indexes);
       await sleep(this.state.settings.compareTime);
     }
 
     if (this.state.settings.playSoundOnComparison) {
-      this.playSoundForColumn(arr, i);
+      this.playSoundForColumn(arr, i1);
     }
+
+    const value = 'value' in params ? params.value : arr[params.i2].value;
 
     switch (operator) {
       case '<':
-        return arr[i].value < value;
+        return arr[i1].value < value;
       case '>':
-        return arr[i].value > value;
+        return arr[i1].value > value;
       case '<=':
-        return arr[i].value <= value;
+        return arr[i1].value <= value;
       case '>=':
-        return arr[i].value >= value;
+        return arr[i1].value >= value;
     }
-  };
+  }
 
   public async swap(arr: SortValue[], i1: number, i2: number) {
     if (!this.state.isSorting) throw Error('isSorting is false!');
@@ -332,10 +299,6 @@ class App extends React.Component<Props> {
 
   toggleDisplaySettings = () => {
     this.setState({ areSettingsOpen: !this.state.areSettingsOpen });
-  };
-
-  closeDisplaySettings = () => {
-    this.setState({ areSettingsOpen: false });
   };
 
   chooseSortAlg = (event: SelectChangeEvent<string>) => {
@@ -378,18 +341,12 @@ class App extends React.Component<Props> {
     this.drawOnCanvas(event);
   };
 
-  endDrawOnCanvas = () => {
-    this.canvasController.isDrawing = false;
-    this.canvasController.prevDrawIndex = null;
-    this.canvasController.prevDrawHeight = null;
-  };
-
   toggleCanDraw = () => {
     this.setState({ canDraw: !this.state.canDraw });
   };
 
   togglePlaySound = () => {
-    this.setState((prevState: typeof this.state) => ({
+    this.setState((prevState: AppState) => ({
       shouldPlaySound: !prevState.shouldPlaySound,
     }));
     this.props.stopSounds();
@@ -442,12 +399,6 @@ class App extends React.Component<Props> {
     }
   };
 
-  setTabIndex = (_: unknown, newValue: number) => {
-    this.setState({
-      tabIndex: newValue,
-    });
-  };
-
   setSoundType = (soundType: NonCustomOscillatorType) => {
     this.props.setSoundType(soundType);
     this.setSettings({ soundType });
@@ -456,10 +407,6 @@ class App extends React.Component<Props> {
   setVolume = (volume: number) => {
     this.props.setVolume(volume);
     this.setSettings({ soundVolume: volume });
-  };
-
-  setFrequencyRange = (frequencyRange: [number, number]) => {
-    this.setSettings({ frequencyRange });
   };
 
   render() {
@@ -485,20 +432,20 @@ class App extends React.Component<Props> {
             toggleDisplaySettings={this.toggleDisplaySettings}
             shouldPlaySound={this.state.shouldPlaySound}
             togglePlaySound={this.togglePlaySound}
-            onClick={this.closeDisplaySettings}
+            onClick={() => this.setState({ areSettingsOpen: false })}
           />
           <div
             className="canvas-wrapper"
             id="canvas-wrapper"
-            onClick={this.closeDisplaySettings}
+            onClick={() => this.setState({ areSettingsOpen: false })}
           >
             <canvas
               className="App-canvas"
               ref={this.canvasController.canvasRef}
               onMouseDown={this.startDrawOnCanvas}
               onMouseMove={this.drawOnCanvas}
-              onMouseUp={this.endDrawOnCanvas}
-              onMouseLeave={this.endDrawOnCanvas}
+              onMouseUp={this.canvasController.endDraw}
+              onMouseLeave={this.canvasController.endDraw}
             />
           </div>
           <SideDrawer
@@ -508,7 +455,7 @@ class App extends React.Component<Props> {
             <Tabs
               variant="fullWidth"
               className="tabs"
-              onChange={this.setTabIndex}
+              onChange={(_, tabIndex) => this.setState({ tabIndex })}
               value={this.state.tabIndex}
             >
               <Tab icon={<BarChart />} sx={{ minWidth: 0 }} />

@@ -12,7 +12,6 @@ export function TimeSlider(props: {
     <TitledSlider
       title={title}
       defaultValue={inverseTimeScale(time)}
-      aria-labelledby="discrete-slider"
       valueLabelDisplay="auto"
       min={0}
       step={0.1}

@@ -286,4 +286,10 @@ export class CanvasController {
       Math.floor(ctxHeight),
     );
   };
+
+  endDraw = () => {
+    this.isDrawing = false;
+    this.prevDrawIndex = null;
+    this.prevDrawHeight = null;
+  };
 }
