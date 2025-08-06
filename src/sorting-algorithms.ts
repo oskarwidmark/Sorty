@@ -664,12 +664,16 @@ public async   mergeSort(arr, start, end){
 
   public async pushSort(arr: SortValue[]) {
     let isSorted = false;
-    let completed = 0;
+    let lastIndex = arr.length - 1;
+
     while (!isSorted) {
       isSorted = true;
       let stackSize = 0;
-      for (let i = 0; i < arr.length - 1 - completed; i++) {
+      const end = lastIndex;
+
+      for (let i = 0; i < end; i++) {
         if (await this.context.compare(arr, i, '>', i + 1)) {
+          lastIndex = i;
           isSorted = false;
           await this.context.drawAndSwap(arr, i, i + 1);
           for (let j = i; j > i - stackSize; j--) {
@@ -679,7 +683,6 @@ public async   mergeSort(arr, start, end){
           stackSize++;
         }
       }
-      completed++;
     }
   }
 }
