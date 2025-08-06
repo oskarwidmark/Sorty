@@ -34,7 +34,7 @@ export function ColorTab(props: {
         <TitledSelect
           title="Preset"
           value={colorPreset}
-          onChange={(e) => setColorPreset(e.target.value as ColorPreset)}
+          onSelect={(value) => setColorPreset(value as ColorPreset)}
           options={Object.values(ColorPreset)}
         />
         {(colorPreset === ColorPreset.Custom ||

@@ -1,20 +1,14 @@
-import {
-  FormControl,
-  Typography,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
-} from '@mui/material';
+import { FormControl, Typography, Select, MenuItem } from '@mui/material';
 
 export const TitledSelect = ({
   title,
   value,
-  onChange,
+  onSelect,
   options,
 }: {
   title: string;
   value: string;
-  onChange: (event: SelectChangeEvent<string>) => void;
+  onSelect: (value: string) => void;
   options: string[];
 }) => {
   return (
@@ -28,7 +22,11 @@ export const TitledSelect = ({
         >
           {title}
         </Typography>
-        <Select value={value} onChange={onChange} size="small">
+        <Select
+          value={value}
+          onChange={(event) => onSelect(event.target.value)}
+          size="small"
+        >
           {options.map((v) => (
             <MenuItem value={v} key={v}>
               <Typography align="left" variant="body2" color="textSecondary">

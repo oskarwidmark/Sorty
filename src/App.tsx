@@ -1,6 +1,6 @@
-import React, { MouseEvent } from 'react';
+import React from 'react';
 import './App.css';
-import { SelectChangeEvent, Stack, Tab, Tabs } from '@mui/material';
+import { Stack, Tab, Tabs } from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -127,10 +127,10 @@ class App extends React.Component<Props> {
     window.removeEventListener('resize', this.resizeCanvas);
   }
 
-  drawOnCanvas = (event: MouseEvent<HTMLCanvasElement>) => {
+  drawOnCanvas = (mouseX: number, mouseY: number) => {
     if (!this.canvasController.isDrawing) return;
 
-    const drawData = this.canvasController.getDrawData(event);
+    const drawData = this.canvasController.getDrawData(mouseX, mouseY);
     for (const data of drawData) {
       this.arr[data.index].value = data.value;
     }
@@ -316,10 +316,10 @@ class App extends React.Component<Props> {
     this.setState({ areSettingsOpen: !this.state.areSettingsOpen });
   };
 
-  chooseSortAlg = (event: SelectChangeEvent<string>) => {
+  chooseSortAlg = (chosenSortAlg: SortName) => {
     this.stopSorting();
 
-    this.setSettings({ chosenSortAlg: event.target.value as SortName });
+    this.setSettings({ chosenSortAlg });
   };
 
   changeColumnNbr = (_: unknown, value: number | number[]) => {
@@ -348,12 +348,12 @@ class App extends React.Component<Props> {
     this.canvasController.redraw(this.arr);
   };
 
-  startDrawOnCanvas = (event: MouseEvent<HTMLCanvasElement>) => {
+  startDrawOnCanvas = (mouseX: number, mouseY: number) => {
     if (!this.state.canDraw) return;
 
     this.stopSorting();
     this.canvasController.isDrawing = true;
-    this.drawOnCanvas(event);
+    this.drawOnCanvas(mouseX, mouseY);
   };
 
   toggleCanDraw = () => {
@@ -457,8 +457,12 @@ class App extends React.Component<Props> {
             <canvas
               className="App-canvas"
               ref={this.canvasController.canvasRef}
-              onMouseDown={this.startDrawOnCanvas}
-              onMouseMove={this.drawOnCanvas}
+              onMouseDown={(event) =>
+                this.startDrawOnCanvas(event.clientX, event.clientY)
+              }
+              onMouseMove={(event) =>
+                this.drawOnCanvas(event.clientX, event.clientY)
+              }
               onMouseUp={this.canvasController.endDraw}
               onMouseLeave={this.canvasController.endDraw}
             />
@@ -481,7 +485,7 @@ class App extends React.Component<Props> {
               <TitledSelect
                 title="Sorting Algorithm"
                 value={this.state.settings.chosenSortAlg}
-                onChange={this.chooseSortAlg}
+                onSelect={(value) => this.chooseSortAlg(value as SortName)}
                 options={Object.values(SortName)}
               />
               <Options
@@ -519,9 +523,9 @@ class App extends React.Component<Props> {
               <TitledSelect
                 title="Reset Preset"
                 value={this.state.settings.resetPreset}
-                onChange={(event) => {
+                onSelect={(value) => {
                   this.setSettings({
-                    resetPreset: event.target.value as ResetPreset,
+                    resetPreset: value as ResetPreset,
                   });
                 }}
                 options={Object.values(ResetPreset)}

@@ -1,4 +1,3 @@
-import { MouseEvent } from 'react';
 import { ColorPreset, DrawData, SortValue } from './types';
 import { hsvToRgbHex, rgbHexToHsv } from './utils';
 
@@ -159,7 +158,7 @@ export class CanvasController {
     this.drawAll(arr);
   };
 
-  getDrawData = (event: MouseEvent<HTMLCanvasElement>): DrawData[] => {
+  getDrawData = (mouseX: number, mouseY: number): DrawData[] => {
     if (!this.isDrawing) return [];
 
     const drawData = [];
@@ -176,10 +175,10 @@ export class CanvasController {
     const rect = canvas.getBoundingClientRect();
 
     const colIndex = Math.floor(
-      ((event.clientX - rect.left) / canvas.width) * this.context.columnNbr,
+      ((mouseX - rect.left) / canvas.width) * this.context.columnNbr,
     );
     const colHeight = Math.floor(
-      ((canvas.height - (event.clientY - rect.top)) / canvas.height) *
+      ((canvas.height - (mouseY - rect.top)) / canvas.height) *
         this.context.columnNbr,
     );
 

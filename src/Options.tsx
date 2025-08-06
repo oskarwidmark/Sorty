@@ -27,7 +27,10 @@ const getAlgorithmOptionFields = (
   }
 };
 
-const isValidOption = (field: keyof AlgorithmOptions, value: unknown) => {
+const isValidOption = (
+  field: keyof AlgorithmOptions,
+  value: unknown,
+): value is AlgorithmOptions[typeof field] => {
   switch (field) {
     case 'base':
       return Number(value) >= 2 && Number.isInteger(Number(value));
@@ -93,20 +96,14 @@ export function Options({
     useState<AlgorithmOptions>({ ...algorithmOptions });
 
   const handleOptionChange = useCallback(
-    (
-      field: keyof AlgorithmOptions,
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
+    (field: keyof AlgorithmOptions, value: unknown) => {
       setNonValidatedOptions({
         ...nonValidatedOptions,
-        [field]: event.target.value,
+        [field]: value,
       });
 
-      if (isValidOption(field, event.target.value)) {
-        setAlgorithmOption(
-          field,
-          event.target.value as AlgorithmOptions[typeof field],
-        );
+      if (isValidOption(field, value)) {
+        setAlgorithmOption(field, value);
       }
     },
     [nonValidatedOptions, setAlgorithmOption],
@@ -135,7 +132,9 @@ export function Options({
               select={ALGORITHM_OPTION_TEXT_FIELD_TYPES[field] === 'select'}
               label={ALGORITHM_OPTION_LABELS[field]}
               value={nonValidatedOptions[field]}
-              onChange={(event) => handleOptionChange(field, event)}
+              onChange={(event) =>
+                handleOptionChange(field, event.target.value)
+              }
               error={!isValidOption(field, nonValidatedOptions[field])}
               size="small"
               sx={{ width: 120 }}

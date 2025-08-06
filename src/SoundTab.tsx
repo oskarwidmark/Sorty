@@ -44,9 +44,7 @@ export const SoundTab = ({
     <TitledSelect
       title="Sound type"
       value={soundType}
-      onChange={(event) =>
-        setSoundType(event.target.value as NonCustomOscillatorType)
-      }
+      onSelect={(value) => setSoundType(value as NonCustomOscillatorType)}
       options={SOUND_TYPE_OPTIONS}
     />
     <TitledSlider
