@@ -41,7 +41,7 @@ export enum ResetPreset {
 
 export type ResetFunction = () => void;
 
-export type Operator = '<' | '>' | '<=' | '>=';
+export type Operator = '<' | '>' | '<=' | '>=' | '==' | '!=';
 
 export type DrawData = {
   index: number;

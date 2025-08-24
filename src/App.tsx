@@ -273,6 +273,10 @@ class App extends React.Component<Props> {
         return arr[i1].value <= value;
       case '>=':
         return arr[i1].value >= value;
+      case '==':
+        return arr[i1].value == value;
+      case '!=':
+        return arr[i1].value != value;
     }
   }
 

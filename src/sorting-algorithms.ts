@@ -563,15 +563,33 @@ public async   mergeSort(arr, start, end){
   public async _averageSort(arr: SortValue[], start: number, end: number) {
     if (end - start <= 1) return;
 
+    let isUniform = true;
+    for (let i = start; i < end; i++) {
+      if (await this.context.compare(arr, start, '!=', i)) {
+        isUniform = false;
+        break;
+      }
+    }
+    if (isUniform) {
+      return;
+    }
+
     let sum = 0;
     for (let i = start; i < end; i++) {
-      // for highlighting and counting comparison
+      // for highlighting
       // TODO: replace
-      await this.context.valueCompare(arr, i, '>', 0);
+      await this.context.registerAuxWrite(arr, i);
       sum += arr[i].value;
     }
     const avg = sum / (end - start);
-    const mid = Math.floor((start + end) / 2);
+
+    // Pick mid as the first index where arr[mid] >= avg
+    let mid = start;
+    for (let i = start; i < end; i++) {
+      if (await this.context.valueCompare(arr, i, '<', avg)) {
+        mid++;
+      }
+    }
 
     let j = start;
     for (let i = mid; i < end; i++) {
