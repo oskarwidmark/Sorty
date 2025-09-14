@@ -4,6 +4,7 @@ import {
   ResetPreset,
   Settings,
   SortName,
+  VisualizationType,
 } from './types';
 
 export const RAINBOW_BACKGROUND_COLOR = '#282c34';
@@ -39,6 +40,7 @@ export const INIT_SETTINGS: Settings = {
   columnColor2: '#ffffff',
   backgroundColor: '#000000',
   highlightColor: '#ff0000',
+  visualizationType: VisualizationType.Bars,
   soundVolume: DEFAULT_SOUND_VOLUME,
   soundType: DEFAULT_SOUND_TYPE,
   frequencyRange: [200, 640],

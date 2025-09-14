@@ -48,6 +48,12 @@ export type DrawData = {
   value: number;
 };
 
+export enum VisualizationType {
+  Bars = 'Bars',
+  Dots = 'Dots',
+  Colors = 'Colors',
+}
+
 export enum ColorPreset {
   Rainbow = 'Rainbow',
   Custom = 'Custom',
@@ -84,6 +90,7 @@ export type ColorSettings = {
   columnColor2: string;
   highlightColor: string;
   backgroundColor: string;
+  visualizationType: VisualizationType;
 };
 
 export type SoundSettings = {

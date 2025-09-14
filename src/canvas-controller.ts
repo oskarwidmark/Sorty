@@ -1,4 +1,4 @@
-import { ColorPreset, DrawData, SortValue } from './types';
+import { ColorPreset, DrawData, SortValue, VisualizationType } from './types';
 import { hsvToRgbHex, rgbHexToHsv } from './utils';
 
 export class CanvasController {
@@ -17,6 +17,7 @@ export class CanvasController {
       columnColor1: string;
       columnColor2: string;
       highlightColor: string;
+      visualizationType: VisualizationType;
     },
   ) {}
 
@@ -67,6 +68,10 @@ export class CanvasController {
 
   set highlightColor(value: string) {
     this.context.highlightColor = value;
+  }
+
+  set visualizationType(value: VisualizationType) {
+    this.context.visualizationType = value;
   }
 
   getGradientColor(value: number) {
@@ -245,13 +250,38 @@ export class CanvasController {
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
     const width = this.canvas2dCtx.canvas.width / this.context.columnNbr;
-    const height =
-      (this.canvas2dCtx.canvas.height / this.context.columnNbr) *
-      (arr[i].value + 1);
+    const height = this.getColumnHeight(arr[i].value);
     const startX = width * i;
+    const startY = this.getColumnStartY(arr[i].value);
 
     this.canvas2dCtx.fillStyle = color || this.getColumnColor1(arr[i].value);
-    this.fillRect(startX, 0, width, height);
+    this.fillRect(startX, startY, width, height);
+  };
+
+  private getColumnStartY = (value: number) => {
+    switch (this.context.visualizationType) {
+      case VisualizationType.Dots:
+        return (
+          (this.canvas2dCtx.canvas.height / this.context.columnNbr) *
+          (value - 1)
+        );
+      default:
+        return 0;
+    }
+  };
+
+  private getColumnHeight = (value: number) => {
+    switch (this.context.visualizationType) {
+      case VisualizationType.Bars:
+        return (
+          (this.canvas2dCtx.canvas.height / this.context.columnNbr) *
+          (value + 1)
+        );
+      case VisualizationType.Dots:
+        return this.canvas2dCtx.canvas.width / this.context.columnNbr;
+      case VisualizationType.Colors:
+        return this.canvas2dCtx.canvas.height;
+    }
   };
 
   private fillRect = (
