@@ -61,8 +61,8 @@ export class CanvasController {
     this.context.columnNbr = value;
   }
 
-  set colorPreset(value: ColorPreset) {
-    this.context.colorPreset = value;
+  set colorPreset(value: string) {
+    this.context.colorPreset = value as ColorPreset;
   }
 
   set columnColor1(value: string) {
@@ -77,12 +77,12 @@ export class CanvasController {
     this.context.highlightColor = value;
   }
 
-  set visualizationType(value: VisualizationType) {
-    this.context.visualizationType = value;
+  set visualizationType(value: string) {
+    this.context.visualizationType = value as VisualizationType;
   }
 
-  set displayType(value: DisplayType) {
-    this.context.displayType = value;
+  set displayType(value: string) {
+    this.context.displayType = value as DisplayType;
   }
 
   get height() {
