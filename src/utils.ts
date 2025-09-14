@@ -54,3 +54,5 @@ export const toHz = (
 
   return ((maxFreq - minFreq) * value) / columnNbr + minFreq;
 };
+
+export const entries = Object.entries as <T>(obj: T) => [keyof T, T[keyof T]][];

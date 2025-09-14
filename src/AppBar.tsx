@@ -10,39 +10,50 @@ import {
   AppBar,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { SortValue } from './types';
+import { AppState, SortSettings, SortValue } from './types';
 
 interface AppBarProps {
-  sort: (arr: SortValue[]) => Promise<void>;
+  startSorting: (arr: SortValue[]) => Promise<void>;
   arr: SortValue[];
-  isSorting: boolean;
-  shuffleAndDraw: () => void;
+  shuffleAndRedraw: () => void;
   resetAndDraw: () => void;
-  canDraw: boolean;
   toggleCanDraw: () => void;
-  swapTime: number;
-  nbrOfSwaps: number;
-  compareTime: number;
-  nbrOfComparisons: number;
-  auxWriteTime: number;
-  nbrOfAuxWrites: number;
   toggleDisplaySettings: () => void;
-  shouldPlaySound: boolean;
   togglePlaySound: () => void;
   onClick: () => void;
+  state: Omit<AppState, 'settings'>;
+  settings: SortSettings;
 }
 
-export function SortAppBar(props: AppBarProps) {
+export function SortAppBar({
+  startSorting,
+  arr,
+  shuffleAndRedraw,
+  resetAndDraw,
+  toggleCanDraw,
+  toggleDisplaySettings,
+  togglePlaySound,
+  onClick,
+  settings: { swapTime, compareTime, auxWriteTime },
+  state: {
+    isSorting,
+    canDraw,
+    nbrOfSwaps,
+    nbrOfComparisons,
+    nbrOfAuxWrites,
+    shouldPlaySound,
+  },
+}: AppBarProps) {
   return (
     <AppBar position="relative">
-      <Toolbar className="toolbar" onClick={props.onClick}>
+      <Toolbar className="toolbar" onClick={onClick}>
         <div>
           <Button
             variant="contained"
             color="secondary"
-            onClick={() => props.sort(props.arr)}
+            onClick={() => startSorting(arr)}
             disableElevation
-            startIcon={!props.isSorting ? <PlayCircle /> : <StopCircle />}
+            startIcon={!isSorting ? <PlayCircle /> : <StopCircle />}
           >
             Sort
           </Button>
@@ -51,7 +62,7 @@ export function SortAppBar(props: AppBarProps) {
           <Button
             variant="contained"
             color="secondary"
-            onClick={props.shuffleAndDraw}
+            onClick={shuffleAndRedraw}
             disableElevation
           >
             Shuffle
@@ -61,7 +72,7 @@ export function SortAppBar(props: AppBarProps) {
           <Button
             variant="contained"
             color="secondary"
-            onClick={props.resetAndDraw}
+            onClick={resetAndDraw}
             disableElevation
           >
             Reset
@@ -71,8 +82,8 @@ export function SortAppBar(props: AppBarProps) {
           <FormControlLabel
             control={
               <Switch
-                checked={props.canDraw}
-                onChange={props.toggleCanDraw}
+                checked={canDraw}
+                onChange={toggleCanDraw}
                 name="canDraw"
                 color="secondary"
               />
@@ -85,8 +96,8 @@ export function SortAppBar(props: AppBarProps) {
           <FormControlLabel
             control={
               <Switch
-                checked={props.shouldPlaySound}
-                onChange={props.togglePlaySound}
+                checked={shouldPlaySound}
+                onChange={togglePlaySound}
                 name="shouldPlaySound"
                 color="secondary"
               />
@@ -97,8 +108,8 @@ export function SortAppBar(props: AppBarProps) {
         <div>
           <Typography className="counter" align="left" color="white">
             Swaps:{' '}
-            {props.swapTime || !props.isSorting ? (
-              props.nbrOfSwaps
+            {swapTime || !isSorting ? (
+              nbrOfSwaps
             ) : (
               <CircularProgress
                 className="counter-spinner"
@@ -112,8 +123,8 @@ export function SortAppBar(props: AppBarProps) {
         <div>
           <Typography className="counter" align="left" color="white">
             Comparisons:{' '}
-            {props.compareTime || !props.isSorting ? (
-              props.nbrOfComparisons
+            {compareTime || !isSorting ? (
+              nbrOfComparisons
             ) : (
               <CircularProgress
                 className="counter-spinner"
@@ -127,8 +138,8 @@ export function SortAppBar(props: AppBarProps) {
         <div>
           <Typography className="counter" align="left" color="white">
             Aux. writes:{' '}
-            {props.auxWriteTime || !props.isSorting ? (
-              props.nbrOfAuxWrites
+            {auxWriteTime || !isSorting ? (
+              nbrOfAuxWrites
             ) : (
               <CircularProgress
                 className="counter-spinner"
@@ -146,7 +157,7 @@ export function SortAppBar(props: AppBarProps) {
           className="open-drawer-button"
           onClick={(e) => {
             e.stopPropagation();
-            props.toggleDisplaySettings();
+            toggleDisplaySettings();
           }}
         >
           <MenuIcon />

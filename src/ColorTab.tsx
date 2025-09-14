@@ -1,31 +1,21 @@
 import { FormControl, Stack, Grid2 } from '@mui/material';
-import { ColorPreset } from './types';
+import { ColorPreset, ColorSettings } from './types';
 import { TitledSelect } from './TitledSelect';
 import { ColorField } from './ColorField';
 
 export function ColorTab(props: {
-  colorPreset: ColorPreset;
-  setColorPreset: (string: ColorPreset) => void;
-  columnColor1: string;
-  setColumnColor1: (string: string) => void;
-  columnColor2: string;
-  setColumnColor2: (string: string) => void;
-  backgroundColor: string;
-  setBackgroundColor: (string: string) => void;
-  highlightColor: string;
-  setHighlightColor: (string: string) => void;
+  settings: ColorSettings;
+  setColorSettings: (settings: Partial<ColorSettings>) => void;
 }) {
   const {
-    colorPreset,
-    setColorPreset,
-    columnColor1,
-    setColumnColor1,
-    columnColor2,
-    setColumnColor2,
-    backgroundColor,
-    setBackgroundColor,
-    highlightColor,
-    setHighlightColor,
+    settings: {
+      colorPreset,
+      columnColor1,
+      columnColor2,
+      highlightColor,
+      backgroundColor,
+    },
+    setColorSettings,
   } = props;
 
   return (
@@ -34,7 +24,9 @@ export function ColorTab(props: {
         <TitledSelect
           title="Preset"
           value={colorPreset}
-          onSelect={(value) => setColorPreset(value as ColorPreset)}
+          onSelect={(value) =>
+            setColorSettings({ colorPreset: value as ColorPreset })
+          }
           options={Object.values(ColorPreset)}
         />
         {(colorPreset === ColorPreset.Custom ||
@@ -45,24 +37,24 @@ export function ColorTab(props: {
                 colorPreset === ColorPreset.Custom ? 'Columns' : 'Columns(1)'
               }
               color={columnColor1}
-              setColor={setColumnColor1}
+              setColor={(value) => setColorSettings({ columnColor1: value })}
             />
             {colorPreset === ColorPreset.CustomGradient && (
               <ColorField
                 label="Columns(2)"
                 color={columnColor2}
-                setColor={setColumnColor2}
+                setColor={(value) => setColorSettings({ columnColor2: value })}
               />
             )}
             <ColorField
               label="Background"
               color={backgroundColor}
-              setColor={setBackgroundColor}
+              setColor={(value) => setColorSettings({ backgroundColor: value })}
             />
             <ColorField
               label="Highlight"
               color={highlightColor}
-              setColor={setHighlightColor}
+              setColor={(value) => setColorSettings({ highlightColor: value })}
             />
           </Grid2>
         )}

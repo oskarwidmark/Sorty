@@ -3,6 +3,7 @@ import { TitledSelect } from './TitledSelect';
 import { TitledSlider } from './TitledSlider';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 import { LabeledCheckbox } from './LabeledCheckbox';
+import { SoundSettings } from './types';
 
 const SOUND_TYPE_OPTIONS = [
   'sine',
@@ -12,33 +13,24 @@ const SOUND_TYPE_OPTIONS = [
 ] as NonCustomOscillatorType[];
 
 interface SoundTabProps {
-  soundType: string;
-  setSoundType: (soundType: NonCustomOscillatorType) => void;
-  soundVolume: number;
+  settings: SoundSettings;
+  setSettings: (settings: Partial<SoundSettings>) => void;
+  setSoundType: (type: NonCustomOscillatorType) => void;
   setVolume: (volume: number) => void;
-  frequencyRange: [number, number];
-  setFrequencyRange: (range: [number, number]) => void;
-  playSoundOnComparison: boolean;
-  setPlaySoundOnComparison: (value: boolean) => void;
-  playSoundOnSwap: boolean;
-  setPlaySoundOnSwap: (value: boolean) => void;
-  playSoundOnAuxWrite: boolean;
-  setPlaySoundOnAuxWrite: (value: boolean) => void;
 }
 
 export const SoundTab = ({
-  soundType,
+  settings: {
+    soundType,
+    soundVolume,
+    frequencyRange,
+    playSoundOnComparison,
+    playSoundOnSwap,
+    playSoundOnAuxWrite,
+  },
+  setSettings,
   setSoundType,
-  soundVolume,
   setVolume,
-  frequencyRange,
-  setFrequencyRange,
-  playSoundOnComparison,
-  setPlaySoundOnComparison,
-  playSoundOnSwap,
-  setPlaySoundOnSwap,
-  playSoundOnAuxWrite,
-  setPlaySoundOnAuxWrite,
 }: SoundTabProps) => (
   <>
     <TitledSelect
@@ -65,7 +57,7 @@ export const SoundTab = ({
       step={10}
       max={2000}
       onChangeCommitted={(_, value) =>
-        setFrequencyRange(value as [number, number])
+        setSettings({ frequencyRange: value as [number, number] })
       }
       disableSwap
       valueLabelFormat={(value: number) => `${value} Hz`}
@@ -78,17 +70,19 @@ export const SoundTab = ({
         <LabeledCheckbox
           label="Comparison"
           checked={playSoundOnComparison}
-          onChecked={setPlaySoundOnComparison}
+          onChecked={(checked) =>
+            setSettings({ playSoundOnComparison: checked })
+          }
         />
         <LabeledCheckbox
           label="Swap"
           checked={playSoundOnSwap}
-          onChecked={setPlaySoundOnSwap}
+          onChecked={(checked) => setSettings({ playSoundOnSwap: checked })}
         />
         <LabeledCheckbox
           label="Aux. write"
           checked={playSoundOnAuxWrite}
-          onChecked={setPlaySoundOnAuxWrite}
+          onChecked={(checked) => setSettings({ playSoundOnAuxWrite: checked })}
         />
       </Stack>
     </div>

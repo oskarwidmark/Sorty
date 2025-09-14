@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { Stack, Tab, Tabs } from '@mui/material';
+import { Tab, Tabs } from '@mui/material';
 import {
   SortValue,
   SortName,
@@ -11,9 +11,10 @@ import {
   ColorPreset,
   AppState,
   Settings,
+  ColorSettings,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
-import { createArr, shuffleArray, sleep, toHz } from './utils';
+import { createArr, entries, shuffleArray, sleep, toHz } from './utils';
 import { SideDrawer } from './SideDrawer';
 import {
   RAINBOW_BACKGROUND_COLOR,
@@ -23,14 +24,11 @@ import {
 import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
 import { ColorTab } from './ColorTab';
-import { ColumnSlider } from './ColumnSlider';
-import { Options } from './Options';
-import { TimeSlider } from './TimeSlider';
 import { Audiotrack, BarChart, Palette } from '@mui/icons-material';
 import { TabPanel } from './TabPanel';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
-import { TitledSelect } from './TitledSelect';
 import { SoundTab } from './SoundTab';
+import { SortTab } from './SortTab';
 
 type Props = {
   playSound: (params: { frequency: number; duration?: string }) => void;
@@ -71,13 +69,9 @@ class App extends React.Component<Props> {
     });
 
     this.canvasController = new CanvasController({
+      ...this.state.settings,
       canvasRef:
         React.createRef<HTMLCanvasElement>() as React.RefObject<HTMLCanvasElement>,
-      columnNbr: this.state.settings.columnNbr,
-      colorPreset: this.state.settings.colorPreset,
-      columnColor1: this.state.settings.columnColor1,
-      columnColor2: this.state.settings.columnColor2,
-      highlightColor: this.state.settings.highlightColor,
     });
 
     this.arr = createArr(this.state.settings.columnNbr);
@@ -147,7 +141,7 @@ class App extends React.Component<Props> {
     this.nbrOfAuxWrites = 0;
   };
 
-  sort = async (arr: SortValue[]) => {
+  startSorting = async (arr: SortValue[]) => {
     if (this.state.isSorting) {
       this.stopSorting();
       return;
@@ -163,23 +157,25 @@ class App extends React.Component<Props> {
         nbrOfComparisons: 0,
         nbrOfAuxWrites: 0,
       },
-      async () => {
-        try {
-          await this.sortingAlgorithms.getSortingAlgorithm(
-            this.state.settings.chosenSortAlg,
-          )(arr, this.state.settings.algorithmOptions);
-        } catch (e) {
-          console.error('Sorting interrupted! Reason: ', e);
-        }
-        // This is due to React reaching maximum update depth with no sleep time
-        this.setState({
-          nbrOfSwaps: this.nbrOfSwaps,
-          nbrOfComparisons: this.nbrOfComparisons,
-          nbrOfAuxWrites: this.nbrOfAuxWrites,
-        });
-        this.stopSorting();
-      },
+      () => this.runSort(arr),
     );
+  };
+
+  runSort = async (arr: SortValue[]) => {
+    try {
+      await this.sortingAlgorithms.getSortingAlgorithm(
+        this.state.settings.chosenSortAlg,
+      )(arr, this.state.settings.algorithmOptions);
+    } catch (e) {
+      console.error('Sorting interrupted! Reason: ', e);
+    }
+    // This is due to React reaching maximum update depth with no sleep time
+    this.setState({
+      nbrOfSwaps: this.nbrOfSwaps,
+      nbrOfComparisons: this.nbrOfComparisons,
+      nbrOfAuxWrites: this.nbrOfAuxWrites,
+    });
+    this.stopSorting();
   };
 
   stopSorting = () => {
@@ -326,10 +322,9 @@ class App extends React.Component<Props> {
     this.setSettings({ chosenSortAlg });
   };
 
-  changeColumnNbr = (_: unknown, value: number | number[]) => {
-    if (this.state.settings.columnNbr === value) return;
+  changeColumnNbr = (columnNbr: number) => {
+    if (this.state.settings.columnNbr === columnNbr) return;
 
-    const columnNbr = value instanceof Array ? value[0] : value;
     this.sortingAlgorithms.columnNbr = columnNbr;
     this.canvasController.columnNbr = columnNbr;
     this.setSettings({ columnNbr }, () => this.resetAndDraw());
@@ -343,7 +338,7 @@ class App extends React.Component<Props> {
     this.canvasController.redraw(this.arr);
   };
 
-  shuffleAndDraw = () => {
+  shuffleAndRedraw = () => {
     this.stopSorting();
     this.resetCounters();
 
@@ -358,10 +353,6 @@ class App extends React.Component<Props> {
     this.stopSorting();
     this.canvasController.isDrawing = true;
     this.drawOnCanvas(mouseX, mouseY);
-  };
-
-  toggleCanDraw = () => {
-    this.setState({ canDraw: !this.state.canDraw });
   };
 
   togglePlaySound = () => {
@@ -380,31 +371,16 @@ class App extends React.Component<Props> {
     }));
   };
 
-  setColorPreset = (colorPreset: ColorPreset) => {
-    this.setSettings({ colorPreset });
-    this.canvasController.colorPreset = colorPreset;
+  setColorSettings = (settings: Partial<ColorSettings>) => {
+    this.setSettings({ ...settings });
     this.stopSorting();
-    this.canvasController.redraw(this.arr);
-  };
+    entries(settings).forEach(([key, value]) => {
+      if (key !== 'backgroundColor') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.canvasController[key] = value as any;
+      }
+    });
 
-  setColumnColor1 = (columnColor1: string) => {
-    this.setSettings({ columnColor1 });
-    this.canvasController.columnColor1 = columnColor1;
-    this.stopSorting();
-    this.canvasController.redraw(this.arr);
-  };
-
-  setColumnColor2 = (columnColor2: string) => {
-    this.setSettings({ columnColor2 });
-    this.canvasController.columnColor2 = columnColor2;
-    this.stopSorting();
-    this.canvasController.redraw(this.arr);
-  };
-
-  setHighlightColor = (highlightColor: string) => {
-    this.setSettings({ highlightColor });
-    this.canvasController.highlightColor = highlightColor;
-    this.stopSorting();
     this.canvasController.redraw(this.arr);
   };
 
@@ -437,20 +413,15 @@ class App extends React.Component<Props> {
         <div className="App-header">
           <SortAppBar
             arr={this.arr}
-            swapTime={this.state.settings.swapTime}
-            compareTime={this.state.settings.compareTime}
-            auxWriteTime={this.state.settings.auxWriteTime}
-            canDraw={this.state.canDraw}
-            isSorting={this.state.isSorting}
-            nbrOfSwaps={this.state.nbrOfSwaps}
-            nbrOfComparisons={this.state.nbrOfComparisons}
-            nbrOfAuxWrites={this.state.nbrOfAuxWrites}
-            sort={this.sort}
-            shuffleAndDraw={this.shuffleAndDraw}
+            state={this.state}
+            settings={this.state.settings}
+            startSorting={this.startSorting}
+            shuffleAndRedraw={this.shuffleAndRedraw}
             resetAndDraw={this.resetAndDraw}
-            toggleCanDraw={this.toggleCanDraw}
+            toggleCanDraw={() =>
+              this.setState({ canDraw: !this.state.canDraw })
+            }
             toggleDisplaySettings={this.toggleDisplaySettings}
-            shouldPlaySound={this.state.shouldPlaySound}
             togglePlaySound={this.togglePlaySound}
             onClick={() => this.setState({ areSettingsOpen: false })}
           />
@@ -487,97 +458,26 @@ class App extends React.Component<Props> {
               <Tab icon={<Audiotrack />} sx={{ minWidth: 0 }} />
             </Tabs>
             <TabPanel value={this.state.tabIndex} index={0}>
-              <TitledSelect
-                title="Sorting Algorithm"
-                value={this.state.settings.chosenSortAlg}
-                onSelect={(value) => this.chooseSortAlg(value as SortName)}
-                options={Object.values(SortName)}
-              />
-              <Options
-                chosenSortAlg={this.state.settings.chosenSortAlg}
-                algorithmOptions={this.state.settings.algorithmOptions}
-                setAlgorithmOption={this.setAlgorithmOption}
-              />
-              <ColumnSlider
-                columnNbr={this.state.settings.columnNbr}
-                chosenSortAlg={this.state.settings.chosenSortAlg}
-                algorithmOptions={this.state.settings.algorithmOptions}
+              <SortTab
+                settings={this.state.settings}
+                chooseSortAlg={this.chooseSortAlg}
                 changeColumnNbr={this.changeColumnNbr}
-              />
-              <Stack>
-                <TimeSlider
-                  title="Time per swap"
-                  time={this.state.settings.swapTime}
-                  changeTime={(swapTime) => this.setSettings({ swapTime })}
-                />
-                <TimeSlider
-                  title="Time per comparison"
-                  time={this.state.settings.compareTime}
-                  changeTime={(compareTime) =>
-                    this.setSettings({ compareTime })
-                  }
-                />
-                <TimeSlider
-                  title="Time per aux. write"
-                  time={this.state.settings.auxWriteTime}
-                  changeTime={(auxWriteTime) =>
-                    this.setSettings({ auxWriteTime })
-                  }
-                />
-              </Stack>
-              <TitledSelect
-                title="Reset Preset"
-                value={this.state.settings.resetPreset}
-                onSelect={(value) => {
-                  this.setSettings({
-                    resetPreset: value as ResetPreset,
-                  });
-                }}
-                options={Object.values(ResetPreset)}
+                setAlgorithmOption={this.setAlgorithmOption}
+                setSettings={this.setSettings}
               />
             </TabPanel>
             <TabPanel value={this.state.tabIndex} index={1}>
               <ColorTab
-                colorPreset={this.state.settings.colorPreset}
-                columnColor1={this.state.settings.columnColor1}
-                columnColor2={this.state.settings.columnColor2}
-                backgroundColor={this.state.settings.backgroundColor}
-                highlightColor={this.state.settings.highlightColor}
-                setColorPreset={this.setColorPreset}
-                setColumnColor1={this.setColumnColor1}
-                setColumnColor2={this.setColumnColor2}
-                setBackgroundColor={(backgroundColor) =>
-                  this.setSettings({ backgroundColor })
-                }
-                setHighlightColor={this.setHighlightColor}
+                settings={this.state.settings}
+                setColorSettings={this.setColorSettings}
               />
             </TabPanel>
             <TabPanel value={this.state.tabIndex} index={2}>
               <SoundTab
-                soundType={this.state.settings.soundType}
+                settings={this.state.settings}
+                setSettings={this.setSettings}
                 setSoundType={this.setSoundType}
-                soundVolume={this.state.settings.soundVolume}
                 setVolume={this.setVolume}
-                frequencyRange={this.state.settings.frequencyRange}
-                setFrequencyRange={(frequencyRange) =>
-                  this.setSettings({ frequencyRange })
-                }
-                playSoundOnComparison={
-                  this.state.settings.playSoundOnComparison
-                }
-                setPlaySoundOnComparison={(playSoundOnComparison) =>
-                  this.setSettings({
-                    playSoundOnComparison,
-                  })
-                }
-                playSoundOnSwap={this.state.settings.playSoundOnSwap}
-                setPlaySoundOnSwap={(playSoundOnSwap) =>
-                  this.setSettings({ playSoundOnSwap })
-                }
-                playSoundOnAuxWrite={this.state.settings.playSoundOnAuxWrite}
-                setPlaySoundOnAuxWrite={(playSoundOnAuxWrite) =>
-                  this.setSettings({ playSoundOnAuxWrite })
-                }
               />
             </TabPanel>
           </SideDrawer>

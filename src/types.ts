@@ -66,7 +66,9 @@ export type AppState = {
   settings: Settings;
 };
 
-export type Settings = {
+export type Settings = SortSettings & ColorSettings & SoundSettings;
+
+export type SortSettings = {
   chosenSortAlg: SortName;
   columnNbr: number;
   swapTime: number;
@@ -74,11 +76,17 @@ export type Settings = {
   auxWriteTime: number;
   resetPreset: ResetPreset;
   algorithmOptions: AlgorithmOptions;
+};
+
+export type ColorSettings = {
   colorPreset: ColorPreset;
   columnColor1: string;
   columnColor2: string;
-  backgroundColor: string;
   highlightColor: string;
+  backgroundColor: string;
+};
+
+export type SoundSettings = {
   soundType: NonCustomOscillatorType;
   soundVolume: number;
   frequencyRange: [number, number];
