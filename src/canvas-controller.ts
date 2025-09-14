@@ -57,6 +57,10 @@ export class CanvasController {
     return context;
   }
 
+  get dpr() {
+    return window.devicePixelRatio || 1;
+  }
+
   set columnNbr(value: number) {
     this.context.columnNbr = value;
   }
@@ -88,11 +92,13 @@ export class CanvasController {
   get height() {
     switch (this.context.displayType) {
       case DisplayType.Full:
-        return this.canvas2dCtx.canvas.height;
+        return this.canvas2dCtx.canvas.height / this.dpr;
       case DisplayType.Square:
-        return Math.min(
-          this.canvas2dCtx.canvas.width,
-          this.canvas2dCtx.canvas.height,
+        return (
+          Math.min(
+            this.canvas2dCtx.canvas.width,
+            this.canvas2dCtx.canvas.height,
+          ) / this.dpr
         );
     }
   }
@@ -100,11 +106,13 @@ export class CanvasController {
   get width() {
     switch (this.context.displayType) {
       case DisplayType.Full:
-        return this.canvas2dCtx.canvas.width;
+        return this.canvas2dCtx.canvas.width / this.dpr;
       case DisplayType.Square:
-        return Math.min(
-          this.canvas2dCtx.canvas.width,
-          this.canvas2dCtx.canvas.height,
+        return (
+          Math.min(
+            this.canvas2dCtx.canvas.width,
+            this.canvas2dCtx.canvas.height,
+          ) / this.dpr
         );
     }
   }
@@ -174,15 +182,25 @@ export class CanvasController {
   }
 
   resizeCanvas = (arr: SortValue[]) => {
-    const parent = document.getElementById('canvas-wrapper');
+    const parent = this.canvas2dCtx.canvas.parentElement;
     if (parent === null) {
       throw Error('parent is null!');
     }
 
-    // Set height to 0 to make parent div confined to window size
-    this.canvas2dCtx.canvas.height = 0;
-    this.canvas2dCtx.canvas.width = parent.offsetWidth;
-    this.canvas2dCtx.canvas.height = parent.offsetHeight;
+    const { width, height } = parent.getBoundingClientRect();
+    const currentWidth = this.canvas2dCtx.canvas.width;
+    const currentHeight = this.canvas2dCtx.canvas.height;
+    const newWidth = Math.round(width * this.dpr);
+    const newHeight = Math.round(height * this.dpr);
+    if (currentWidth === newWidth && currentHeight === newHeight) {
+      return;
+    }
+
+    this.canvas2dCtx.canvas.width = newWidth;
+    this.canvas2dCtx.canvas.height = newHeight;
+    this.canvas2dCtx.canvas.style.width = width + 'px';
+    this.canvas2dCtx.canvas.style.height = height + 'px';
+    this.canvas2dCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
     this.drawAll(arr);
   };
@@ -348,10 +366,10 @@ export class CanvasController {
     j: number,
     color?: string,
   ) => {
-    const width = this.width / this.context.columnNbr - 1;
-    const height = this.height / this.context.columnNbr - 1;
-    const startX = (width + 1) * i;
-    const startY = (height + 1) * j;
+    const width = this.width / this.context.columnNbr;
+    const height = this.height / this.context.columnNbr;
+    const startX = width * i;
+    const startY = height * j;
 
     this.canvas2dCtx.fillStyle =
       color || this.getCellColor(arr[i].value, arr[j].value);
@@ -388,6 +406,10 @@ export class CanvasController {
     }
   };
 
+  snap = (v: number) => {
+    return Math.ceil(v * this.dpr) / this.dpr;
+  };
+
   private fillRect = (
     startX: number,
     startY: number,
@@ -395,10 +417,10 @@ export class CanvasController {
     height: number,
   ) => {
     this.canvas2dCtx.fillRect(
-      startX,
-      Math.floor(this.height) - Math.floor(startY) - Math.floor(height),
-      Math.floor(width),
-      Math.floor(height),
+      this.snap(startX),
+      this.snap(this.height - startY - height),
+      this.snap(width),
+      this.snap(height),
     );
   };
 
@@ -406,7 +428,7 @@ export class CanvasController {
     const width = this.width / this.context.columnNbr;
     const startX = width * idx;
 
-    this.clearRect({ startX, width });
+    this.clearRect(startX, 0, width, this.height);
   };
 
   private clearCell = (i: number, j: number) => {
@@ -415,25 +437,20 @@ export class CanvasController {
     const startX = width * i;
     const startY = height * j;
 
-    this.clearRect({ startX, startY, width, height });
+    this.clearRect(startX, startY, width, height);
   };
 
-  private clearRect = (params: {
-    startX: number;
-    startY?: number;
-    width: number;
-    height?: number;
-  }) => {
-    const { startX, startY, width, height } = params;
+  private clearRect = (
+    startX: number,
+    startY: number,
+    width: number,
+    height: number,
+  ) => {
     this.canvas2dCtx.clearRect(
-      startX - 1,
-      startY != null
-        ? Math.floor(this.height) -
-            Math.floor(startY) -
-            Math.floor(height ?? this.height)
-        : 0,
-      Math.floor(width) + 2,
-      height != null ? Math.floor(height) + 2 : Math.floor(this.height),
+      this.snap(startX),
+      this.snap(this.height - startY - height),
+      this.snap(width),
+      this.snap(height),
     );
   };
 
