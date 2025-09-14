@@ -3,7 +3,7 @@ Features:
 - [ ] Sub 1ms draw times
 - [ ] Parallelization for algorithms
 - [ ] Merge sort
-- [ ] 2D color matrix visualization
+- [x] 2D color matrix visualization
 - [ ] Spiral visualization
 - [ ] Highlight color based on action type
 - [ ] Mobile browser support

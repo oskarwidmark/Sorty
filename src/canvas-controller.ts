@@ -137,7 +137,7 @@ export class CanvasController {
     );
   }
 
-  getColumnColor1(value: number) {
+  getColumnColor(value: number) {
     switch (this.context.colorPreset) {
       case ColorPreset.Custom:
         return this.context.columnColor1;
@@ -145,6 +145,21 @@ export class CanvasController {
         return this.getGradientColor(value);
       case ColorPreset.Rainbow:
         return hsvToRgbHex((360 * value) / this.context.columnNbr, 1, 1);
+    }
+  }
+
+  getCellColor(value1: number, value2: number) {
+    switch (this.context.colorPreset) {
+      case ColorPreset.Custom:
+        return this.context.columnColor1;
+      case ColorPreset.CustomGradient:
+        return this.getGradientColor((value1 + value2) / 2);
+      case ColorPreset.Rainbow:
+        return hsvToRgbHex(
+          ((value1 + value2) / this.context.columnNbr) * 180,
+          1,
+          1,
+        );
     }
   }
 
@@ -172,28 +187,41 @@ export class CanvasController {
     this.drawAll(arr);
   };
 
-  highlightColumns = (arr: SortValue[], indices: number[]) => {
-    //if (!this.state.isSorting) throw Error('isSorting is false!');
-
+  highlight = (arr: SortValue[], indices: number[]) => {
     if (this.prevHighlightIndices) {
       for (const idx of this.prevHighlightIndices) {
+        if (this.context.visualizationType === VisualizationType.Matrix) {
+          this.redrawCellRow(arr, idx);
+          this.redrawCellColumn(arr, idx);
+          continue;
+        }
         this.redrawColumn(arr, idx);
       }
     }
     this.prevHighlightIndices = indices;
 
     for (const idx of indices) {
+      if (this.context.visualizationType === VisualizationType.Matrix) {
+        this.redrawCellRow(arr, idx, this.getHighlightColor());
+        this.redrawCellColumn(arr, idx, this.getHighlightColor());
+        continue;
+      }
       this.redrawColumn(arr, idx, this.getHighlightColor());
     }
   };
 
-  redrawColumns = (arr: SortValue[], indices: number[]) => {
-    for (const index of indices) {
-      this.redrawColumn(arr, index);
+  redraw = (arr: SortValue[], indices: number[]) => {
+    for (const idx of indices) {
+      if (this.context.visualizationType === VisualizationType.Matrix) {
+        this.redrawCellRow(arr, idx);
+        this.redrawCellColumn(arr, idx);
+        continue;
+      }
+      this.redrawColumn(arr, idx);
     }
   };
 
-  redraw = (arr: SortValue[]) => {
+  redrawAll = (arr: SortValue[]) => {
     this.clearAll();
     this.drawAll(arr);
   };
@@ -260,7 +288,7 @@ export class CanvasController {
   };
 
   private removeHighlight = (arr: SortValue[]) => {
-    this.highlightColumns(arr, []);
+    this.highlight(arr, []);
   };
 
   private redrawColumn = (arr: SortValue[], i: number, color?: string) => {
@@ -268,7 +296,38 @@ export class CanvasController {
     this.drawColumn(arr, i, color);
   };
 
+  private redrawCellColumn = (arr: SortValue[], i: number, color?: string) => {
+    for (let j = 0; j < this.context.columnNbr; j++) {
+      this.redrawCell(arr, i, j, color);
+    }
+  };
+
+  private redrawCellRow = (arr: SortValue[], j: number, color?: string) => {
+    for (let i = 0; i < this.context.columnNbr; i++) {
+      this.redrawCell(arr, i, j, color);
+    }
+  };
+
+  private redrawCell = (
+    arr: SortValue[],
+    i: number,
+    j: number,
+    color?: string,
+  ) => {
+    this.clearCell(i, j);
+    this.drawCell(arr, i, j, color);
+  };
+
   private drawAll = (arr: SortValue[]) => {
+    if (this.context.visualizationType === VisualizationType.Matrix) {
+      for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr.length; j++) {
+          this.drawCell(arr, i, j);
+        }
+      }
+      return;
+    }
+
     for (let i = 0; i < arr.length; i++) {
       this.drawColumn(arr, i);
     }
@@ -283,13 +342,29 @@ export class CanvasController {
     );
   };
 
+  private drawCell = (
+    arr: SortValue[],
+    i: number,
+    j: number,
+    color?: string,
+  ) => {
+    const width = this.width / this.context.columnNbr - 1;
+    const height = this.height / this.context.columnNbr - 1;
+    const startX = (width + 1) * i;
+    const startY = (height + 1) * j;
+
+    this.canvas2dCtx.fillStyle =
+      color || this.getCellColor(arr[i].value, arr[j].value);
+    this.fillRect(startX, startY, width, height);
+  };
+
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
     const width = this.width / this.context.columnNbr;
     const height = this.getColumnHeight(arr[i].value);
     const startX = width * i;
     const startY = this.getColumnStartY(arr[i].value);
 
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor1(arr[i].value);
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.fillRect(startX, startY, width, height);
   };
 
@@ -308,7 +383,7 @@ export class CanvasController {
         return (this.height / this.context.columnNbr) * (value + 1);
       case VisualizationType.Dots:
         return this.width / this.context.columnNbr;
-      case VisualizationType.Colors:
+      default:
         return this.height;
     }
   };
@@ -331,15 +406,34 @@ export class CanvasController {
     const width = this.width / this.context.columnNbr;
     const startX = width * idx;
 
-    this.clearRect(startX, width);
+    this.clearRect({ startX, width });
   };
 
-  private clearRect = (startX: number, width: number) => {
+  private clearCell = (i: number, j: number) => {
+    const width = this.width / this.context.columnNbr;
+    const height = this.height / this.context.columnNbr;
+    const startX = width * i;
+    const startY = height * j;
+
+    this.clearRect({ startX, startY, width, height });
+  };
+
+  private clearRect = (params: {
+    startX: number;
+    startY?: number;
+    width: number;
+    height?: number;
+  }) => {
+    const { startX, startY, width, height } = params;
     this.canvas2dCtx.clearRect(
       startX - 1,
-      0,
+      startY != null
+        ? Math.floor(this.height) -
+            Math.floor(startY) -
+            Math.floor(height ?? this.height)
+        : 0,
       Math.floor(width) + 2,
-      Math.floor(this.height),
+      height != null ? Math.floor(height) + 2 : Math.floor(this.height),
     );
   };
 

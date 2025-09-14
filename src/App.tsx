@@ -128,7 +128,7 @@ class App extends React.Component<Props> {
     for (const data of drawData) {
       this.arr[data.index].value = data.value;
     }
-    this.canvasController.redrawColumns(
+    this.canvasController.redraw(
       this.arr,
       drawData.map(({ index }) => index),
     );
@@ -190,7 +190,7 @@ class App extends React.Component<Props> {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
     this.swap(arr, i1, i2);
-    this.canvasController.redrawColumns(arr, [i1, i2]);
+    this.canvasController.redraw(arr, [i1, i2]);
     this.nbrOfSwaps++;
     if (this.state.settings.swapTime) {
       if (this.state.settings.playSoundOnSwap) {
@@ -202,7 +202,7 @@ class App extends React.Component<Props> {
       this.setState((prevState: AppState) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
       }));
-      this.canvasController.highlightColumns(arr, [i1, i2]);
+      this.canvasController.highlight(arr, [i1, i2]);
       await sleep(this.state.settings.swapTime);
     }
   };
@@ -254,7 +254,7 @@ class App extends React.Component<Props> {
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
       }));
       const indexes = 'value' in params ? [i1] : [i1, params.i2];
-      this.canvasController.highlightColumns(arr, indexes);
+      this.canvasController.highlight(arr, indexes);
       await sleep(this.state.settings.compareTime);
     }
 
@@ -295,7 +295,7 @@ class App extends React.Component<Props> {
       this.setState((prevState: AppState) => ({
         nbrOfAuxWrites: prevState.nbrOfAuxWrites + 1,
       }));
-      this.canvasController.highlightColumns(arr, [i]);
+      this.canvasController.highlight(arr, [i]);
       await sleep(this.state.settings.auxWriteTime);
     }
   };
@@ -335,7 +335,7 @@ class App extends React.Component<Props> {
     this.resetCounters();
     this.arr = createArr(this.state.settings.columnNbr);
     this.resetPresets[this.state.settings.resetPreset]();
-    this.canvasController.redraw(this.arr);
+    this.canvasController.redrawAll(this.arr);
   };
 
   shuffleAndRedraw = () => {
@@ -344,7 +344,7 @@ class App extends React.Component<Props> {
 
     shuffleArray(this.arr);
 
-    this.canvasController.redraw(this.arr);
+    this.canvasController.redrawAll(this.arr);
   };
 
   startDrawOnCanvas = (mouseX: number, mouseY: number) => {
@@ -381,7 +381,7 @@ class App extends React.Component<Props> {
       }
     });
 
-    this.canvasController.redraw(this.arr);
+    this.canvasController.redrawAll(this.arr);
   };
 
   getBackgroundColor = () => {
