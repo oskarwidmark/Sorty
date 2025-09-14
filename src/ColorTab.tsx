@@ -1,7 +1,7 @@
 import { FormControl, Stack, Grid2 } from '@mui/material';
 import { ColorPreset, ColorSettings } from './types';
-import { TitledSelect } from './TitledSelect';
-import { ColorField } from './ColorField';
+import { TitledSelect } from './components/TitledSelect';
+import { ColorField } from './components/ColorField';
 
 export function ColorTab(props: {
   settings: ColorSettings;

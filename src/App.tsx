@@ -15,7 +15,7 @@ import {
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
 import { createArr, entries, shuffleArray, sleep, toHz } from './utils';
-import { SideDrawer } from './SideDrawer';
+import { SideDrawer } from './components/SideDrawer';
 import {
   RAINBOW_BACKGROUND_COLOR,
   INIT_STATE,
@@ -25,7 +25,7 @@ import { SortAppBar } from './AppBar';
 import { CanvasController } from './canvas-controller';
 import { ColorTab } from './ColorTab';
 import { Audiotrack, BarChart, Palette } from '@mui/icons-material';
-import { TabPanel } from './TabPanel';
+import { TabPanel } from './components/TabPanel';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 import { SoundTab } from './SoundTab';
 import { SortTab } from './SortTab';
@@ -443,10 +443,7 @@ class App extends React.Component<Props> {
               onMouseLeave={this.canvasController.endDraw}
             />
           </div>
-          <SideDrawer
-            areSettingsOpen={this.state.areSettingsOpen}
-            toggleDisplaySettings={this.toggleDisplaySettings}
-          >
+          <SideDrawer isOpen={this.state.areSettingsOpen}>
             <Tabs
               variant="fullWidth"
               className="tabs"

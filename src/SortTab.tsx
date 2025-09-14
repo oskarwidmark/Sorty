@@ -1,8 +1,8 @@
 import { Stack } from '@mui/material';
 import { ColumnSlider } from './ColumnSlider';
 import { Options } from './Options';
-import { TimeSlider } from './TimeSlider';
-import { TitledSelect } from './TitledSelect';
+import { TimeSlider } from './components/TimeSlider';
+import { TitledSelect } from './components/TitledSelect';
 import { SortName, ResetPreset, SortSettings, AlgorithmOptions } from './types';
 
 interface SortTabProps {

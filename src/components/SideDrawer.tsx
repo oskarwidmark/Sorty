@@ -1,18 +1,17 @@
 import { Drawer } from '@mui/material';
 
 interface SideDrawerProps {
-  areSettingsOpen: boolean;
-  toggleDisplaySettings: () => void;
+  isOpen: boolean;
   children?: React.ReactNode;
 }
 
-export function SideDrawer({ areSettingsOpen, children }: SideDrawerProps) {
+export function SideDrawer({ isOpen, children }: SideDrawerProps) {
   return (
     <Drawer
       variant="persistent"
       anchor="right"
       className="drawer"
-      open={areSettingsOpen}
+      open={isOpen}
       PaperProps={{
         sx: { width: '250px' },
       }}

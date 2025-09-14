@@ -1,8 +1,8 @@
 import { Typography, Stack } from '@mui/material';
-import { TitledSelect } from './TitledSelect';
-import { TitledSlider } from './TitledSlider';
+import { TitledSelect } from './components/TitledSelect';
+import { TitledSlider } from './components/TitledSlider';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
-import { LabeledCheckbox } from './LabeledCheckbox';
+import { LabeledCheckbox } from './components/LabeledCheckbox';
 import { SoundSettings } from './types';
 
 const SOUND_TYPE_OPTIONS = [

@@ -1,4 +1,4 @@
-import { inverseTimeScale, timeScale } from './utils';
+import { inverseTimeScale, timeScale } from '../utils';
 import { TitledSlider } from './TitledSlider';
 
 export function TimeSlider(props: {

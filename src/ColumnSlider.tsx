@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AlgorithmOptions, SortName } from './types';
-import { TitledSlider } from './TitledSlider';
+import { TitledSlider } from './components/TitledSlider';
 
 const POWERS_OF_TWO = [8, 16, 32, 64, 128, 256, 512, 1024];
 const POWERS_OF_TWO_MARKS = POWERS_OF_TWO.map((value) => ({
