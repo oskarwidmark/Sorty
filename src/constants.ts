@@ -1,6 +1,7 @@
 import {
   AppState,
   ColorPreset,
+  DisplayType,
   ResetPreset,
   Settings,
   SortName,
@@ -41,6 +42,7 @@ export const INIT_SETTINGS: Settings = {
   backgroundColor: '#000000',
   highlightColor: '#ff0000',
   visualizationType: VisualizationType.Bars,
+  displayType: DisplayType.Full,
   soundVolume: DEFAULT_SOUND_VOLUME,
   soundType: DEFAULT_SOUND_TYPE,
   frequencyRange: [200, 640],

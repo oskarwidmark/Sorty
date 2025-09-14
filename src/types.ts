@@ -54,6 +54,11 @@ export enum VisualizationType {
   Colors = 'Colors',
 }
 
+export enum DisplayType {
+  Full = 'Full',
+  Square = 'Square',
+}
+
 export enum ColorPreset {
   Rainbow = 'Rainbow',
   Custom = 'Custom',
@@ -91,6 +96,7 @@ export type ColorSettings = {
   highlightColor: string;
   backgroundColor: string;
   visualizationType: VisualizationType;
+  displayType: DisplayType;
 };
 
 export type SoundSettings = {

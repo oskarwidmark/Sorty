@@ -1,5 +1,10 @@
 import { FormControl, Stack, Grid2 } from '@mui/material';
-import { ColorPreset, ColorSettings, VisualizationType } from './types';
+import {
+  ColorPreset,
+  ColorSettings,
+  DisplayType,
+  VisualizationType,
+} from './types';
 import { TitledSelect } from './components/TitledSelect';
 import { ColorField } from './components/ColorField';
 
@@ -15,6 +20,7 @@ export function ColorTab(props: {
       highlightColor,
       backgroundColor,
       visualizationType,
+      displayType,
     },
     setColorSettings,
   } = props;
@@ -75,6 +81,14 @@ export function ColorTab(props: {
           setColorSettings({ visualizationType: value as VisualizationType })
         }
         options={Object.values(VisualizationType)}
+      />
+      <TitledSelect
+        title="Display type"
+        value={displayType}
+        onSelect={(value) =>
+          setColorSettings({ displayType: value as DisplayType })
+        }
+        options={Object.values(DisplayType)}
       />
     </>
   );

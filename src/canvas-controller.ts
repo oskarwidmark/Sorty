@@ -1,4 +1,10 @@
-import { ColorPreset, DrawData, SortValue, VisualizationType } from './types';
+import {
+  ColorPreset,
+  DisplayType,
+  DrawData,
+  SortValue,
+  VisualizationType,
+} from './types';
 import { hsvToRgbHex, rgbHexToHsv } from './utils';
 
 export class CanvasController {
@@ -18,6 +24,7 @@ export class CanvasController {
       columnColor2: string;
       highlightColor: string;
       visualizationType: VisualizationType;
+      displayType: DisplayType;
     },
   ) {}
 
@@ -72,6 +79,34 @@ export class CanvasController {
 
   set visualizationType(value: VisualizationType) {
     this.context.visualizationType = value;
+  }
+
+  set displayType(value: DisplayType) {
+    this.context.displayType = value;
+  }
+
+  get height() {
+    switch (this.context.displayType) {
+      case DisplayType.Full:
+        return this.canvas2dCtx.canvas.height;
+      case DisplayType.Square:
+        return Math.min(
+          this.canvas2dCtx.canvas.width,
+          this.canvas2dCtx.canvas.height,
+        );
+    }
+  }
+
+  get width() {
+    switch (this.context.displayType) {
+      case DisplayType.Full:
+        return this.canvas2dCtx.canvas.width;
+      case DisplayType.Square:
+        return Math.min(
+          this.canvas2dCtx.canvas.width,
+          this.canvas2dCtx.canvas.height,
+        );
+    }
   }
 
   getGradientColor(value: number) {
@@ -180,10 +215,10 @@ export class CanvasController {
     const rect = canvas.getBoundingClientRect();
 
     const colIndex = Math.floor(
-      ((mouseX - rect.left) / canvas.width) * this.context.columnNbr,
+      ((mouseX - rect.left) / this.width) * this.context.columnNbr,
     );
     const colHeight = Math.floor(
-      ((canvas.height - (mouseY - rect.top)) / canvas.height) *
+      ((this.height - (mouseY - rect.top)) / this.height) *
         this.context.columnNbr,
     );
 
@@ -249,7 +284,7 @@ export class CanvasController {
   };
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
-    const width = this.canvas2dCtx.canvas.width / this.context.columnNbr;
+    const width = this.width / this.context.columnNbr;
     const height = this.getColumnHeight(arr[i].value);
     const startX = width * i;
     const startY = this.getColumnStartY(arr[i].value);
@@ -261,10 +296,7 @@ export class CanvasController {
   private getColumnStartY = (value: number) => {
     switch (this.context.visualizationType) {
       case VisualizationType.Dots:
-        return (
-          (this.canvas2dCtx.canvas.height / this.context.columnNbr) *
-          (value - 1)
-        );
+        return (this.height / this.context.columnNbr) * value;
       default:
         return 0;
     }
@@ -273,14 +305,11 @@ export class CanvasController {
   private getColumnHeight = (value: number) => {
     switch (this.context.visualizationType) {
       case VisualizationType.Bars:
-        return (
-          (this.canvas2dCtx.canvas.height / this.context.columnNbr) *
-          (value + 1)
-        );
+        return (this.height / this.context.columnNbr) * (value + 1);
       case VisualizationType.Dots:
-        return this.canvas2dCtx.canvas.width / this.context.columnNbr;
+        return this.width / this.context.columnNbr;
       case VisualizationType.Colors:
-        return this.canvas2dCtx.canvas.height;
+        return this.height;
     }
   };
 
@@ -290,29 +319,27 @@ export class CanvasController {
     width: number,
     height: number,
   ) => {
-    const ctxHeight = this.canvas2dCtx.canvas.height;
     this.canvas2dCtx.fillRect(
       startX,
-      Math.floor(ctxHeight) - Math.floor(startY) - Math.floor(height),
+      Math.floor(this.height) - Math.floor(startY) - Math.floor(height),
       Math.floor(width),
       Math.floor(height),
     );
   };
 
   private clearColumn = (idx: number) => {
-    const width = this.canvas2dCtx.canvas.width / this.context.columnNbr;
+    const width = this.width / this.context.columnNbr;
     const startX = width * idx;
 
     this.clearRect(startX, width);
   };
 
   private clearRect = (startX: number, width: number) => {
-    const ctxHeight = this.canvas2dCtx.canvas.height;
     this.canvas2dCtx.clearRect(
       startX - 1,
       0,
       Math.floor(width) + 2,
-      Math.floor(ctxHeight),
+      Math.floor(this.height),
     );
   };
 
