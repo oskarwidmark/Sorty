@@ -326,7 +326,7 @@ class App extends React.Component<Props> {
     if (this.state.settings.columnNbr === columnNbr) return;
 
     this.sortingAlgorithms.columnNbr = columnNbr;
-    this.canvasController.columnNbr = columnNbr;
+    this.canvasController.context.columnNbr = columnNbr;
     this.setSettings({ columnNbr }, () => this.resetAndDraw());
   };
 
@@ -375,10 +375,8 @@ class App extends React.Component<Props> {
     this.setSettings({ ...settings });
     this.stopSorting();
     entries(settings).forEach(([key, value]) => {
-      if (key !== 'backgroundColor') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this.canvasController[key] = value as any;
-      }
+      // Probably problems with type intersections, but ok
+      this.canvasController.context[key] = value as never;
     });
 
     this.canvasController.redrawAll(this.arr);

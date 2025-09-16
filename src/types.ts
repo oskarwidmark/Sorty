@@ -98,6 +98,7 @@ export type ColorSettings = {
   backgroundColor: string;
   visualizationType: VisualizationType;
   displayType: DisplayType;
+  gapSize: number;
 };
 
 export type SoundSettings = {

@@ -7,6 +7,7 @@ import {
 } from './types';
 import { TitledSelect } from './components/TitledSelect';
 import { ColorField } from './components/ColorField';
+import { TitledSlider } from './components/TitledSlider';
 
 export function ColorTab(props: {
   settings: ColorSettings;
@@ -89,6 +90,15 @@ export function ColorTab(props: {
           setColorSettings({ displayType: value as DisplayType })
         }
         options={Object.values(DisplayType)}
+      />
+      <TitledSlider
+        title="Gap size"
+        value={props.settings.gapSize}
+        min={0}
+        max={10}
+        step={1}
+        marks
+        onChange={(_, value) => setColorSettings({ gapSize: value as number })}
       />
     </>
   );

@@ -1,5 +1,6 @@
 import {
   ColorPreset,
+  ColorSettings,
   DisplayType,
   DrawData,
   SortValue,
@@ -16,16 +17,10 @@ export class CanvasController {
   _canvas2dCtx: CanvasRenderingContext2D | null = null;
 
   constructor(
-    private context: {
+    public context: {
       canvasRef: React.RefObject<HTMLCanvasElement>;
       columnNbr: number;
-      colorPreset: ColorPreset;
-      columnColor1: string;
-      columnColor2: string;
-      highlightColor: string;
-      visualizationType: VisualizationType;
-      displayType: DisplayType;
-    },
+    } & ColorSettings,
   ) {}
 
   get canvasRef() {
@@ -59,34 +54,6 @@ export class CanvasController {
 
   get dpr() {
     return window.devicePixelRatio || 1;
-  }
-
-  set columnNbr(value: number) {
-    this.context.columnNbr = value;
-  }
-
-  set colorPreset(value: string) {
-    this.context.colorPreset = value as ColorPreset;
-  }
-
-  set columnColor1(value: string) {
-    this.context.columnColor1 = value;
-  }
-
-  set columnColor2(value: string) {
-    this.context.columnColor2 = value;
-  }
-
-  set highlightColor(value: string) {
-    this.context.highlightColor = value;
-  }
-
-  set visualizationType(value: string) {
-    this.context.visualizationType = value as VisualizationType;
-  }
-
-  set displayType(value: string) {
-    this.context.displayType = value as DisplayType;
   }
 
   get height() {
@@ -417,10 +384,10 @@ export class CanvasController {
     height: number,
   ) => {
     this.canvas2dCtx.fillRect(
-      this.snap(startX),
-      this.snap(this.height - startY - height),
-      this.snap(width),
-      this.snap(height),
+      this.snap(startX + this.context.gapSize),
+      this.snap(this.height - startY - height + this.context.gapSize),
+      this.snap(width - this.context.gapSize),
+      this.snap(height - this.context.gapSize),
     );
   };
 
