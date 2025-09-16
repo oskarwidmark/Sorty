@@ -11,6 +11,6 @@ Features:
 Fixes:
 
 - [ ] Heap sort wrong when unsorted first element is smallest
-- [ ] Improve Bully Sort
+- [x] Improve Bully Sort
 - [x] Cleaner draw logic with no gaps
 - [ ] Handle resizing to smaller height correctly

@@ -1,8 +1,8 @@
 import {
+  AlgorithmOptions,
   Operator,
   SortAlgorithm,
   SortName,
-  AlgorithmOptions,
   SortValue,
 } from './types';
 
@@ -424,29 +424,42 @@ export class SortingAlgorithms {
   // Elmayo's brain child
   public async bullySort(arr: SortValue[]) {
     let isSorted = false;
+    let sortedFrom = arr.length;
     while (!isSorted) {
       isSorted = true;
       let swapIndex = 0;
-      for (let i = 1; i < arr.length; i++) {
+      const maxI = sortedFrom;
+      for (let i = 1; i < maxI; i++) {
         if (
-          (await this.context.compare(arr, i - 1, '>', i)) &&
-          (i + 1 >= arr.length ||
-            (await this.context.compare(arr, i + 1, '>=', i)))
+          (await this.context.compare(arr, i - 1, '<=', i)) ||
+          (i + 1 < arr.length &&
+            (await this.context.compare(arr, i + 1, '<', i)))
         ) {
-          for (let j = swapIndex; j < i; j++) {
-            if (
-              !(
-                (await this.context.compare(arr, i - 1, '>', j)) &&
-                (i + 1 >= arr.length ||
-                  (await this.context.compare(arr, i + 1, '>=', j)))
-              )
-            ) {
-              await this.context.drawAndSwap(arr, j, i);
-              isSorted = false;
-              swapIndex++;
-              break;
-            }
+          // Not bullied
+          continue;
+        }
+
+        sortedFrom = Math.min(i + 2, arr.length);
+
+        // Find smallest bully
+        let smallestIndex = i - 1;
+        if (
+          i + 1 < arr.length &&
+          (await this.context.compare(arr, i + 1, '<', smallestIndex))
+        ) {
+          smallestIndex = i + 1;
+        }
+
+        // Find non-bullyable to swap with
+        for (let j = swapIndex; j < i; j++) {
+          if (await this.context.compare(arr, smallestIndex, '>', j)) {
+            continue;
           }
+
+          await this.context.drawAndSwap(arr, j, i);
+          isSorted = false;
+          swapIndex = j + 1;
+          break;
         }
       }
     }
