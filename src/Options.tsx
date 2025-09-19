@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { AlgorithmOptions, SortName } from './types';
 import { useCallback, useState } from 'react';
+import { LabeledCheckbox } from './components/LabeledCheckbox';
 
 const getAlgorithmOptionFields = (
   sortName: SortName,
@@ -14,7 +15,9 @@ const getAlgorithmOptionFields = (
   switch (sortName) {
     case SortName.BitonicSort:
     case SortName.OddEvenMergesort:
-      return ['type'];
+      return ['type', 'parallel'];
+    case SortName.OddEvenSort:
+      return ['parallel'];
     case SortName.RadixSortLSD:
     case SortName.RadixSortMSD:
       return ['base'];
@@ -46,6 +49,7 @@ const ALGORITHM_OPTION_LABELS: Record<keyof AlgorithmOptions, string> = {
   base: 'Base',
   shrinkFactor: 'Shrink Factor',
   heapType: 'Heap Type',
+  parallel: 'Run in parallel',
 };
 
 const ALGORITHM_OPTION_TEXT_FIELD_TYPES: Record<
@@ -56,20 +60,22 @@ const ALGORITHM_OPTION_TEXT_FIELD_TYPES: Record<
   base: 'number',
   shrinkFactor: 'number',
   heapType: 'select',
+  parallel: 'checkbox',
 };
 
 const ALGORITHM_OPTION_VALUES: Record<
   keyof AlgorithmOptions,
-  AlgorithmOptions[keyof AlgorithmOptions][]
+  AlgorithmOptions['type' | 'heapType'][]
 > = {
   type: ['iterative', 'recursive'],
   base: [],
   shrinkFactor: [],
   heapType: ['max', 'min'],
+  parallel: [],
 };
 
 const ALGORITHM_OPTION_VALUE_LABELS: Record<
-  AlgorithmOptions[keyof AlgorithmOptions],
+  AlgorithmOptions['type' | 'heapType'],
   string
 > = {
   iterative: 'Iterative',
@@ -124,41 +130,64 @@ export function Options({
       >
         Options
       </Typography>
-      <Grid2 container spacing={2}>
+      <Grid2 container>
         {algorithmOptionFields.map((field) => (
-          <FormControl component="fieldset">
-            <TextField
-              key={field}
-              select={ALGORITHM_OPTION_TEXT_FIELD_TYPES[field] === 'select'}
-              label={ALGORITHM_OPTION_LABELS[field]}
-              value={nonValidatedOptions[field]}
-              onChange={(event) =>
-                handleOptionChange(field, event.target.value)
-              }
-              error={!isValidOption(field, nonValidatedOptions[field])}
-              size="small"
-              sx={{ width: 120 }}
-              type={
-                ALGORITHM_OPTION_TEXT_FIELD_TYPES[field] === 'select'
-                  ? undefined
-                  : ALGORITHM_OPTION_TEXT_FIELD_TYPES[field]
-              }
-            >
-              {Object.values(ALGORITHM_OPTION_VALUES[field]).map((v) => (
-                <MenuItem key={v} value={v}>
-                  <Typography
-                    align="left"
-                    variant="body2"
-                    color="textSecondary"
-                  >
-                    {ALGORITHM_OPTION_VALUE_LABELS[v] ?? v}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </TextField>
-          </FormControl>
+          <OptionField
+            key={field}
+            field={field}
+            nonValidatedOptions={nonValidatedOptions}
+            handleOptionChange={handleOptionChange}
+          />
         ))}
       </Grid2>
     </div>
   );
 }
+
+const OptionField = (props: {
+  field: keyof AlgorithmOptions;
+  nonValidatedOptions: AlgorithmOptions;
+  handleOptionChange: (field: keyof AlgorithmOptions, value: unknown) => void;
+}) => {
+  const { field, nonValidatedOptions, handleOptionChange } = props;
+  switch (ALGORITHM_OPTION_TEXT_FIELD_TYPES[field]) {
+    case 'checkbox':
+      return (
+        <FormControl key={field} component="fieldset">
+          <LabeledCheckbox
+            label={ALGORITHM_OPTION_LABELS[field]}
+            checked={Boolean(nonValidatedOptions[field])}
+            onChecked={(checked) => handleOptionChange(field, checked)}
+          />
+        </FormControl>
+      );
+    default:
+      return (
+        <FormControl component="fieldset">
+          <TextField
+            key={field}
+            select={ALGORITHM_OPTION_TEXT_FIELD_TYPES[field] === 'select'}
+            label={ALGORITHM_OPTION_LABELS[field]}
+            value={nonValidatedOptions[field]}
+            onChange={(event) => handleOptionChange(field, event.target.value)}
+            error={!isValidOption(field, nonValidatedOptions[field])}
+            size="small"
+            sx={{ width: 120 }}
+            type={
+              ALGORITHM_OPTION_TEXT_FIELD_TYPES[field] === 'select'
+                ? undefined
+                : ALGORITHM_OPTION_TEXT_FIELD_TYPES[field]
+            }
+          >
+            {Object.values(ALGORITHM_OPTION_VALUES[field]).map((v) => (
+              <MenuItem key={v} value={v}>
+                <Typography align="left" variant="body2" color="textSecondary">
+                  {ALGORITHM_OPTION_VALUE_LABELS[v] ?? v}
+                </Typography>
+              </MenuItem>
+            ))}
+          </TextField>
+        </FormControl>
+      );
+  }
+};

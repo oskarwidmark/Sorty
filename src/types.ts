@@ -31,6 +31,7 @@ export type AlgorithmOptions = {
   base: number;
   shrinkFactor: number;
   heapType: 'max' | 'min';
+  parallel: boolean;
 };
 
 export enum ResetPreset {

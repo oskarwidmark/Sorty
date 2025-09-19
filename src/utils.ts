@@ -62,3 +62,16 @@ export const toHz = (
 };
 
 export const entries = Object.entries as <T>(obj: T) => [keyof T, T[keyof T]][];
+
+export async function runFunctions(
+  promiseFns: (() => Promise<void>)[],
+  parallel: boolean,
+) {
+  if (parallel) {
+    await Promise.all(promiseFns.map((promiseFn) => promiseFn()));
+  } else {
+    for (const promiseFn of promiseFns) {
+      await promiseFn();
+    }
+  }
+}

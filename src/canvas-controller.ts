@@ -9,7 +9,8 @@ import {
 import { hsvToRgbHex, rgbHexToHsv } from './utils';
 
 export class CanvasController {
-  private prevHighlightIndices: number[] | null = null;
+  private highlightIndices: number[] = [];
+  private currentDrawIteration: number | null = null;
   prevDrawIndex: number | null = null;
   prevDrawHeight: number | null = null;
   isDrawing: boolean = false;
@@ -172,18 +173,22 @@ export class CanvasController {
     this.drawAll(arr);
   };
 
-  highlight = (arr: SortValue[], indices: number[]) => {
-    if (this.prevHighlightIndices) {
-      for (const idx of this.prevHighlightIndices) {
-        if (this.context.visualizationType === VisualizationType.Matrix) {
-          this.redrawCellRow(arr, idx);
-          this.redrawCellColumn(arr, idx);
-          continue;
+  highlight = (arr: SortValue[], indices: number[], drawIteration?: number) => {
+    if (drawIteration == null || drawIteration !== this.currentDrawIteration) {
+      if (this.highlightIndices.length) {
+        for (const idx of this.highlightIndices) {
+          if (this.context.visualizationType === VisualizationType.Matrix) {
+            this.redrawCellRow(arr, idx);
+            this.redrawCellColumn(arr, idx);
+            continue;
+          }
+          this.redrawColumn(arr, idx);
         }
-        this.redrawColumn(arr, idx);
       }
+      this.currentDrawIteration = drawIteration ?? null;
+      this.highlightIndices = [];
     }
-    this.prevHighlightIndices = indices;
+    this.highlightIndices.push(...indices);
 
     for (const idx of indices) {
       if (this.context.visualizationType === VisualizationType.Matrix) {
@@ -266,14 +271,14 @@ export class CanvasController {
   };
 
   stopSorting = (arr: SortValue[]) => {
-    if (this.prevHighlightIndices) {
+    if (this.highlightIndices) {
       this.removeHighlight(arr);
     }
-    this.prevHighlightIndices = null;
+    this.highlightIndices = [];
   };
 
   private removeHighlight = (arr: SortValue[]) => {
-    this.highlight(arr, []);
+    this.highlight(arr, [], -1);
   };
 
   private redrawColumn = (arr: SortValue[], i: number, color?: string) => {

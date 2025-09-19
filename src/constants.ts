@@ -35,6 +35,7 @@ export const INIT_SETTINGS: Settings = {
     base: 4,
     shrinkFactor: 1.3,
     heapType: 'max',
+    parallel: false,
   },
   colorPreset: ColorPreset.Rainbow,
   columnColor1: '#ffffff',

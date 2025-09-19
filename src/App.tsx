@@ -189,7 +189,12 @@ class App extends React.Component<Props> {
     this.props.stopSounds();
   };
 
-  drawAndSwap = async (arr: SortValue[], i1: number, i2: number) => {
+  drawAndSwap = async (
+    arr: SortValue[],
+    i1: number,
+    i2: number,
+    drawIteration?: number,
+  ) => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
     this.swap(arr, i1, i2);
@@ -205,7 +210,7 @@ class App extends React.Component<Props> {
       this.setState((prevState: AppState) => ({
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
       }));
-      this.canvasController.highlight(arr, [i1, i2]);
+      this.canvasController.highlight(arr, [i1, i2], drawIteration);
       await sleep(this.state.settings.swapTime, this.swapCounter++);
     }
   };
@@ -215,12 +220,14 @@ class App extends React.Component<Props> {
     i1: number,
     operator: Operator,
     i2: number,
+    drawIteration?: number,
   ): Promise<boolean> => {
     return this._compare({
       arr,
       i1,
       operator,
       i2,
+      drawIteration,
     });
   };
 
@@ -229,22 +236,26 @@ class App extends React.Component<Props> {
     i: number,
     operator: Operator,
     value: number,
+    drawIteration?: number,
   ): Promise<boolean> => {
     return this._compare({
       arr,
       i1: i,
       operator,
       value,
+      drawIteration,
     });
   };
 
   async _compare(
-    params: { arr: SortValue[]; i1: number; operator: Operator } & (
-      | { value: number }
-      | { i2: number }
-    ),
+    params: {
+      arr: SortValue[];
+      i1: number;
+      operator: Operator;
+      drawIteration?: number;
+    } & ({ value: number } | { i2: number }),
   ) {
-    const { arr, i1, operator } = params;
+    const { arr, i1, operator, drawIteration } = params;
     if (!this.state.isSorting) throw Error('isSorting is false!');
     this.nbrOfComparisons++;
     if (this.state.settings.compareTime) {
@@ -257,7 +268,7 @@ class App extends React.Component<Props> {
         nbrOfComparisons: prevState.nbrOfComparisons + 1,
       }));
       const indexes = 'value' in params ? [i1] : [i1, params.i2];
-      this.canvasController.highlight(arr, indexes);
+      this.canvasController.highlight(arr, indexes, drawIteration);
       await sleep(this.state.settings.compareTime, this.comparisonCounter++);
     }
 
@@ -285,7 +296,11 @@ class App extends React.Component<Props> {
     [arr[i1], arr[i2]] = [arr[i2], arr[i1]];
   }
 
-  registerAuxWrite = async (arr: SortValue[], i: number) => {
+  registerAuxWrite = async (
+    arr: SortValue[],
+    i: number,
+    drawIteration?: number,
+  ) => {
     if (!this.state.isSorting) throw Error('isSorting is false!');
 
     this.nbrOfAuxWrites++;
@@ -298,7 +313,7 @@ class App extends React.Component<Props> {
       this.setState((prevState: AppState) => ({
         nbrOfAuxWrites: prevState.nbrOfAuxWrites + 1,
       }));
-      this.canvasController.highlight(arr, [i]);
+      this.canvasController.highlight(arr, [i], drawIteration);
       await sleep(this.state.settings.auxWriteTime, this.auxWriteCounter++);
     }
   };
