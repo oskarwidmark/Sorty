@@ -1,6 +1,6 @@
 Features:
 
-- [ ] Sub 1ms draw times
+- [x] Sub 1ms draw times
 - [ ] Parallelization for algorithms
 - [ ] Merge sort
 - [x] 2D color matrix visualization

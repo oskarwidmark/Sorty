@@ -45,6 +45,9 @@ class App extends React.Component<Props> {
   private nbrOfSwaps: number = 0;
   private nbrOfComparisons: number = 0;
   private nbrOfAuxWrites: number = 0;
+  private swapCounter = 0;
+  private comparisonCounter = 0;
+  private auxWriteCounter = 0;
   state: AppState;
   canvasController: CanvasController;
 
@@ -203,7 +206,7 @@ class App extends React.Component<Props> {
         nbrOfSwaps: prevState.nbrOfSwaps + 1,
       }));
       this.canvasController.highlight(arr, [i1, i2]);
-      await sleep(this.state.settings.swapTime);
+      await sleep(this.state.settings.swapTime, this.swapCounter++);
     }
   };
 
@@ -255,7 +258,7 @@ class App extends React.Component<Props> {
       }));
       const indexes = 'value' in params ? [i1] : [i1, params.i2];
       this.canvasController.highlight(arr, indexes);
-      await sleep(this.state.settings.compareTime);
+      await sleep(this.state.settings.compareTime, this.comparisonCounter++);
     }
 
     const value = 'value' in params ? params.value : arr[params.i2].value;
@@ -296,7 +299,7 @@ class App extends React.Component<Props> {
         nbrOfAuxWrites: prevState.nbrOfAuxWrites + 1,
       }));
       this.canvasController.highlight(arr, [i]);
-      await sleep(this.state.settings.auxWriteTime);
+      await sleep(this.state.settings.auxWriteTime, this.auxWriteCounter++);
     }
   };
 

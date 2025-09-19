@@ -37,10 +37,16 @@ export const createArr = (columnNbr: number): SortValue[] =>
     return { value: a, id: idx };
   });
 
-export const timeScale = (x: number) => Math.round(2 ** x) - 1;
-export const inverseTimeScale = (x: number) => Math.log2(x + 1);
+export const timeScale = (x: number) => (Math.round(2 ** x) - 1) / 10;
+export const inverseTimeScale = (x: number) => Math.log2((x + 1) * 10);
 
-export const sleep = (ms: number) => {
+export const sleep = (ms: number, counter: number) => {
+  if (ms < 1) {
+    const hz = Math.round(1 / ms);
+    if (counter % hz !== 0) {
+      return Promise.resolve();
+    }
+  }
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
