@@ -38,7 +38,7 @@ export const createArr = (columnNbr: number): SortValue[] =>
   });
 
 export const timeScale = (x: number) => (Math.round(2 ** x) - 1) / 10;
-export const inverseTimeScale = (x: number) => Math.log2((x + 1) * 10);
+export const inverseTimeScale = (x: number) => Math.log2(x * 10 + 1);
 
 export const sleep = (ms: number, counter: number) => {
   if (ms < 1) {
