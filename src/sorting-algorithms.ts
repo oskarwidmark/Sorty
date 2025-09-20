@@ -98,9 +98,20 @@ export class SortingAlgorithms {
       const oddSorter = async () => {
         for (let i = 1; i < arr.length; i += 2) {
           if (
-            await this.context.compare(arr, i - 1, '>', i, drawIteration + 0.5)
+            await this.context.compare(
+              arr,
+              i - 1,
+              '>',
+              i,
+              options.parallel ? drawIteration + 0.5 : undefined,
+            )
           ) {
-            await this.context.drawAndSwap(arr, i - 1, i, drawIteration);
+            await this.context.drawAndSwap(
+              arr,
+              i - 1,
+              i,
+              options.parallel ? drawIteration : undefined,
+            );
             isSorted = false;
           }
         }
@@ -108,9 +119,20 @@ export class SortingAlgorithms {
       const evenSorter = async () => {
         for (let i = 2; i < arr.length; i += 2) {
           if (
-            await this.context.compare(arr, i - 1, '>', i, drawIteration + 0.5)
+            await this.context.compare(
+              arr,
+              i - 1,
+              '>',
+              i,
+              options.parallel ? drawIteration + 0.5 : undefined,
+            )
           ) {
-            await this.context.drawAndSwap(arr, i - 1, i, drawIteration);
+            await this.context.drawAndSwap(
+              arr,
+              i - 1,
+              i,
+              options.parallel ? drawIteration : undefined,
+            );
             isSorted = false;
           }
         }
@@ -156,7 +178,7 @@ export class SortingAlgorithms {
                     index1,
                     '>',
                     index2,
-                    drawIteration + 0.5,
+                    options.parallel ? drawIteration + 0.5 : undefined,
                   )
                 ) {
                   await this.context.drawAndSwap(
@@ -217,10 +239,15 @@ export class SortingAlgorithms {
           start,
           '>',
           start + dist,
-          drawIteration + 0.5,
+          options.parallel ? drawIteration + 0.5 : undefined,
         )
       ) {
-        await this.context.drawAndSwap(arr, start, start + dist, drawIteration);
+        await this.context.drawAndSwap(
+          arr,
+          start,
+          start + dist,
+          options.parallel ? drawIteration : undefined,
+        );
       }
       return;
     }
@@ -247,8 +274,21 @@ export class SortingAlgorithms {
     for (let i = start + dist; i < end - dist; i += newDist) {
       fns.push(async () => {
         const j = i + dist;
-        if (await this.context.compare(arr, i, '>', j, drawIteration + 0.5)) {
-          await this.context.drawAndSwap(arr, i, j, drawIteration);
+        if (
+          await this.context.compare(
+            arr,
+            i,
+            '>',
+            j,
+            options.parallel ? drawIteration + 0.5 : undefined,
+          )
+        ) {
+          await this.context.drawAndSwap(
+            arr,
+            i,
+            j,
+            options.parallel ? drawIteration : undefined,
+          );
         }
       });
     }
@@ -440,16 +480,38 @@ export class SortingAlgorithms {
             // i & k is false for the first half of the bitonic sequence (ex: k = 4, i = 0, 1, 2, 3, 8, 9, 10, 11)
             if (
               !(i & k) &&
-              (await this.context.compare(arr, i, '>', l, drawIteration + 0.5))
+              (await this.context.compare(
+                arr,
+                i,
+                '>',
+                l,
+                options.parallel ? drawIteration + 0.5 : undefined,
+              ))
             ) {
-              await this.context.drawAndSwap(arr, i, l, drawIteration);
+              await this.context.drawAndSwap(
+                arr,
+                i,
+                l,
+                options.parallel ? drawIteration : undefined,
+              );
             }
             // i & k is true for the second half of the bitonic sequence (ex: k = 4, i = 4, 5, 6, 7, 12, 13, 14, 15)
             if (
               i & k &&
-              (await this.context.compare(arr, i, '<', l, drawIteration + 0.5))
+              (await this.context.compare(
+                arr,
+                i,
+                '<',
+                l,
+                options.parallel ? drawIteration + 0.5 : undefined,
+              ))
             ) {
-              await this.context.drawAndSwap(arr, l, i, drawIteration);
+              await this.context.drawAndSwap(
+                arr,
+                l,
+                i,
+                options.parallel ? drawIteration : undefined,
+              );
             }
           });
         }
@@ -520,15 +582,37 @@ export class SortingAlgorithms {
       fns.push(async () => {
         if (
           direction === 'asc' &&
-          (await this.context.compare(arr, i, '>', i + j, drawIteration + 0.5))
+          (await this.context.compare(
+            arr,
+            i,
+            '>',
+            i + j,
+            options.parallel ? drawIteration + 0.5 : undefined,
+          ))
         ) {
-          await this.context.drawAndSwap(arr, i, i + j, drawIteration);
+          await this.context.drawAndSwap(
+            arr,
+            i,
+            i + j,
+            options.parallel ? drawIteration : undefined,
+          );
         }
         if (
           direction === 'desc' &&
-          (await this.context.compare(arr, i, '<', i + j, drawIteration + 0.5))
+          (await this.context.compare(
+            arr,
+            i,
+            '<',
+            i + j,
+            options.parallel ? drawIteration + 0.5 : undefined,
+          ))
         ) {
-          await this.context.drawAndSwap(arr, i, i + j, drawIteration);
+          await this.context.drawAndSwap(
+            arr,
+            i,
+            i + j,
+            options.parallel ? drawIteration : undefined,
+          );
         }
       });
     }
