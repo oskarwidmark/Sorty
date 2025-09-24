@@ -8,6 +8,7 @@ import {
 import { TitledSelect } from './components/TitledSelect';
 import { ColorField } from './components/ColorField';
 import { TitledSlider } from './components/TitledSlider';
+import { HIGHLIGHT_TYPES } from './constants';
 
 export function ColorTab(props: {
   settings: ColorSettings;
@@ -18,7 +19,7 @@ export function ColorTab(props: {
       colorPreset,
       columnColor1,
       columnColor2,
-      highlightColor,
+      highlightColors,
       backgroundColor,
       visualizationType,
       displayType,
@@ -64,13 +65,17 @@ export function ColorTab(props: {
                   setColorSettings({ backgroundColor: value })
                 }
               />
-              <ColorField
-                label="Highlight"
-                color={highlightColor}
-                setColor={(value) =>
-                  setColorSettings({ highlightColor: value })
-                }
-              />
+              {HIGHLIGHT_TYPES.map((type) => (
+                <ColorField
+                  label={`Highlight (${type[0].toUpperCase()})`}
+                  color={highlightColors[type]}
+                  setColor={(value) =>
+                    setColorSettings({
+                      highlightColors: { ...highlightColors, [type]: value },
+                    })
+                  }
+                />
+              ))}
             </Grid2>
           )}
         </Stack>

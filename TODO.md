@@ -5,7 +5,7 @@ Features:
 - [ ] Merge sort
 - [x] 2D color matrix visualization
 - [ ] Spiral visualization
-- [ ] Highlight color based on action type
+- [x] Highlight color based on action type
 - [ ] Mobile browser support
 
 Fixes:

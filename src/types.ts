@@ -95,11 +95,17 @@ export type ColorSettings = {
   colorPreset: ColorPreset;
   columnColor1: string;
   columnColor2: string;
-  highlightColor: string;
+  highlightColors: HighlightColors;
   backgroundColor: string;
   visualizationType: VisualizationType;
   displayType: DisplayType;
   gapSize: number;
+};
+
+export type HighlightType = 'comparison' | 'swap' | 'auxWrite';
+
+type HighlightColors = {
+  [key in HighlightType]: string;
 };
 
 export type SoundSettings = {

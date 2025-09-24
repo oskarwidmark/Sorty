@@ -5,6 +5,7 @@ import {
   DrawData,
   SortValue,
   VisualizationType,
+  HighlightType,
 } from './types';
 import { hsvToRgbHex, rgbHexToHsv } from './utils';
 
@@ -139,11 +140,11 @@ export class CanvasController {
     }
   }
 
-  getHighlightColor() {
+  getHighlightColor(type: HighlightType) {
     switch (this.context.colorPreset) {
       case ColorPreset.Custom:
       case ColorPreset.CustomGradient:
-        return this.context.highlightColor;
+        return this.context.highlightColors[type];
       case ColorPreset.Rainbow:
         return '#FFFFFF';
     }
@@ -173,7 +174,12 @@ export class CanvasController {
     this.drawAll(arr);
   };
 
-  highlight = (arr: SortValue[], indices: number[], drawIteration?: number) => {
+  highlight = (
+    arr: SortValue[],
+    indices: number[],
+    type: HighlightType = 'comparison',
+    drawIteration?: number,
+  ) => {
     if (drawIteration == null || drawIteration !== this.currentDrawIteration) {
       if (this.highlightIndices.length) {
         for (const idx of this.highlightIndices) {
@@ -192,11 +198,11 @@ export class CanvasController {
 
     for (const idx of indices) {
       if (this.context.visualizationType === VisualizationType.Matrix) {
-        this.redrawCellRow(arr, idx, this.getHighlightColor());
-        this.redrawCellColumn(arr, idx, this.getHighlightColor());
+        this.redrawCellRow(arr, idx, this.getHighlightColor(type));
+        this.redrawCellColumn(arr, idx, this.getHighlightColor(type));
         continue;
       }
-      this.redrawColumn(arr, idx, this.getHighlightColor());
+      this.redrawColumn(arr, idx, this.getHighlightColor(type));
     }
   };
 
@@ -278,7 +284,7 @@ export class CanvasController {
   };
 
   private removeHighlight = (arr: SortValue[]) => {
-    this.highlight(arr, [], -1);
+    this.highlight(arr, []);
   };
 
   private redrawColumn = (arr: SortValue[], i: number, color?: string) => {

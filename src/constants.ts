@@ -6,6 +6,7 @@ import {
   Settings,
   SortName,
   VisualizationType,
+  HighlightType,
 } from './types';
 
 export const RAINBOW_BACKGROUND_COLOR = '#282c34';
@@ -41,7 +42,11 @@ export const INIT_SETTINGS: Settings = {
   columnColor1: '#ffffff',
   columnColor2: '#ffffff',
   backgroundColor: '#000000',
-  highlightColor: '#ff0000',
+  highlightColors: {
+    comparison: '#ff0000',
+    swap: '#00ff00',
+    auxWrite: '#ffff00',
+  },
   visualizationType: VisualizationType.Bars,
   displayType: DisplayType.Full,
   gapSize: 0,
@@ -52,3 +57,9 @@ export const INIT_SETTINGS: Settings = {
   playSoundOnComparison: true,
   playSoundOnAuxWrite: false,
 };
+
+export const HIGHLIGHT_TYPES: HighlightType[] = [
+  'swap',
+  'comparison',
+  'auxWrite',
+];
