@@ -1,9 +1,11 @@
 import React from 'react';
 import App from './App';
-import { useSoundPlayer } from './useSoundPlayer';
+import { useSoundPlayer } from './hooks/useSoundPlayer';
 import { NonCustomOscillatorType } from 'tone/build/esm/source/oscillator/OscillatorInterface';
 import { gainToDb } from 'tone';
 import { DEFAULT_SOUND_TYPE, DEFAULT_SOUND_VOLUME } from './constants';
+import { RotationRequest } from './RotationRequest';
+import { useIsPortrait } from './hooks/useIsPortrait';
 
 export function AppWithSound(): React.ReactElement {
   const [soundType, setSoundType] =
@@ -15,6 +17,12 @@ export function AppWithSound(): React.ReactElement {
     type: soundType,
     volume: gainToDb(volume / 100), // Convert volume percentage to decibels
   });
+
+  const isPortrait = useIsPortrait();
+
+  if (isPortrait) {
+    return <RotationRequest />;
+  }
 
   return (
     <App

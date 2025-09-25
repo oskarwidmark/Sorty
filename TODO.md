@@ -6,14 +6,14 @@ Features:
 - [x] 2D color matrix visualization
 - [ ] Spiral visualization
 - [x] Highlight color based on action type
-- [ ] Mobile browser support
+- [x] Mobile browser support
 
 Fixes:
 
 - [ ] Heap sort wrong when unsorted first element is smallest
 - [x] Improve Bully Sort
 - [x] Cleaner draw logic with no gaps
-- [ ] Handle resizing to smaller height correctly
+- [x] Handle resizing to smaller height correctly
 - [ ] Make parallel highlight work for recursive sorting networks
 - [ ] Separate highlight types for parallel highlighting to work properly
 - [ ] Optimize current 2D color matrix visualization
