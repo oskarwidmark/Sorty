@@ -1,11 +1,12 @@
 import {
   BarChart,
-  Brush,
-  MusicNote,
-  MusicOff,
+  Edit,
+  EditOff,
   PlayCircle,
   Refresh,
   StopCircle,
+  VolumeOff,
+  VolumeUp,
 } from '@mui/icons-material';
 import {
   Toolbar,
@@ -29,6 +30,16 @@ type AppBarButtonProps = {
   text: string;
   icon: React.ReactElement;
 } & ButtonProps;
+
+const formatNumber = (n: number) => {
+  if (n > 10000) {
+    return (n / 1000).toFixed(0) + 'k';
+  }
+  if (n > 1000) {
+    return (n / 1000).toFixed(1) + 'k';
+  }
+  return n;
+};
 
 const AppBarButton = ({
   isCompact,
@@ -88,33 +99,34 @@ export function SortAppBar({
   return (
     <AppBar position="relative">
       <Toolbar variant="dense" className="toolbar" onClick={onClick}>
-        <div>
+        <Grid2
+          container
+          spacing={isM ? 1 : 2}
+          sx={{ flexWrap: 'nowrap', flexShrink: 0 }}
+        >
           <AppBarButton
             isCompact={isM}
             text="Sort"
             icon={sortIcon}
             onClick={() => startSorting(arr)}
           />
-        </div>
-        <div>
           <AppBarButton
             isCompact={isM}
             text="Shuffle"
             icon={<BarChart />}
             onClick={shuffleAndRedraw}
           />
-        </div>
-        <div>
           <AppBarButton
             isCompact={isM}
             text="Reset"
             icon={<Refresh />}
             onClick={resetAndDraw}
           />
-        </div>
+        </Grid2>
         <Grid2
           container
           direction="row"
+          spacing={isSm ? 0 : 1}
           sx={{ flexWrap: 'nowrap', alignItems: 'center', flexShrink: 0 }}
         >
           <FormControlLabel
@@ -124,11 +136,11 @@ export function SortAppBar({
                 onChange={toggleCanDraw}
                 name="canDraw"
                 color="secondary"
-                icon={<Brush />}
-                checkedIcon={<Brush />}
+                icon={<EditOff />}
+                checkedIcon={<Edit />}
               />
             }
-            sx={{ marginRight: isSm ? '0px' : undefined, marginLeft: '0px' }}
+            sx={{ marginRight: '0px', marginLeft: '0px' }}
             label={!isSm ? 'Draw Mode' : ''}
             slotProps={{ typography: { whiteSpace: 'nowrap' } }}
           />
@@ -139,20 +151,29 @@ export function SortAppBar({
                 onChange={togglePlaySound}
                 name="shouldPlaySound"
                 color="secondary"
-                icon={<MusicOff />}
-                checkedIcon={<MusicNote />}
+                icon={<VolumeOff />}
+                checkedIcon={<VolumeUp />}
               />
             }
-            sx={{ marginRight: isSm ? '0px' : undefined, marginLeft: '0px' }}
+            sx={{ marginRight: '0px', marginLeft: '0px' }}
             label={!isSm ? 'Play Sound' : ''}
             slotProps={{ typography: { whiteSpace: 'nowrap' } }}
           />
         </Grid2>
-        <div>
-          <Typography className="counter" align="left" color="white" noWrap>
-            {!isM ? 'Swaps:' : 'S:'}{' '}
+        <Grid2
+          container
+          direction="row"
+          spacing={isM ? 1 : 2}
+          sx={{ flexWrap: 'nowrap' }}
+        >
+          <Typography className="counter" align="left" noWrap>
+            {!isSm ? 'Swaps:' : 'S:'}{' '}
             {swapTime || !isSorting ? (
-              nbrOfSwaps
+              isM ? (
+                formatNumber(nbrOfSwaps)
+              ) : (
+                nbrOfSwaps
+              )
             ) : (
               <CircularProgress
                 className="counter-spinner"
@@ -162,12 +183,14 @@ export function SortAppBar({
               />
             )}
           </Typography>
-        </div>
-        <div>
-          <Typography className="counter" align="left" color="white" noWrap>
-            {!isM ? 'Comparisons:' : 'C:'}{' '}
+          <Typography className="counter" align="left" noWrap>
+            {!isM ? 'Comparisons:' : !isSm ? 'Comp:' : 'C:'}{' '}
             {compareTime || !isSorting ? (
-              nbrOfComparisons
+              isM ? (
+                formatNumber(nbrOfComparisons)
+              ) : (
+                nbrOfComparisons
+              )
             ) : (
               <CircularProgress
                 className="counter-spinner"
@@ -177,12 +200,14 @@ export function SortAppBar({
               />
             )}
           </Typography>
-        </div>
-        <div>
-          <Typography className="counter" align="left" color="white" noWrap>
-            {!isM ? 'Aux. writes:' : 'AW:'}{' '}
+          <Typography className="counter" align="left" noWrap>
+            {!isM ? 'Aux. writes:' : !isSm ? 'A. writes:' : 'AW:'}{' '}
             {auxWriteTime || !isSorting ? (
-              nbrOfAuxWrites
+              isM ? (
+                formatNumber(nbrOfAuxWrites)
+              ) : (
+                nbrOfAuxWrites
+              )
             ) : (
               <CircularProgress
                 className="counter-spinner"
@@ -192,7 +217,7 @@ export function SortAppBar({
               />
             )}
           </Typography>
-        </div>
+        </Grid2>
         <IconButton
           color="inherit"
           aria-label="open drawer"
