@@ -226,8 +226,12 @@ export class CanvasController {
     return i >= 0 && i < this.context.columnNbr;
   };
 
-  boundDrawHeight = (y: number) => {
+  boundColHeight = (y: number) => {
     return Math.min(Math.max(y, 0), this.context.columnNbr - 1);
+  };
+
+  colHeightInBounds = (y: number) => {
+    return y === this.boundColHeight(y);
   };
 
   getDrawData = (mouseX: number, mouseY: number): DrawData[] => {
@@ -268,7 +272,7 @@ export class CanvasController {
         curHeight +=
           (colHeight - this.prevDrawHeight) /
           Math.abs(colIndex - this.prevDrawIndex);
-        curHeight = this.boundDrawHeight(curHeight);
+        curHeight = this.boundColHeight(curHeight);
         drawData.push({
           index: i,
           value: Math.floor(curHeight),
@@ -279,10 +283,14 @@ export class CanvasController {
     if (this.indexInBounds(colIndex)) {
       drawData.push({
         index: colIndex,
-        value: this.boundDrawHeight(colHeight),
+        value: this.boundColHeight(colHeight),
       });
       this.prevDrawIndex = colIndex;
       this.prevDrawHeight = colHeight;
+    }
+
+    if (!this.indexInBounds(colIndex) || !this.colHeightInBounds(colHeight)) {
+      this.endDraw();
     }
 
     return drawData;
