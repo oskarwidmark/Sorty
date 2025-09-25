@@ -222,6 +222,14 @@ export class CanvasController {
     this.drawAll(arr);
   };
 
+  indexInBounds = (i: number) => {
+    return i >= 0 && i < this.context.columnNbr;
+  };
+
+  boundDrawHeight = (y: number) => {
+    return Math.min(Math.max(y, 0), this.context.columnNbr - 1);
+  };
+
   getDrawData = (mouseX: number, mouseY: number): DrawData[] => {
     if (!this.isDrawing) return [];
 
@@ -254,12 +262,13 @@ export class CanvasController {
       let curHeight = this.prevDrawHeight;
       for (
         let i = this.prevDrawIndex + indexIncr;
-        i !== colIndex;
+        i !== colIndex && this.indexInBounds(i);
         i += indexIncr
       ) {
         curHeight +=
           (colHeight - this.prevDrawHeight) /
           Math.abs(colIndex - this.prevDrawIndex);
+        curHeight = this.boundDrawHeight(curHeight);
         drawData.push({
           index: i,
           value: Math.floor(curHeight),
@@ -267,12 +276,15 @@ export class CanvasController {
       }
     }
 
-    drawData.push({
-      index: colIndex,
-      value: colHeight,
-    });
-    this.prevDrawIndex = colIndex;
-    this.prevDrawHeight = colHeight;
+    if (this.indexInBounds(colIndex)) {
+      drawData.push({
+        index: colIndex,
+        value: this.boundDrawHeight(colHeight),
+      });
+      this.prevDrawIndex = colIndex;
+      this.prevDrawHeight = colHeight;
+    }
+
     return drawData;
   };
 
@@ -433,6 +445,7 @@ export class CanvasController {
   };
 
   endDraw = () => {
+    console.log('endDraw');
     this.isDrawing = false;
     this.prevDrawIndex = null;
     this.prevDrawHeight = null;

@@ -454,14 +454,18 @@ class App extends React.Component<Props> {
             <canvas
               className="App-canvas"
               ref={this.canvasController.canvasRef}
-              onMouseDown={(event) =>
+              onPointerDown={(event) =>
                 this.startDrawOnCanvas(event.clientX, event.clientY)
               }
-              onMouseMove={(event) =>
+              onPointerMove={(event) =>
                 this.drawOnCanvas(event.clientX, event.clientY)
               }
-              onMouseUp={this.canvasController.endDraw}
-              onMouseLeave={this.canvasController.endDraw}
+              onPointerUp={this.canvasController.endDraw}
+              onPointerLeave={(event) => {
+                this.drawOnCanvas(event.clientX, event.clientY);
+                this.canvasController.endDraw();
+              }}
+              style={{ touchAction: 'none' }}
             />
           </div>
           <SideDrawer isOpen={this.state.areSettingsOpen}>

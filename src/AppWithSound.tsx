@@ -20,17 +20,16 @@ export function AppWithSound(): React.ReactElement {
 
   const isPortrait = useIsPortrait();
 
-  if (isPortrait) {
-    return <RotationRequest />;
-  }
-
   return (
-    <App
-      playSound={play}
-      stopSounds={stop}
-      soundType={soundType}
-      setSoundType={setSoundType}
-      setVolume={setVolume}
-    />
+    <>
+      {isPortrait && <RotationRequest />}
+      <App
+        playSound={play}
+        stopSounds={stop}
+        soundType={soundType}
+        setSoundType={setSoundType}
+        setVolume={setVolume}
+      />
+    </>
   );
 }
