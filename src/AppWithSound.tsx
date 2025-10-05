@@ -6,6 +6,7 @@ import { gainToDb } from 'tone';
 import { DEFAULT_SOUND_TYPE, DEFAULT_SOUND_VOLUME } from './constants';
 import { RotationRequest } from './RotationRequest';
 import { useIsPortrait } from './hooks/useIsPortrait';
+import { Box } from '@mui/material';
 
 export function AppWithSound(): React.ReactElement {
   const [soundType, setSoundType] =
@@ -23,13 +24,15 @@ export function AppWithSound(): React.ReactElement {
   return (
     <>
       {isPortrait && <RotationRequest />}
-      <App
-        playSound={play}
-        stopSounds={stop}
-        soundType={soundType}
-        setSoundType={setSoundType}
-        setVolume={setVolume}
-      />
+      <Box sx={{ display: isPortrait ? 'none' : 'block' }}>
+        <App
+          playSound={play}
+          stopSounds={stop}
+          soundType={soundType}
+          setSoundType={setSoundType}
+          setVolume={setVolume}
+        />
+      </Box>
     </>
   );
 }
