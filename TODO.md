@@ -15,5 +15,5 @@ Fixes:
 - [x] Cleaner draw logic with no gaps
 - [x] Handle resizing to smaller height correctly
 - [ ] Make parallel highlight work for recursive sorting networks
-- [ ] Separate highlight types for parallel highlighting to work properly
 - [ ] Optimize current 2D color matrix visualization
+- [ ] Optimize spiral visualization

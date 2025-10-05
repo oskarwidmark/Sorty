@@ -181,18 +181,8 @@ export class CanvasController {
     drawIteration?: number,
   ) => {
     if (drawIteration == null || drawIteration !== this.currentDrawIteration) {
-      if (this.highlightIndices.length) {
-        for (const idx of this.highlightIndices) {
-          if (this.context.visualizationType === VisualizationType.Matrix) {
-            this.redrawCellRow(arr, idx);
-            this.redrawCellColumn(arr, idx);
-            continue;
-          }
-          this.redrawColumn(arr, idx);
-        }
-      }
+      this.clearHighlights(arr);
       this.currentDrawIteration = drawIteration ?? null;
-      this.highlightIndices = [];
     }
     this.highlightIndices.push(...indices);
 
@@ -202,11 +192,20 @@ export class CanvasController {
         this.redrawCellColumn(arr, idx, this.getHighlightColor(type));
         continue;
       }
+      if (this.context.visualizationType === VisualizationType.Spiral) {
+        this.redrawCircleSector(arr, idx, this.getHighlightColor(type));
+        continue;
+      }
       this.redrawColumn(arr, idx, this.getHighlightColor(type));
     }
   };
 
   redraw = (arr: SortValue[], indices: number[]) => {
+    // TODO: Optimize
+    if (this.context.visualizationType === VisualizationType.Spiral) {
+      this.redrawAll(arr);
+      return;
+    }
     for (const idx of indices) {
       if (this.context.visualizationType === VisualizationType.Matrix) {
         this.redrawCellRow(arr, idx);
@@ -312,6 +311,15 @@ export class CanvasController {
     this.drawColumn(arr, i, color);
   };
 
+  private redrawCircleSector = (
+    arr: SortValue[],
+    i: number,
+    color?: string,
+  ) => {
+    this.drawCircleSector(arr, i, this.context.backgroundColor);
+    this.drawCircleSector(arr, i, color);
+  };
+
   private redrawCellColumn = (arr: SortValue[], i: number, color?: string) => {
     for (let j = 0; j < this.context.columnNbr; j++) {
       this.redrawCell(arr, i, j, color);
@@ -344,6 +352,13 @@ export class CanvasController {
       return;
     }
 
+    if (this.context.visualizationType === VisualizationType.Spiral) {
+      for (let i = 0; i < arr.length; i++) {
+        this.drawCircleSector(arr, i);
+      }
+      return;
+    }
+
     for (let i = 0; i < arr.length; i++) {
       this.drawColumn(arr, i);
     }
@@ -372,6 +387,30 @@ export class CanvasController {
     this.canvas2dCtx.fillStyle =
       color || this.getCellColor(arr[i].value, arr[j].value);
     this.fillRect(startX, startY, width, height);
+  };
+
+  private drawCircleSector = (arr: SortValue[], i: number, color?: string) => {
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+    const maxRadius = Math.min(centerX, centerY);
+    const anglePerColumn = (2 * Math.PI) / this.context.columnNbr;
+    const radius =
+      (maxRadius / (this.context.columnNbr + 1)) * (arr[i].value + 1);
+    const startAngle = anglePerColumn * i;
+    const endAngle = anglePerColumn * (i + 1);
+
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
+    this.canvas2dCtx.beginPath();
+    this.canvas2dCtx.arc(
+      centerX,
+      centerY,
+      this.snap(radius),
+      startAngle,
+      endAngle,
+    );
+    this.canvas2dCtx.lineTo(centerX, centerY);
+    this.canvas2dCtx.closePath();
+    this.canvas2dCtx.fill();
   };
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
@@ -453,9 +492,25 @@ export class CanvasController {
   };
 
   endDraw = () => {
-    console.log('endDraw');
     this.isDrawing = false;
     this.prevDrawIndex = null;
     this.prevDrawHeight = null;
   };
+
+  private clearHighlights(arr: SortValue[]) {
+    // TODO: Optimize
+    if (VisualizationType.Spiral === this.context.visualizationType) {
+      this.redrawAll(arr);
+      return;
+    }
+    for (const idx of this.highlightIndices) {
+      if (this.context.visualizationType === VisualizationType.Matrix) {
+        this.redrawCellRow(arr, idx);
+        this.redrawCellColumn(arr, idx);
+        continue;
+      }
+      this.redrawColumn(arr, idx);
+    }
+    this.highlightIndices = [];
+  }
 }
