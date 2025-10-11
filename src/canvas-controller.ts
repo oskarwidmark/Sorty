@@ -1,3 +1,4 @@
+import { MAX_ANGLE_GAP_FACTOR } from './constants';
 import {
   ColorPreset,
   ColorSettings,
@@ -398,6 +399,12 @@ export class CanvasController {
       (maxRadius / (this.context.columnNbr + 1)) * (arr[i].value + 1);
     const startAngle = anglePerColumn * i;
     const endAngle = anglePerColumn * (i + 1);
+    const gap =
+      (anglePerColumn *
+        this.context.gapSize *
+        arr[i].value *
+        MAX_ANGLE_GAP_FACTOR) /
+      this.context.columnNbr;
 
     this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.canvas2dCtx.beginPath();
@@ -405,7 +412,7 @@ export class CanvasController {
       centerX,
       centerY,
       this.snap(radius),
-      startAngle,
+      startAngle + gap,
       endAngle,
     );
     this.canvas2dCtx.lineTo(centerX, centerY);

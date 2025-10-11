@@ -4,7 +4,7 @@ Features:
 - [x] Parallelization for algorithms
 - [ ] Merge sort
 - [x] 2D color matrix visualization
-- [ ] Spiral visualization
+- [x] Spiral visualization
 - [x] Highlight color based on action type
 - [x] Mobile browser support
 

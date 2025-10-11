@@ -50,7 +50,6 @@ export const sleep = (ms: number, counter: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-// something that sounds good
 export const toHz = (
   value: number,
   columnNbr: number,
