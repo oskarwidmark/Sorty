@@ -24,7 +24,7 @@ const getAlgorithmOptionFields = (
     case SortName.CombSort:
       return ['shrinkFactor'];
     case SortName.Heapsort:
-      return ['heapType'];
+      return ['heapType', 'childCount'];
     default:
       return [];
   }
@@ -36,6 +36,7 @@ const isValidOption = (
 ): value is AlgorithmOptions[typeof field] => {
   switch (field) {
     case 'base':
+    case 'childCount':
       return Number(value) >= 2 && Number.isInteger(Number(value));
     case 'shrinkFactor':
       return Number(value) > 1;
@@ -50,6 +51,7 @@ const ALGORITHM_OPTION_LABELS: Record<keyof AlgorithmOptions, string> = {
   shrinkFactor: 'Shrink Factor',
   heapType: 'Heap Type',
   parallel: 'Run in parallel',
+  childCount: '# of children',
 };
 
 const ALGORITHM_OPTION_TEXT_FIELD_TYPES: Record<
@@ -61,6 +63,7 @@ const ALGORITHM_OPTION_TEXT_FIELD_TYPES: Record<
   shrinkFactor: 'number',
   heapType: 'select',
   parallel: 'checkbox',
+  childCount: 'number',
 };
 
 const ALGORITHM_OPTION_VALUES: Record<
@@ -72,6 +75,7 @@ const ALGORITHM_OPTION_VALUES: Record<
   shrinkFactor: [],
   heapType: ['max', 'min'],
   parallel: [],
+  childCount: [],
 };
 
 const ALGORITHM_OPTION_VALUE_LABELS: Record<
@@ -130,7 +134,7 @@ export function Options({
       >
         Options
       </Typography>
-      <Grid2 container>
+      <Grid2 container spacing={2}>
         {algorithmOptionFields.map((field) => (
           <OptionField
             key={field}
@@ -153,7 +157,7 @@ const OptionField = (props: {
   switch (ALGORITHM_OPTION_TEXT_FIELD_TYPES[field]) {
     case 'checkbox':
       return (
-        <FormControl key={field} component="fieldset">
+        <FormControl key={field} component="fieldset" sx={{ mt: -1 }}>
           <LabeledCheckbox
             label={ALGORITHM_OPTION_LABELS[field]}
             checked={Boolean(nonValidatedOptions[field])}
