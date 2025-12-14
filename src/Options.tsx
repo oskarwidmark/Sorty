@@ -17,6 +17,8 @@ const getAlgorithmOptionFields = (
     case SortName.OddEvenMergesort:
       return ['type', 'parallel'];
     case SortName.OddEvenSort:
+    case SortName.FoldSort:
+    case SortName.CreaseSort:
       return ['parallel'];
     case SortName.RadixSortLSD:
     case SortName.RadixSortMSD:

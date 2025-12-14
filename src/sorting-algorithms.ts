@@ -25,6 +25,8 @@ export class SortingAlgorithms {
     [SortName.AverageSort]: this.averageSort,
     [SortName.Heapsort]: this.heapsort,
     [SortName.PushSort]: this.pushSort,
+    [SortName.FoldSort]: this.foldSort,
+    [SortName.CreaseSort]: this.creaseSort,
     // 'Bully Sort 2': this.bullySort2,
   };
 
@@ -930,6 +932,98 @@ public async   mergeSort(arr, start, end){
         } else {
           stackSize++;
         }
+      }
+    }
+  }
+
+  public async foldSort(arr: SortValue[], options: AlgorithmOptions) {
+    let drawIteration = 0;
+    for (
+      let m = 2 ** (Math.floor(Math.log2(arr.length)) - 1);
+      m > 0;
+      m = Math.floor(m / 2)
+    ) {
+      for (
+        let k = 2 ** (Math.floor(Math.log2(arr.length)) - 1);
+        k >= Math.floor((m + 1) / 2);
+        k = Math.floor(k / 2)
+      ) {
+        const fns = [];
+
+        for (let j = k; j < arr.length; j += 2 * k) {
+          for (let i = 0; i < k && j + i < arr.length; i++) {
+            fns.push(async () => {
+              if (
+                await this.context.compare(
+                  arr,
+                  j - 1 - i,
+                  '>',
+                  j + i,
+                  options.parallel ? drawIteration : undefined,
+                )
+              ) {
+                await this.context.drawAndSwap(arr, j - 1 - i, j + i);
+              }
+            });
+          }
+        }
+        await runFunctions(fns, options.parallel);
+        drawIteration++;
+      }
+    }
+  }
+
+  public async creaseSort(arr: SortValue[], options: AlgorithmOptions) {
+    let drawIteration = 0;
+    for (
+      let k = 2 ** Math.floor(Math.log2(arr.length - 1));
+      k > 0;
+      k = Math.floor(k / 2)
+    ) {
+      const fns = [];
+      for (let i = 1; i < arr.length; i += 2) {
+        fns.push(async () => {
+          if (
+            await this.context.compare(
+              arr,
+              i - 1,
+              '>',
+              i,
+              options.parallel ? drawIteration : undefined,
+            )
+          ) {
+            await this.context.drawAndSwap(arr, i - 1, i);
+          }
+        });
+      }
+
+      await runFunctions(fns, options.parallel);
+      drawIteration++;
+
+      for (
+        let j = 2 ** Math.floor(Math.log2(arr.length - 1));
+        j >= k && j > 1;
+        j = Math.floor(j / 2)
+      ) {
+        const fns = [];
+        for (let i = j; i < arr.length; i += 2) {
+          fns.push(async () => {
+            if (
+              await this.context.compare(
+                arr,
+                i - j + 1,
+                '>',
+                i,
+                options.parallel ? drawIteration : undefined,
+              )
+            ) {
+              await this.context.drawAndSwap(arr, i - j + 1, i);
+            }
+          });
+        }
+
+        await runFunctions(fns, options.parallel);
+        drawIteration++;
       }
     }
   }

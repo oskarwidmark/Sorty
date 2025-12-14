@@ -19,7 +19,8 @@ export function ColumnSlider(props: {
   const requiresPowerOfTwoColumns =
     chosenSortAlg === SortName.BitonicSort ||
     (chosenSortAlg === SortName.OddEvenMergesort &&
-      algorithmOptions.type === 'recursive');
+      algorithmOptions.type === 'recursive') ||
+    chosenSortAlg === SortName.FoldSort;
 
   useEffect(() => {
     if (requiresPowerOfTwoColumns) {

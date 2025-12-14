@@ -17,6 +17,8 @@ export enum SortName {
   AverageSort = 'Average Sort',
   Heapsort = 'Heapsort',
   PushSort = 'Push Sort',
+  FoldSort = 'Fold Sort',
+  CreaseSort = 'Crease Sort',
 }
 
 export type SortAlgorithm = (
