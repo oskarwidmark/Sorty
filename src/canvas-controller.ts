@@ -494,15 +494,6 @@ export class CanvasController {
     this.clearRect(startX, 0, width, this.height);
   };
 
-  private clearCell = (i: number, j: number) => {
-    const width = this.width / this.context.columnNbr;
-    const height = this.height / this.context.columnNbr;
-    const startX = width * i;
-    const startY = height * j;
-
-    this.clearRect(startX, startY, width, height);
-  };
-
   private clearRect = (
     startX: number,
     startY: number,
