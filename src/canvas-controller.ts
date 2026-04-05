@@ -202,12 +202,11 @@ export class CanvasController {
   };
 
   redraw = (arr: SortValue[], indices: number[]) => {
-    // TODO: Optimize
-    if (this.context.visualizationType === VisualizationType.Spiral) {
-      this.redrawAll(arr);
-      return;
-    }
     for (const idx of indices) {
+      if (this.context.visualizationType === VisualizationType.Spiral) {
+        this.redrawCircleSector(arr, idx);
+        continue;
+      }
       if (this.context.visualizationType === VisualizationType.Matrix) {
         this.redrawCellRow(arr, idx);
         this.redrawCellColumn(arr, idx);
@@ -317,7 +316,7 @@ export class CanvasController {
     i: number,
     color?: string,
   ) => {
-    this.drawCircleSector(arr, i, this.context.backgroundColor);
+    this.clearCircleSector(i);
     this.drawCircleSector(arr, i, color);
   };
 
@@ -420,6 +419,39 @@ export class CanvasController {
     this.canvas2dCtx.fill();
   };
 
+  // TODO: refactor with drawCircleSector
+  private clearCircleSector = (i: number) => {
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+    const maxRadius = Math.min(centerX, centerY);
+    const anglePerColumn = (2 * Math.PI) / this.context.columnNbr;
+    const radius =
+      (maxRadius / (this.context.columnNbr + 1)) * (this.context.columnNbr + 1);
+    const startAngle = anglePerColumn * i;
+    const endAngle = anglePerColumn * (i + 1);
+    const gap =
+      (anglePerColumn *
+        this.context.gapSize *
+        this.context.columnNbr *
+        MAX_ANGLE_GAP_FACTOR) /
+      this.context.columnNbr;
+
+    this.canvas2dCtx.save();
+    this.canvas2dCtx.globalCompositeOperation = 'destination-out';
+    this.canvas2dCtx.beginPath();
+    this.canvas2dCtx.arc(
+      centerX,
+      centerY,
+      this.snap(radius),
+      startAngle + gap,
+      endAngle,
+    );
+    this.canvas2dCtx.lineTo(centerX, centerY);
+    this.canvas2dCtx.closePath();
+    this.canvas2dCtx.fill();
+    this.canvas2dCtx.restore();
+  };
+
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
     const width = this.width / this.context.columnNbr;
     const height = this.getColumnHeight(arr[i].value);
@@ -505,12 +537,11 @@ export class CanvasController {
   };
 
   private clearHighlights(arr: SortValue[]) {
-    // TODO: Optimize
-    if (VisualizationType.Spiral === this.context.visualizationType) {
-      this.redrawAll(arr);
-      return;
-    }
     for (const idx of this.highlightIndices) {
+      if (VisualizationType.Spiral === this.context.visualizationType) {
+        this.redrawCircleSector(arr, idx);
+        continue;
+      }
       if (this.context.visualizationType === VisualizationType.Matrix) {
         this.redrawCellRow(arr, idx);
         this.redrawCellColumn(arr, idx);
