@@ -189,8 +189,7 @@ export class CanvasController {
 
     for (const idx of indices) {
       if (this.context.visualizationType === VisualizationType.Matrix) {
-        this.redrawCellRow(arr, idx, this.getHighlightColor(type));
-        this.redrawCellColumn(arr, idx, this.getHighlightColor(type));
+        this.drawCell(arr, idx, this.getHighlightColor(type));
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Spiral) {
@@ -208,8 +207,7 @@ export class CanvasController {
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Matrix) {
-        this.redrawCellRow(arr, idx);
-        this.redrawCellColumn(arr, idx);
+        this.drawCell(arr, idx);
         continue;
       }
       this.redrawColumn(arr, idx);
@@ -320,34 +318,10 @@ export class CanvasController {
     this.drawCircleSector(arr, i, color);
   };
 
-  private redrawCellColumn = (arr: SortValue[], i: number, color?: string) => {
-    for (let j = 0; j < this.context.columnNbr; j++) {
-      this.redrawCell(arr, i, j, color);
-    }
-  };
-
-  private redrawCellRow = (arr: SortValue[], j: number, color?: string) => {
-    for (let i = 0; i < this.context.columnNbr; i++) {
-      this.redrawCell(arr, i, j, color);
-    }
-  };
-
-  private redrawCell = (
-    arr: SortValue[],
-    i: number,
-    j: number,
-    color?: string,
-  ) => {
-    this.clearCell(i, j);
-    this.drawCell(arr, i, j, color);
-  };
-
   private drawAll = (arr: SortValue[]) => {
     if (this.context.visualizationType === VisualizationType.Matrix) {
       for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr.length; j++) {
-          this.drawCell(arr, i, j);
-        }
+        this.drawCell(arr, i);
       }
       return;
     }
@@ -373,19 +347,32 @@ export class CanvasController {
     );
   };
 
-  private drawCell = (
-    arr: SortValue[],
-    i: number,
-    j: number,
-    color?: string,
-  ) => {
-    const width = this.width / this.context.columnNbr;
-    const height = this.height / this.context.columnNbr;
-    const startX = width * i;
-    const startY = height * j;
+  private drawCell = (arr: SortValue[], i: number, color?: string) => {
+    const sqrtColumnNbr = Math.floor(Math.sqrt(this.context.columnNbr));
 
-    this.canvas2dCtx.fillStyle =
-      color || this.getCellColor(arr[i].value, arr[j].value);
+    let indexInDiagonalOrder = i;
+    let diagSum = 0; // x + y
+
+    while (diagSum < 2 * sqrtColumnNbr - 1) {
+      const diagonalLength =
+        diagSum < sqrtColumnNbr ? diagSum + 1 : 2 * sqrtColumnNbr - 1 - diagSum;
+
+      if (indexInDiagonalOrder < diagonalLength) break;
+
+      indexInDiagonalOrder -= diagonalLength;
+      diagSum++;
+    }
+
+    const xStart = Math.max(0, diagSum - (sqrtColumnNbr - 1));
+    const x = xStart + indexInDiagonalOrder;
+    const y = diagSum - x;
+
+    const width = this.width / sqrtColumnNbr;
+    const height = this.height / sqrtColumnNbr;
+    const startX = width * x;
+    const startY = height * y;
+
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.fillRect(startX, startY, width, height);
   };
 
@@ -543,8 +530,7 @@ export class CanvasController {
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Matrix) {
-        this.redrawCellRow(arr, idx);
-        this.redrawCellColumn(arr, idx);
+        this.drawCell(arr, idx);
         continue;
       }
       this.redrawColumn(arr, idx);

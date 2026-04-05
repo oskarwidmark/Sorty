@@ -1,19 +1,32 @@
 import { useEffect } from 'react';
-import { AlgorithmOptions, SortName } from './types';
+import { AlgorithmOptions, SortName, VisualizationType } from './types';
 import { TitledSlider } from './components/TitledSlider';
 
+const toMarks = (arr?: number[]) =>
+  arr?.map((value) => ({
+    value,
+  }));
 const POWERS_OF_TWO = [8, 16, 32, 64, 128, 256, 512, 1024];
-const POWERS_OF_TWO_MARKS = POWERS_OF_TWO.map((value) => ({
-  value,
-}));
+// 3 to 32 => 9 to 1024
+const SQUARES = Array(30)
+  .fill(0)
+  .map((_, i) => (i + 3) ** 2);
+const SQUARE_POWERS_OF_TWO = [16, 64, 256, 1024];
 
 export function ColumnSlider(props: {
   columnNbr: number;
   chosenSortAlg: SortName;
   algorithmOptions: AlgorithmOptions;
   changeColumnNbr: (_: unknown, value: number | number[]) => void;
+  visualizationType: VisualizationType;
 }) {
-  const { columnNbr, chosenSortAlg, algorithmOptions, changeColumnNbr } = props;
+  const {
+    columnNbr,
+    chosenSortAlg,
+    algorithmOptions,
+    changeColumnNbr,
+    visualizationType,
+  } = props;
 
   // Bitonic Sort and recursive Odd-even mergesort requires a power of two
   const requiresPowerOfTwoColumns =
@@ -21,12 +34,32 @@ export function ColumnSlider(props: {
     (chosenSortAlg === SortName.OddEvenMergesort &&
       algorithmOptions.type === 'recursive') ||
     chosenSortAlg === SortName.FoldSort;
+  const requiresSquareColumns = visualizationType === VisualizationType.Matrix;
 
   useEffect(() => {
+    let newColumnNbr = columnNbr;
     if (requiresPowerOfTwoColumns) {
-      changeColumnNbr(undefined, 2 ** Math.floor(Math.log2(columnNbr)));
+      newColumnNbr = 2 ** Math.floor(Math.log2(newColumnNbr));
     }
-  }, [requiresPowerOfTwoColumns, changeColumnNbr, columnNbr]);
+    if (requiresSquareColumns) {
+      newColumnNbr = Math.floor(Math.sqrt(newColumnNbr)) ** 2;
+    }
+    changeColumnNbr(undefined, newColumnNbr);
+  }, [
+    requiresPowerOfTwoColumns,
+    changeColumnNbr,
+    columnNbr,
+    requiresSquareColumns,
+  ]);
+
+  const elements =
+    requiresPowerOfTwoColumns && requiresSquareColumns
+      ? SQUARE_POWERS_OF_TWO
+      : requiresPowerOfTwoColumns
+      ? POWERS_OF_TWO
+      : requiresSquareColumns
+      ? SQUARES
+      : undefined;
 
   return (
     <TitledSlider
@@ -35,8 +68,8 @@ export function ColumnSlider(props: {
       valueLabelDisplay="auto"
       min={8}
       max={1024}
-      step={requiresPowerOfTwoColumns ? null : 1}
-      marks={requiresPowerOfTwoColumns ? POWERS_OF_TWO_MARKS : false}
+      step={requiresPowerOfTwoColumns || requiresSquareColumns ? null : 1}
+      marks={toMarks(elements)}
       onChangeCommitted={changeColumnNbr}
     />
   );

@@ -3,10 +3,16 @@ import { ColumnSlider } from './ColumnSlider';
 import { Options } from './Options';
 import { TimeSlider } from './components/TimeSlider';
 import { TitledSelect } from './components/TitledSelect';
-import { SortName, ResetPreset, SortSettings, AlgorithmOptions } from './types';
+import {
+  SortName,
+  ResetPreset,
+  SortSettings,
+  AlgorithmOptions,
+  ColorSettings,
+} from './types';
 
 interface SortTabProps {
-  settings: SortSettings;
+  settings: SortSettings & ColorSettings;
   chooseSortAlg: (name: SortName) => void;
   changeColumnNbr: (nbr: number) => void;
   setAlgorithmOption: (
@@ -25,6 +31,7 @@ export const SortTab = ({
     compareTime,
     auxWriteTime,
     resetPreset,
+    visualizationType,
   },
   chooseSortAlg,
   changeColumnNbr,
@@ -49,6 +56,7 @@ export const SortTab = ({
         chosenSortAlg={chosenSortAlg}
         algorithmOptions={algorithmOptions}
         changeColumnNbr={(_, nbr) => changeColumnNbr(nbr as number)}
+        visualizationType={visualizationType}
       />
       <Stack>
         <TimeSlider
