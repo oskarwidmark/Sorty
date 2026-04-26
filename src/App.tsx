@@ -17,7 +17,7 @@ import { SortingAlgorithms } from './sorting-algorithms';
 import { createArr, entries, shuffleArray, sleep, toHz } from './utils';
 import { SideDrawer } from './components/SideDrawer';
 import {
-  RAINBOW_BACKGROUND_COLOR,
+  DEFAULT_BACKGROUND_COLOR,
   INIT_STATE,
   INIT_SETTINGS,
 } from './constants';
@@ -88,6 +88,9 @@ class App extends React.Component<Props> {
 
     this.props.setVolume(this.state.settings.soundVolume);
     this.props.setSoundType(this.state.settings.soundType);
+    if (this.state.settings.imageSrc) {
+      this.canvasController.updateImageSrc(this.arr);
+    }
   }
 
   setSettings = (
@@ -400,15 +403,18 @@ class App extends React.Component<Props> {
     entries(settings).forEach(([key, value]) => {
       // Probably problems with type intersections, but ok
       this.canvasController.context[key] = value as never;
+      if (key === 'imageSrc') {
+        this.canvasController.updateImageSrc(this.arr);
+      }
     });
-
     this.canvasController.redrawAll(this.arr);
   };
 
   getBackgroundColor = () => {
     switch (this.state.settings.colorPreset) {
       case ColorPreset.Rainbow:
-        return RAINBOW_BACKGROUND_COLOR;
+      case ColorPreset.Image:
+        return DEFAULT_BACKGROUND_COLOR;
       case ColorPreset.Custom:
       case ColorPreset.CustomGradient:
         return this.state.settings.backgroundColor;

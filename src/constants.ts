@@ -9,7 +9,7 @@ import {
   HighlightType,
 } from './types';
 
-export const RAINBOW_BACKGROUND_COLOR = '#282c34';
+export const DEFAULT_BACKGROUND_COLOR = '#282c34';
 export const DEFAULT_SOUND_VOLUME = 50;
 export const DEFAULT_SOUND_TYPE = 'triangle';
 export const MAX_ANGLE_GAP_FACTOR = 0.05;

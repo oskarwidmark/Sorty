@@ -70,6 +70,7 @@ export enum ColorPreset {
   Rainbow = 'Rainbow',
   Custom = 'Custom',
   CustomGradient = 'Custom (gradient)',
+  Image = 'Image',
 }
 
 export type AppState = {
@@ -105,6 +106,7 @@ export type ColorSettings = {
   visualizationType: VisualizationType;
   displayType: DisplayType;
   gapSize: number;
+  imageSrc?: string;
 };
 
 export type HighlightType = 'comparison' | 'swap' | 'auxWrite';

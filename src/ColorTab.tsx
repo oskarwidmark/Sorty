@@ -1,4 +1,4 @@
-import { FormControl, Stack, Grid2 } from '@mui/material';
+import { FormControl, Stack, Grid2, Button, Input } from '@mui/material';
 import {
   ColorPreset,
   ColorSettings,
@@ -9,6 +9,7 @@ import { TitledSelect } from './components/TitledSelect';
 import { ColorField } from './components/ColorField';
 import { TitledSlider } from './components/TitledSlider';
 import { HIGHLIGHT_TYPES } from './constants';
+import { FileUpload } from '@mui/icons-material';
 
 export function ColorTab(props: {
   settings: ColorSettings;
@@ -77,6 +78,35 @@ export function ColorTab(props: {
                 />
               ))}
             </Grid2>
+          )}
+          {colorPreset === ColorPreset.Image && (
+            <Button
+              component="label"
+              variant="contained"
+              startIcon={<FileUpload />}
+            >
+              Upload Image
+              <Input
+                sx={{
+                  clip: 'rect(0 0 0 0)',
+                  position: 'absolute',
+                }}
+                type="file"
+                inputProps={{ accept: 'image/*' }}
+                onChange={(event) => {
+                  const file = (event.target as HTMLInputElement).files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      setColorSettings({
+                        imageSrc: e.target?.result as string,
+                      });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </Button>
           )}
         </Stack>
       </FormControl>

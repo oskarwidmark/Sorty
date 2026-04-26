@@ -1,4 +1,4 @@
-import { MAX_ANGLE_GAP_FACTOR } from './constants';
+import { DEFAULT_BACKGROUND_COLOR, MAX_ANGLE_GAP_FACTOR } from './constants';
 import {
   ColorPreset,
   ColorSettings,
@@ -18,6 +18,7 @@ export class CanvasController {
   isDrawing: boolean = false;
   _refCurrent: HTMLCanvasElement | null = null;
   _canvas2dCtx: CanvasRenderingContext2D | null = null;
+  private image: HTMLImageElement = new Image();
 
   constructor(
     public context: {
@@ -87,6 +88,13 @@ export class CanvasController {
     }
   }
 
+  updateImageSrc(arr: SortValue[]) {
+    this.image.src = this.context.imageSrc || '';
+    this.image.onload = () => {
+      this.redrawAll(arr);
+    };
+  }
+
   getGradientColor(value: number) {
     // eslint-disable-next-line prefer-const
     let [h1, s1, v1] = rgbHexToHsv(this.context.columnColor1);
@@ -123,6 +131,8 @@ export class CanvasController {
         return this.getGradientColor(value);
       case ColorPreset.Rainbow:
         return hsvToRgbHex((360 * value) / this.context.columnNbr, 1, 1);
+      case ColorPreset.Image:
+        return '#FFFFFFF';
     }
   }
 
@@ -147,6 +157,7 @@ export class CanvasController {
       case ColorPreset.CustomGradient:
         return this.context.highlightColors[type];
       case ColorPreset.Rainbow:
+      case ColorPreset.Image:
         return '#FFFFFF';
     }
   }
@@ -349,6 +360,28 @@ export class CanvasController {
 
   private drawCell = (arr: SortValue[], i: number, color?: string) => {
     const sqrtColumnNbr = Math.floor(Math.sqrt(this.context.columnNbr));
+    const { x, y } = this.getMatrixCoordinates(i);
+
+    const width = this.width / sqrtColumnNbr;
+    const height = this.height / sqrtColumnNbr;
+    const startX = width * x;
+    const startY = height * y;
+
+    if (!color && this.context.colorPreset === ColorPreset.Image) {
+      const { x: oX, y: oY } = this.getMatrixCoordinates(arr[i].value);
+      const originalX = oX * width;
+      const originalY = oY * height;
+
+      this.drawImageRect(startX, startY, width, height, originalX, originalY);
+      return;
+    }
+
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
+    this.fillRect(startX, startY, width, height);
+  };
+
+  private getMatrixCoordinates = (i: number) => {
+    const sqrtColumnNbr = Math.floor(Math.sqrt(this.context.columnNbr));
 
     let indexInDiagonalOrder = i;
     let diagSum = 0; // x + y
@@ -367,13 +400,7 @@ export class CanvasController {
     const x = xStart + indexInDiagonalOrder;
     const y = diagSum - x;
 
-    const width = this.width / sqrtColumnNbr;
-    const height = this.height / sqrtColumnNbr;
-    const startX = width * x;
-    const startY = height * y;
-
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
-    this.fillRect(startX, startY, width, height);
+    return { x, y };
   };
 
   private drawCircleSector = (arr: SortValue[], i: number, color?: string) => {
@@ -445,6 +472,18 @@ export class CanvasController {
     const startX = width * i;
     const startY = this.getColumnStartY(arr[i].value);
 
+    if (!color && this.context.colorPreset === ColorPreset.Image) {
+      this.drawImageRect(
+        startX,
+        startY,
+        width,
+        height,
+        arr[i].value * width,
+        startY,
+      );
+      return;
+    }
+
     this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.fillRect(startX, startY, width, height);
   };
@@ -513,6 +552,36 @@ export class CanvasController {
     this.prevDrawIndex = null;
     this.prevDrawHeight = null;
   };
+
+  private drawImageRect(
+    startX: number,
+    startY: number,
+    width: number,
+    height: number,
+    originalX: number,
+    originalY: number,
+  ) {
+    if (!this.image?.src) {
+      this.canvas2dCtx.fillStyle = DEFAULT_BACKGROUND_COLOR;
+      this.fillRect(startX, startY, width, height);
+      return;
+    }
+
+    const scaleX = this.image.naturalWidth / this.width;
+    const scaleY = this.image.naturalHeight / this.height;
+
+    this.canvas2dCtx.drawImage(
+      this.image,
+      this.snap(originalX) * scaleX,
+      this.snap(this.height - originalY - height) * scaleY,
+      this.snap(width) * scaleX,
+      this.snap(height) * scaleY,
+      this.snap(startX),
+      this.snap(this.height - startY - height),
+      this.snap(width),
+      this.snap(height),
+    );
+  }
 
   private clearHighlights(arr: SortValue[]) {
     for (const idx of this.highlightIndices) {
