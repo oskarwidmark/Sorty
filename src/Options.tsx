@@ -27,6 +27,8 @@ const getAlgorithmOptionFields = (
       return ['shrinkFactor'];
     case SortName.Heapsort:
       return ['heapType', 'childCount'];
+    case SortName.MergeSort:
+      return ['type'];
     default:
       return [];
   }

@@ -19,6 +19,7 @@ export enum SortName {
   PushSort = 'Push Sort',
   FoldSort = 'Fold Sort',
   CreaseSort = 'Crease Sort',
+  MergeSort = 'Merge Sort',
 }
 
 export type SortAlgorithm = (
