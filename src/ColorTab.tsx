@@ -151,11 +151,13 @@ export function ColorTab(props: {
       <TitledSlider
         title="Gap size"
         value={props.settings.gapSize}
+        valueLabelDisplay="auto"
         min={0}
-        max={10}
-        step={1}
+        max={0.9}
+        step={0.1}
         marks
         onChange={(_, value) => setColorSettings({ gapSize: value as number })}
+        valueLabelFormat={(value: number) => `${value * 100}%`}
       />
     </>
   );

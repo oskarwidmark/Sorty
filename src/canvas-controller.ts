@@ -1,4 +1,3 @@
-import { MAX_ANGLE_GAP_FACTOR } from './constants';
 import {
   ColorPreset,
   ColorSettings,
@@ -159,6 +158,16 @@ export class CanvasController {
         return this.context.highlightColors[type];
       case ColorPreset.Rainbow:
         return '#FFFFFF';
+    }
+  }
+
+  isCellType() {
+    switch (this.context.visualizationType) {
+      case VisualizationType.Dots:
+      case VisualizationType.Matrix:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -372,12 +381,19 @@ export class CanvasController {
       const originalX = oX * width;
       const originalY = oY * height;
 
-      this.drawImageRect(startX, startY, width, height, originalX, originalY);
+      this.drawImageRect({
+        startX,
+        startY,
+        width,
+        height,
+        originalX,
+        originalY,
+      });
       return;
     }
 
     this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
-    this.fillRect(startX, startY, width, height);
+    this.fillRect({ startX, startY, width, height });
   };
 
   private getMatrixCoordinates = (i: number) => {
@@ -412,12 +428,7 @@ export class CanvasController {
       (maxRadius / (this.context.columnNbr + 1)) * (arr[i].value + 1);
     const startAngle = anglePerColumn * i;
     const endAngle = anglePerColumn * (i + 1);
-    const gap =
-      (anglePerColumn *
-        this.context.gapSize *
-        arr[i].value *
-        MAX_ANGLE_GAP_FACTOR) /
-      this.context.columnNbr;
+    const gap = anglePerColumn * this.context.gapSize;
 
     this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.canvas2dCtx.beginPath();
@@ -443,12 +454,6 @@ export class CanvasController {
       (maxRadius / (this.context.columnNbr + 1)) * (this.context.columnNbr + 1);
     const startAngle = anglePerColumn * i;
     const endAngle = anglePerColumn * (i + 1);
-    const gap =
-      (anglePerColumn *
-        this.context.gapSize *
-        this.context.columnNbr *
-        MAX_ANGLE_GAP_FACTOR) /
-      this.context.columnNbr;
 
     this.canvas2dCtx.save();
     this.canvas2dCtx.globalCompositeOperation = 'destination-out';
@@ -457,7 +462,7 @@ export class CanvasController {
       centerX,
       centerY,
       this.snap(radius),
-      startAngle + gap,
+      startAngle,
       endAngle,
     );
     this.canvas2dCtx.lineTo(centerX, centerY);
@@ -473,19 +478,19 @@ export class CanvasController {
     const startY = this.getColumnStartY(arr[i].value);
 
     if (!color && this.context.colorPreset === ColorPreset.Image) {
-      this.drawImageRect(
+      this.drawImageRect({
         startX,
         startY,
         width,
         height,
-        arr[i].value * width,
-        startY,
-      );
+        originalX: arr[i].value * width,
+        originalY: startY,
+      });
       return;
     }
 
     this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
-    this.fillRect(startX, startY, width, height);
+    this.fillRect({ startX, startY, width, height });
   };
 
   private getColumnStartY = (value: number) => {
@@ -512,17 +517,19 @@ export class CanvasController {
     return Math.ceil(v * this.dpr) / this.dpr;
   };
 
-  private fillRect = (
-    startX: number,
-    startY: number,
-    width: number,
-    height: number,
-  ) => {
+  private fillRect = (params: {
+    startX: number;
+    startY: number;
+    width: number;
+    height: number;
+  }) => {
+    const { startX, startY, width, height } = params;
+    const heightGap = this.isCellType() ? height * this.context.gapSize : 0;
     this.canvas2dCtx.fillRect(
-      this.snap(startX + this.context.gapSize),
-      this.snap(this.height - startY - height + this.context.gapSize),
-      this.snap(width - this.context.gapSize),
-      this.snap(height - this.context.gapSize),
+      this.snap(startX + width * this.context.gapSize),
+      this.snap(this.height - startY - height + heightGap),
+      this.snap(width - width * this.context.gapSize),
+      this.snap(height - heightGap),
     );
   };
 
@@ -553,33 +560,35 @@ export class CanvasController {
     this.prevDrawHeight = null;
   };
 
-  private drawImageRect(
-    startX: number,
-    startY: number,
-    width: number,
-    height: number,
-    originalX: number,
-    originalY: number,
-  ) {
+  private drawImageRect(params: {
+    startX: number;
+    startY: number;
+    width: number;
+    height: number;
+    originalX: number;
+    originalY: number;
+  }) {
+    const { startX, startY, width, height, originalX, originalY } = params;
     if (!this.image?.src) {
       this.canvas2dCtx.fillStyle = this.context.backgroundColor;
-      this.fillRect(startX, startY, width, height);
+      this.fillRect({ startX, startY, width, height });
       return;
     }
 
     const scaleX = this.image.naturalWidth / this.width;
     const scaleY = this.image.naturalHeight / this.height;
 
+    const heightGap = this.isCellType() ? height * this.context.gapSize : 0;
     this.canvas2dCtx.drawImage(
       this.image,
       this.snap(originalX * scaleX),
       this.snap((this.height - originalY - height) * scaleY),
       this.snap(width * scaleX),
       this.snap(height * scaleY),
-      this.snap(startX + this.context.gapSize),
-      this.snap(this.height - startY - height + this.context.gapSize),
-      this.snap(width - this.context.gapSize),
-      this.snap(height - this.context.gapSize),
+      this.snap(startX + width * this.context.gapSize),
+      this.snap(this.height - startY - height + heightGap),
+      this.snap(width - width * this.context.gapSize),
+      this.snap(height - heightGap),
     );
   }
 

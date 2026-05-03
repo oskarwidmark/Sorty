@@ -12,7 +12,6 @@ import {
 export const DEFAULT_BACKGROUND_COLOR = '#282c34';
 export const DEFAULT_SOUND_VOLUME = 50;
 export const DEFAULT_SOUND_TYPE = 'triangle';
-export const MAX_ANGLE_GAP_FACTOR = 0.05;
 
 export const INIT_STATE: Omit<AppState, 'settings'> = {
   isSorting: false,
