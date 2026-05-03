@@ -80,33 +80,55 @@ export function ColorTab(props: {
             </Grid2>
           )}
           {colorPreset === ColorPreset.Image && (
-            <Button
-              component="label"
-              variant="contained"
-              startIcon={<FileUpload />}
-            >
-              Upload Image
-              <Input
-                sx={{
-                  clip: 'rect(0 0 0 0)',
-                  position: 'absolute',
-                }}
-                type="file"
-                inputProps={{ accept: 'image/*' }}
-                onChange={(event) => {
-                  const file = (event.target as HTMLInputElement).files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      setColorSettings({
-                        imageSrc: e.target?.result as string,
-                      });
-                    };
-                    reader.readAsDataURL(file);
+            <>
+              <Grid2 container spacing={2}>
+                <ColorField
+                  label="Background"
+                  color={backgroundColor}
+                  setColor={(value) =>
+                    setColorSettings({ backgroundColor: value })
                   }
-                }}
-              />
-            </Button>
+                />
+                {HIGHLIGHT_TYPES.map((type) => (
+                  <ColorField
+                    label={`Highlight (${type[0].toUpperCase()})`}
+                    color={highlightColors[type]}
+                    setColor={(value) =>
+                      setColorSettings({
+                        highlightColors: { ...highlightColors, [type]: value },
+                      })
+                    }
+                  />
+                ))}
+              </Grid2>
+              <Button
+                component="label"
+                variant="contained"
+                startIcon={<FileUpload />}
+              >
+                Upload Image
+                <Input
+                  sx={{
+                    clip: 'rect(0 0 0 0)',
+                    position: 'absolute',
+                  }}
+                  type="file"
+                  inputProps={{ accept: 'image/*' }}
+                  onChange={(event) => {
+                    const file = (event.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setColorSettings({
+                          imageSrc: e.target?.result as string,
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </Button>
+            </>
           )}
         </Stack>
       </FormControl>

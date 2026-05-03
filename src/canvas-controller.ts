@@ -1,4 +1,4 @@
-import { DEFAULT_BACKGROUND_COLOR, MAX_ANGLE_GAP_FACTOR } from './constants';
+import { MAX_ANGLE_GAP_FACTOR } from './constants';
 import {
   ColorPreset,
   ColorSettings,
@@ -155,9 +155,9 @@ export class CanvasController {
     switch (this.context.colorPreset) {
       case ColorPreset.Custom:
       case ColorPreset.CustomGradient:
+      case ColorPreset.Image:
         return this.context.highlightColors[type];
       case ColorPreset.Rainbow:
-      case ColorPreset.Image:
         return '#FFFFFF';
     }
   }
@@ -562,7 +562,7 @@ export class CanvasController {
     originalY: number,
   ) {
     if (!this.image?.src) {
-      this.canvas2dCtx.fillStyle = DEFAULT_BACKGROUND_COLOR;
+      this.canvas2dCtx.fillStyle = this.context.backgroundColor;
       this.fillRect(startX, startY, width, height);
       return;
     }
@@ -572,14 +572,14 @@ export class CanvasController {
 
     this.canvas2dCtx.drawImage(
       this.image,
-      this.snap(originalX) * scaleX,
-      this.snap(this.height - originalY - height) * scaleY,
-      this.snap(width) * scaleX,
-      this.snap(height) * scaleY,
-      this.snap(startX),
-      this.snap(this.height - startY - height),
-      this.snap(width),
-      this.snap(height),
+      this.snap(originalX * scaleX),
+      this.snap((this.height - originalY - height) * scaleY),
+      this.snap(width * scaleX),
+      this.snap(height * scaleY),
+      this.snap(startX + this.context.gapSize),
+      this.snap(this.height - startY - height + this.context.gapSize),
+      this.snap(width - this.context.gapSize),
+      this.snap(height - this.context.gapSize),
     );
   }
 

@@ -413,10 +413,10 @@ class App extends React.Component<Props> {
   getBackgroundColor = () => {
     switch (this.state.settings.colorPreset) {
       case ColorPreset.Rainbow:
-      case ColorPreset.Image:
         return DEFAULT_BACKGROUND_COLOR;
       case ColorPreset.Custom:
       case ColorPreset.CustomGradient:
+      case ColorPreset.Image:
         return this.state.settings.backgroundColor;
     }
   };
