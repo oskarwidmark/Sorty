@@ -418,51 +418,45 @@ export class CanvasController {
 
     return { x, y };
   };
-
   private drawCircleSector = (arr: SortValue[], i: number, color?: string) => {
+    this._drawCircleSector({ value: arr[i].value, i, color });
+  };
+
+  private clearCircleSector = (i: number) => {
+    this._drawCircleSector({
+      value: this.context.columnNbr,
+      i,
+      shouldClear: true,
+    });
+  };
+
+  private _drawCircleSector = (params: {
+    value: number;
+    i: number;
+    color?: string;
+    shouldClear?: boolean;
+  }) => {
+    const { value, i, color, shouldClear } = params;
     const centerX = this.width / 2;
     const centerY = this.height / 2;
     const maxRadius = Math.min(centerX, centerY);
     const anglePerColumn = (2 * Math.PI) / this.context.columnNbr;
-    const radius =
-      (maxRadius / (this.context.columnNbr + 1)) * (arr[i].value + 1);
+    const radius = (maxRadius / (this.context.columnNbr + 1)) * (value + 1);
     const startAngle = anglePerColumn * i;
     const endAngle = anglePerColumn * (i + 1);
-    const gap = anglePerColumn * this.context.gapSize;
+    const gap = !shouldClear ? anglePerColumn * this.context.gapSize : 0;
 
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
+    if (shouldClear) {
+      this.canvas2dCtx.save();
+      this.canvas2dCtx.globalCompositeOperation = 'destination-out';
+    }
+    this.canvas2dCtx.fillStyle = color || this.getColumnColor(value);
     this.canvas2dCtx.beginPath();
     this.canvas2dCtx.arc(
       centerX,
       centerY,
       this.snap(radius),
       startAngle + gap,
-      endAngle,
-    );
-    this.canvas2dCtx.lineTo(centerX, centerY);
-    this.canvas2dCtx.closePath();
-    this.canvas2dCtx.fill();
-  };
-
-  // TODO: refactor with drawCircleSector
-  private clearCircleSector = (i: number) => {
-    const centerX = this.width / 2;
-    const centerY = this.height / 2;
-    const maxRadius = Math.min(centerX, centerY);
-    const anglePerColumn = (2 * Math.PI) / this.context.columnNbr;
-    const radius =
-      (maxRadius / (this.context.columnNbr + 1)) * (this.context.columnNbr + 1);
-    const startAngle = anglePerColumn * i;
-    const endAngle = anglePerColumn * (i + 1);
-
-    this.canvas2dCtx.save();
-    this.canvas2dCtx.globalCompositeOperation = 'destination-out';
-    this.canvas2dCtx.beginPath();
-    this.canvas2dCtx.arc(
-      centerX,
-      centerY,
-      this.snap(radius),
-      startAngle,
       endAngle,
     );
     this.canvas2dCtx.lineTo(centerX, centerY);
