@@ -446,37 +446,54 @@ export class CanvasController {
     const endAngle = anglePerColumn * (i + 1);
     const gap = !shouldClear ? anglePerColumn * this.context.gapSize : 0;
 
+    this.drawArc({
+      x: centerX,
+      y: centerY,
+      radius: this.snap(radius),
+      startAngle: startAngle + gap,
+      endAngle,
+      color: color || this.getColumnColor(value),
+      shouldClear,
+    });
+
+    if (!shouldClear && this.context.spiralWidth < 1) {
+      this.drawArc({
+        x: centerX,
+        y: centerY,
+        radius: this.snap(
+          Math.max(radius - maxRadius * this.context.spiralWidth, 0),
+        ),
+        startAngle: startAngle + gap,
+        endAngle,
+        shouldClear: true,
+      });
+    }
+  };
+
+  private drawArc = (params: {
+    x: number;
+    y: number;
+    radius: number;
+    startAngle: number;
+    endAngle: number;
+    color?: string;
+    shouldClear?: boolean;
+  }) => {
+    const { x, y, radius, startAngle, endAngle, color, shouldClear } = params;
+
+    if (color) {
+      this.canvas2dCtx.fillStyle = color;
+    }
     if (shouldClear) {
       this.canvas2dCtx.save();
       this.canvas2dCtx.globalCompositeOperation = 'destination-out';
     }
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor(value);
+
     this.canvas2dCtx.beginPath();
-    this.canvas2dCtx.arc(
-      centerX,
-      centerY,
-      this.snap(radius),
-      startAngle + gap,
-      endAngle,
-    );
-    this.canvas2dCtx.lineTo(centerX, centerY);
+    this.canvas2dCtx.arc(x, y, radius, startAngle, endAngle);
+    this.canvas2dCtx.lineTo(x, y);
     this.canvas2dCtx.closePath();
     this.canvas2dCtx.fill();
-    if (!shouldClear && this.context.spiralWidth < 1) {
-      this.canvas2dCtx.save();
-      this.canvas2dCtx.globalCompositeOperation = 'destination-out';
-      this.canvas2dCtx.beginPath();
-      this.canvas2dCtx.arc(
-        centerX,
-        centerY,
-        this.snap(Math.max(radius - maxRadius * this.context.spiralWidth, 0)),
-        startAngle + gap,
-        endAngle,
-      );
-      this.canvas2dCtx.lineTo(centerX, centerY);
-      this.canvas2dCtx.closePath();
-      this.canvas2dCtx.fill();
-    }
     this.canvas2dCtx.restore();
   };
 
