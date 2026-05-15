@@ -51,6 +51,7 @@ export const INIT_SETTINGS: Settings = {
   visualizationType: VisualizationType.Bars,
   displayType: DisplayType.Full,
   gapSize: 0,
+  spiralWidth: 1,
   soundVolume: DEFAULT_SOUND_VOLUME,
   soundType: DEFAULT_SOUND_TYPE,
   frequencyRange: [200, 640],

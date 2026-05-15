@@ -462,6 +462,21 @@ export class CanvasController {
     this.canvas2dCtx.lineTo(centerX, centerY);
     this.canvas2dCtx.closePath();
     this.canvas2dCtx.fill();
+    if (!shouldClear && this.context.spiralWidth < 1) {
+      this.canvas2dCtx.save();
+      this.canvas2dCtx.globalCompositeOperation = 'destination-out';
+      this.canvas2dCtx.beginPath();
+      this.canvas2dCtx.arc(
+        centerX,
+        centerY,
+        this.snap(Math.max(radius - maxRadius * this.context.spiralWidth, 0)),
+        startAngle + gap,
+        endAngle,
+      );
+      this.canvas2dCtx.lineTo(centerX, centerY);
+      this.canvas2dCtx.closePath();
+      this.canvas2dCtx.fill();
+    }
     this.canvas2dCtx.restore();
   };
 

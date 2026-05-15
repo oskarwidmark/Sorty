@@ -106,6 +106,7 @@ export type ColorSettings = {
   visualizationType: VisualizationType;
   displayType: DisplayType;
   gapSize: number;
+  spiralWidth: number;
   imageSrc?: string;
 };
 

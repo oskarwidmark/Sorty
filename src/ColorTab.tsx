@@ -159,6 +159,21 @@ export function ColorTab(props: {
         onChange={(_, value) => setColorSettings({ gapSize: value as number })}
         valueLabelFormat={(value: number) => `${value * 100}%`}
       />
+      {visualizationType == VisualizationType.Spiral && (
+        <TitledSlider
+          title="Width"
+          value={props.settings.spiralWidth}
+          valueLabelDisplay="auto"
+          min={0.1}
+          max={1}
+          step={0.1}
+          marks
+          onChange={(_, value) =>
+            setColorSettings({ spiralWidth: value as number })
+          }
+          valueLabelFormat={(value: number) => `${value * 100}%`}
+        />
+      )}
     </>
   );
 }
