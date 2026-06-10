@@ -14,7 +14,14 @@ import {
   ColorSettings,
 } from './types';
 import { SortingAlgorithms } from './sorting-algorithms';
-import { createArr, entries, shuffleArray, sleep, toHz } from './utils';
+import {
+  compare,
+  createArr,
+  entries,
+  shuffleArray,
+  sleep,
+  toHz,
+} from './utils';
 import { SideDrawer } from './components/SideDrawer';
 import {
   DEFAULT_BACKGROUND_COLOR,
@@ -64,7 +71,6 @@ class App extends React.Component<Props> {
     };
 
     this.sortingAlgorithms = new SortingAlgorithms({
-      columnNbr: this.state.settings.columnNbr,
       compare: this.compare,
       valueCompare: this.valueCompare,
       drawAndSwap: this.drawAndSwap,
@@ -280,22 +286,10 @@ class App extends React.Component<Props> {
       await sleep(this.state.settings.compareTime, this.comparisonCounter++);
     }
 
-    const value = 'value' in params ? params.value : arr[params.i2].value;
+    const value1 = arr[i1].value;
+    const value2 = 'value' in params ? params.value : arr[params.i2].value;
 
-    switch (operator) {
-      case '<':
-        return arr[i1].value < value;
-      case '>':
-        return arr[i1].value > value;
-      case '<=':
-        return arr[i1].value <= value;
-      case '>=':
-        return arr[i1].value >= value;
-      case '==':
-        return arr[i1].value == value;
-      case '!=':
-        return arr[i1].value != value;
-    }
+    return compare(value1, operator, value2);
   }
 
   public async swap(arr: SortValue[], i1: number, i2: number) {
@@ -351,7 +345,6 @@ class App extends React.Component<Props> {
   changeColumnNbr = (columnNbr: number) => {
     if (this.state.settings.columnNbr === columnNbr) return;
 
-    this.sortingAlgorithms.columnNbr = columnNbr;
     this.canvasController.context.columnNbr = columnNbr;
     this.setSettings({ columnNbr }, () => this.resetAndDraw());
   };

@@ -1,4 +1,4 @@
-import { SortValue } from './types';
+import { AlgorithmOptions, Operator, SortName, SortValue } from './types';
 
 export function hsvToRgbHex(h: number, s: number, v: number) {
   const f = (n: number) => {
@@ -74,3 +74,45 @@ export async function runFunctions(
     }
   }
 }
+
+export const compare = (value1: number, operator: Operator, value2: number) => {
+  switch (operator) {
+    case '<':
+      return value1 < value2;
+    case '>':
+      return value1 > value2;
+    case '<=':
+      return value1 <= value2;
+    case '>=':
+      return value1 >= value2;
+    case '==':
+      return value1 == value2;
+    case '!=':
+      return value1 != value2;
+  }
+};
+
+export const getAlgorithmOptionFields = (
+  sortName: SortName,
+): (keyof AlgorithmOptions)[] => {
+  switch (sortName) {
+    case SortName.BitonicSort:
+    case SortName.OddEvenMergesort:
+      return ['type', 'parallel'];
+    case SortName.OddEvenSort:
+    case SortName.FoldSort:
+    case SortName.CreaseSort:
+      return ['parallel'];
+    case SortName.RadixSortLSD:
+    case SortName.RadixSortMSD:
+      return ['base'];
+    case SortName.CombSort:
+      return ['shrinkFactor'];
+    case SortName.Heapsort:
+      return ['heapType', 'childCount'];
+    case SortName.MergeSort:
+      return ['type'];
+    default:
+      return [];
+  }
+};

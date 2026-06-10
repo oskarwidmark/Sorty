@@ -8,31 +8,7 @@ import {
 import { AlgorithmOptions, SortName } from './types';
 import { useCallback, useState } from 'react';
 import { LabeledCheckbox } from './components/LabeledCheckbox';
-
-const getAlgorithmOptionFields = (
-  sortName: SortName,
-): (keyof AlgorithmOptions)[] => {
-  switch (sortName) {
-    case SortName.BitonicSort:
-    case SortName.OddEvenMergesort:
-      return ['type', 'parallel'];
-    case SortName.OddEvenSort:
-    case SortName.FoldSort:
-    case SortName.CreaseSort:
-      return ['parallel'];
-    case SortName.RadixSortLSD:
-    case SortName.RadixSortMSD:
-      return ['base'];
-    case SortName.CombSort:
-      return ['shrinkFactor'];
-    case SortName.Heapsort:
-      return ['heapType', 'childCount'];
-    case SortName.MergeSort:
-      return ['type'];
-    default:
-      return [];
-  }
-};
+import { getAlgorithmOptionFields } from './utils';
 
 const isValidOption = (
   field: keyof AlgorithmOptions,

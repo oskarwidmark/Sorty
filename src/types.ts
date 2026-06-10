@@ -13,7 +13,7 @@ export enum SortName {
   CombSort = 'Comb Sort',
   ShellSort = 'Shell Sort',
   BitonicSort = 'Bitonic Sort',
-  BullySort = 'Bully Sort',
+  // BullySort = 'Bully Sort',
   AverageSort = 'Average Sort',
   Heapsort = 'Heapsort',
   PushSort = 'Push Sort',
@@ -21,11 +21,6 @@ export enum SortName {
   CreaseSort = 'Crease Sort',
   MergeSort = 'Merge Sort',
 }
-
-export type SortAlgorithm = (
-  arr: SortValue[],
-  options: AlgorithmOptions,
-) => Promise<void>;
 
 export type SortValue = { value: number; id: number };
 
@@ -124,3 +119,37 @@ export type SoundSettings = {
   playSoundOnComparison: boolean;
   playSoundOnAuxWrite: boolean;
 };
+
+export type CompareFn = (
+  arr: SortValue[],
+  i: number,
+  operator: Operator,
+  j: number,
+  drawIteration?: number,
+) => Promise<boolean>;
+
+export type ValueCompareFn = (
+  arr: SortValue[],
+  i: number,
+  operator: Operator,
+  value: number,
+  drawIteration?: number,
+) => Promise<boolean>;
+
+export type DrawAndSwapFn = (
+  arr: SortValue[],
+  i: number,
+  j: number,
+  drawIteration?: number,
+) => Promise<void>;
+
+export type RegisterAuxWriteFn = (
+  arr: SortValue[],
+  i: number,
+  drawIteration?: number,
+) => Promise<void>;
+
+export type SortFn = (
+  arr: SortValue[],
+  options: AlgorithmOptions,
+) => Promise<void>;
