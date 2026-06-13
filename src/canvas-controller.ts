@@ -212,6 +212,10 @@ export class CanvasController {
         this.drawCell(arr, idx, this.getHighlightColor(type));
         continue;
       }
+      if (this.context.visualizationType === VisualizationType.Chords) {
+        this.redrawChord(arr, idx, this.getHighlightColor(type));
+        continue;
+      }
       if (this.context.visualizationType === VisualizationType.Spiral) {
         this.redrawCircleSector(arr, idx, this.getHighlightColor(type));
         continue;
@@ -228,6 +232,10 @@ export class CanvasController {
       }
       if (this.context.visualizationType === VisualizationType.Matrix) {
         this.drawCell(arr, idx);
+        continue;
+      }
+      if (this.context.visualizationType === VisualizationType.Chords) {
+        this.redrawChord(arr, idx);
         continue;
       }
       this.redrawColumn(arr, idx);
@@ -338,6 +346,11 @@ export class CanvasController {
     this.drawCircleSector(arr, i, color);
   };
 
+  private redrawChord = (arr: SortValue[], i: number, color?: string) => {
+    this.clearChord(arr, i);
+    this.drawChord(arr, i, color);
+  };
+
   private drawAll = (arr: SortValue[]) => {
     if (this.context.visualizationType === VisualizationType.Matrix) {
       for (let i = 0; i < arr.length; i++) {
@@ -349,6 +362,13 @@ export class CanvasController {
     if (this.context.visualizationType === VisualizationType.Spiral) {
       for (let i = 0; i < arr.length; i++) {
         this.drawCircleSector(arr, i);
+      }
+      return;
+    }
+
+    if (this.context.visualizationType === VisualizationType.Chords) {
+      for (let i = 0; i < arr.length; i++) {
+        this.redrawChord(arr, i);
       }
       return;
     }
@@ -418,6 +438,7 @@ export class CanvasController {
 
     return { x, y };
   };
+
   private drawCircleSector = (arr: SortValue[], i: number, color?: string) => {
     this._drawCircleSector({ value: arr[i].value, i, color });
   };
@@ -488,13 +509,59 @@ export class CanvasController {
       this.canvas2dCtx.save();
       this.canvas2dCtx.globalCompositeOperation = 'destination-out';
     }
-
     this.canvas2dCtx.beginPath();
     this.canvas2dCtx.arc(x, y, radius, startAngle, endAngle);
     this.canvas2dCtx.lineTo(x, y);
     this.canvas2dCtx.closePath();
     this.canvas2dCtx.fill();
     this.canvas2dCtx.restore();
+  };
+
+  private drawChord = (arr: SortValue[], i: number, color?: string) => {
+    this._drawChord({ value: arr[i].value, i, color });
+  };
+
+  private clearChord = (arr: SortValue[], i: number) => {
+    this._drawChord({ value: arr[i].value, i, shouldClear: true });
+  };
+
+  private _drawChord = (params: {
+    value: number;
+    i: number;
+    color?: string;
+    shouldClear?: boolean;
+  }) => {
+    const { value, i, color, shouldClear } = params;
+
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+
+    let radius = Math.min(centerX, centerY);
+    let lineWidth = (2 * Math.PI * radius) / this.context.columnNbr;
+    radius = radius - lineWidth / 2;
+    lineWidth = (2 * Math.PI * radius) / this.context.columnNbr;
+    const anglePerColumn = (2 * Math.PI) / this.context.columnNbr;
+
+    if (shouldClear) {
+      this.canvas2dCtx.save();
+      this.canvas2dCtx.globalCompositeOperation = 'destination-out';
+    }
+    this.canvas2dCtx.strokeStyle = color || this.getColumnColor(value);
+    this.canvas2dCtx.lineWidth = lineWidth * (1 - this.context.gapSize);
+    this.canvas2dCtx.lineCap = 'round';
+    this.canvas2dCtx.beginPath();
+    this.canvas2dCtx.moveTo(
+      centerX + Math.cos(anglePerColumn * value) * radius,
+      centerY + Math.sin(anglePerColumn * value) * radius,
+    );
+    this.canvas2dCtx.lineTo(
+      centerX + Math.cos(anglePerColumn * i) * radius,
+      centerY + Math.sin(anglePerColumn * i) * radius,
+    );
+    this.canvas2dCtx.stroke();
+    if (shouldClear) {
+      this.canvas2dCtx.restore();
+    }
   };
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
@@ -620,12 +687,16 @@ export class CanvasController {
 
   private clearHighlights(arr: SortValue[]) {
     for (const idx of this.highlightIndices) {
-      if (VisualizationType.Spiral === this.context.visualizationType) {
+      if (this.context.visualizationType === VisualizationType.Spiral) {
         this.redrawCircleSector(arr, idx);
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Matrix) {
         this.drawCell(arr, idx);
+        continue;
+      }
+      if (this.context.visualizationType === VisualizationType.Chords) {
+        this.redrawAll(arr);
         continue;
       }
       this.redrawColumn(arr, idx);

@@ -54,6 +54,7 @@ export enum VisualizationType {
   Colors = 'Colors',
   Matrix = 'Matrix',
   Spiral = 'Spiral',
+  Chords = 'Chords',
 }
 
 export enum DisplayType {
