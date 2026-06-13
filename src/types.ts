@@ -103,6 +103,7 @@ export type ColorSettings = {
   displayType: DisplayType;
   gapSize: number;
   spiralWidth: number;
+  shouldHighlight: boolean;
   imageSrc?: string;
 };
 

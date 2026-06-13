@@ -52,6 +52,7 @@ export const INIT_SETTINGS: Settings = {
   displayType: DisplayType.Full,
   gapSize: 0,
   spiralWidth: 1,
+  shouldHighlight: true,
   soundVolume: DEFAULT_SOUND_VOLUME,
   soundType: DEFAULT_SOUND_TYPE,
   frequencyRange: [200, 640],

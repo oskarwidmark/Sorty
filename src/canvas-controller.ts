@@ -206,6 +206,10 @@ export class CanvasController {
       this.currentDrawIteration = drawIteration ?? null;
     }
     this.highlightIndices.push(...indices);
+    if (!this.context.shouldHighlight) {
+      this.clearHighlights(arr);
+      return;
+    }
 
     for (const idx of indices) {
       if (this.context.visualizationType === VisualizationType.Matrix) {

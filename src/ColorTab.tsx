@@ -1,4 +1,11 @@
-import { FormControl, Stack, Grid2, Button, Input } from '@mui/material';
+import {
+  FormControl,
+  Stack,
+  Grid2,
+  Button,
+  Input,
+  Typography,
+} from '@mui/material';
 import {
   ColorPreset,
   ColorSettings,
@@ -10,6 +17,7 @@ import { ColorField } from './components/ColorField';
 import { TitledSlider } from './components/TitledSlider';
 import { HIGHLIGHT_TYPES } from './constants';
 import { FileUpload } from '@mui/icons-material';
+import { LabeledCheckbox } from './components/LabeledCheckbox';
 
 export function ColorTab(props: {
   settings: ColorSettings;
@@ -140,6 +148,20 @@ export function ColorTab(props: {
         }
         options={Object.values(VisualizationType)}
       />
+      <Stack>
+        <Typography align="left" variant="subtitle1" color="textSecondary">
+          Options
+        </Typography>
+        <FormControl component="fieldset">
+          <LabeledCheckbox
+            label={'Highlight'}
+            checked={Boolean(props.settings.shouldHighlight)}
+            onChecked={(checked) =>
+              setColorSettings({ shouldHighlight: checked })
+            }
+          />
+        </FormControl>
+      </Stack>
       <TitledSelect
         title="Display type"
         value={displayType}
