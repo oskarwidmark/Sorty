@@ -17,17 +17,25 @@ export class CanvasController {
   isDrawing: boolean = false;
   _refCurrent: HTMLCanvasElement | null = null;
   _canvas2dCtx: CanvasRenderingContext2D | null = null;
+  _highlightRefCurrent: HTMLCanvasElement | null = null;
+  _highlightCanvas2dCtx: CanvasRenderingContext2D | null = null;
+  private _activeCtx: CanvasRenderingContext2D | null = null;
   private image: HTMLImageElement = new Image();
 
   constructor(
     public context: {
       canvasRef: React.RefObject<HTMLCanvasElement>;
+      highlightCanvasRef: React.RefObject<HTMLCanvasElement>;
       columnNbr: number;
     } & ColorSettings,
   ) {}
 
   get canvasRef() {
     return this.context.canvasRef;
+  }
+
+  get highlightCanvasRef() {
+    return this.context.highlightCanvasRef;
   }
 
   get refCurrent() {
@@ -53,6 +61,34 @@ export class CanvasController {
     }
     this._canvas2dCtx = context;
     return context;
+  }
+
+  get highlightRefCurrent() {
+    if (this._highlightRefCurrent) {
+      return this._highlightRefCurrent;
+    }
+    const current = this.context.highlightCanvasRef.current;
+    if (current == null) {
+      throw Error('highlightCanvasRef.current is null!');
+    }
+    this._highlightRefCurrent = current;
+    return current;
+  }
+
+  get highlightCanvas2dCtx() {
+    if (this._highlightCanvas2dCtx) {
+      return this._highlightCanvas2dCtx;
+    }
+    const context = this.highlightRefCurrent.getContext('2d');
+    if (context == null) {
+      throw Error('highlight context is null!');
+    }
+    this._highlightCanvas2dCtx = context;
+    return context;
+  }
+
+  private get activeCtx() {
+    return this._activeCtx ?? this.canvas2dCtx;
   }
 
   get dpr() {
@@ -192,6 +228,12 @@ export class CanvasController {
     this.canvas2dCtx.canvas.style.height = height + 'px';
     this.canvas2dCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
+    this.highlightCanvas2dCtx.canvas.width = newWidth;
+    this.highlightCanvas2dCtx.canvas.height = newHeight;
+    this.highlightCanvas2dCtx.canvas.style.width = width + 'px';
+    this.highlightCanvas2dCtx.canvas.style.height = height + 'px';
+    this.highlightCanvas2dCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
     this.drawAll(arr);
   };
 
@@ -202,30 +244,32 @@ export class CanvasController {
     drawIteration?: number,
   ) => {
     if (drawIteration == null || drawIteration !== this.currentDrawIteration) {
-      this.clearHighlights(arr);
+      this.clearHighlights();
       this.currentDrawIteration = drawIteration ?? null;
     }
     this.highlightIndices.push(...indices);
     if (!this.context.shouldHighlight) {
-      this.clearHighlights(arr);
+      this.clearHighlights();
       return;
     }
 
+    this._activeCtx = this.highlightCanvas2dCtx;
     for (const idx of indices) {
       if (this.context.visualizationType === VisualizationType.Matrix) {
         this.drawCell(arr, idx, this.getHighlightColor(type));
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Chords) {
-        this.redrawChord(arr, idx, this.getHighlightColor(type));
+        this.drawChord(arr, idx, this.getHighlightColor(type));
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Spiral) {
-        this.redrawCircleSector(arr, idx, this.getHighlightColor(type));
+        this.drawCircleSector(arr, idx, this.getHighlightColor(type));
         continue;
       }
-      this.redrawColumn(arr, idx, this.getHighlightColor(type));
+      this.drawColumn(arr, idx, this.getHighlightColor(type));
     }
+    this._activeCtx = null;
   };
 
   redraw = (arr: SortValue[], indices: number[]) => {
@@ -239,7 +283,7 @@ export class CanvasController {
         continue;
       }
       if (this.context.visualizationType === VisualizationType.Chords) {
-        this.redrawChord(arr, idx);
+        this.redrawAll(arr);
         continue;
       }
       this.redrawColumn(arr, idx);
@@ -325,15 +369,11 @@ export class CanvasController {
     return drawData;
   };
 
-  stopSorting = (arr: SortValue[]) => {
+  stopSorting = () => {
     if (this.highlightIndices) {
-      this.removeHighlight(arr);
+      this.clearHighlights();
     }
     this.highlightIndices = [];
-  };
-
-  private removeHighlight = (arr: SortValue[]) => {
-    this.highlight(arr, []);
   };
 
   private redrawColumn = (arr: SortValue[], i: number, color?: string) => {
@@ -351,7 +391,6 @@ export class CanvasController {
   };
 
   private redrawChord = (arr: SortValue[], i: number, color?: string) => {
-    this.clearChord(arr, i);
     this.drawChord(arr, i, color);
   };
 
@@ -416,7 +455,7 @@ export class CanvasController {
       return;
     }
 
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
+    this.activeCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.fillRect({ startX, startY, width, height });
   };
 
@@ -507,35 +546,30 @@ export class CanvasController {
     const { x, y, radius, startAngle, endAngle, color, shouldClear } = params;
 
     if (color) {
-      this.canvas2dCtx.fillStyle = color;
+      this.activeCtx.fillStyle = color;
     }
     if (shouldClear) {
-      this.canvas2dCtx.save();
-      this.canvas2dCtx.globalCompositeOperation = 'destination-out';
+      this.activeCtx.save();
+      this.activeCtx.globalCompositeOperation = 'destination-out';
     }
-    this.canvas2dCtx.beginPath();
-    this.canvas2dCtx.arc(x, y, radius, startAngle, endAngle);
-    this.canvas2dCtx.lineTo(x, y);
-    this.canvas2dCtx.closePath();
-    this.canvas2dCtx.fill();
-    this.canvas2dCtx.restore();
+    this.activeCtx.beginPath();
+    this.activeCtx.arc(x, y, radius, startAngle, endAngle);
+    this.activeCtx.lineTo(x, y);
+    this.activeCtx.closePath();
+    this.activeCtx.fill();
+    this.activeCtx.restore();
   };
 
   private drawChord = (arr: SortValue[], i: number, color?: string) => {
     this._drawChord({ value: arr[i].value, i, color });
   };
 
-  private clearChord = (arr: SortValue[], i: number) => {
-    this._drawChord({ value: arr[i].value, i, shouldClear: true });
-  };
-
   private _drawChord = (params: {
     value: number;
     i: number;
     color?: string;
-    shouldClear?: boolean;
   }) => {
-    const { value, i, color, shouldClear } = params;
+    const { value, i, color } = params;
 
     const centerX = this.width / 2;
     const centerY = this.height / 2;
@@ -546,26 +580,22 @@ export class CanvasController {
     lineWidth = (2 * Math.PI * radius) / this.context.columnNbr;
     const anglePerColumn = (2 * Math.PI) / this.context.columnNbr;
 
-    if (shouldClear) {
-      this.canvas2dCtx.save();
-      this.canvas2dCtx.globalCompositeOperation = 'destination-out';
-    }
-    this.canvas2dCtx.strokeStyle = color || this.getColumnColor(value);
-    this.canvas2dCtx.lineWidth = lineWidth * (1 - this.context.gapSize);
-    this.canvas2dCtx.lineCap = 'round';
-    this.canvas2dCtx.beginPath();
-    this.canvas2dCtx.moveTo(
+    this.activeCtx.globalCompositeOperation = 'lighten';
+
+    this.activeCtx.strokeStyle = color || this.getColumnColor(value);
+    this.activeCtx.lineWidth = lineWidth * (1 - this.context.gapSize);
+    this.activeCtx.lineCap = 'round';
+    this.activeCtx.beginPath();
+    this.activeCtx.moveTo(
       centerX + Math.cos(anglePerColumn * value) * radius,
       centerY + Math.sin(anglePerColumn * value) * radius,
     );
-    this.canvas2dCtx.lineTo(
+    this.activeCtx.lineTo(
       centerX + Math.cos(anglePerColumn * i) * radius,
       centerY + Math.sin(anglePerColumn * i) * radius,
     );
-    this.canvas2dCtx.stroke();
-    if (shouldClear) {
-      this.canvas2dCtx.restore();
-    }
+    this.activeCtx.stroke();
+    this.activeCtx.restore();
   };
 
   private drawColumn = (arr: SortValue[], i: number, color?: string) => {
@@ -586,7 +616,7 @@ export class CanvasController {
       return;
     }
 
-    this.canvas2dCtx.fillStyle = color || this.getColumnColor(arr[i].value);
+    this.activeCtx.fillStyle = color || this.getColumnColor(arr[i].value);
     this.fillRect({ startX, startY, width, height });
   };
 
@@ -622,7 +652,7 @@ export class CanvasController {
   }) => {
     const { startX, startY, width, height } = params;
     const heightGap = this.isCellType() ? height * this.context.gapSize : 0;
-    this.canvas2dCtx.fillRect(
+    this.activeCtx.fillRect(
       this.snap(startX + width * this.context.gapSize),
       this.snap(this.height - startY - height + heightGap),
       this.snap(width - width * this.context.gapSize),
@@ -667,7 +697,7 @@ export class CanvasController {
   }) {
     const { startX, startY, width, height, originalX, originalY } = params;
     if (!this.image?.src) {
-      this.canvas2dCtx.fillStyle = this.context.backgroundColor;
+      this.activeCtx.fillStyle = this.context.backgroundColor;
       this.fillRect({ startX, startY, width, height });
       return;
     }
@@ -676,7 +706,7 @@ export class CanvasController {
     const scaleY = this.image.naturalHeight / this.height;
 
     const heightGap = this.isCellType() ? height * this.context.gapSize : 0;
-    this.canvas2dCtx.drawImage(
+    this.activeCtx.drawImage(
       this.image,
       this.snap(originalX * scaleX),
       this.snap((this.height - originalY - height) * scaleY),
@@ -689,22 +719,9 @@ export class CanvasController {
     );
   }
 
-  private clearHighlights(arr: SortValue[]) {
-    for (const idx of this.highlightIndices) {
-      if (this.context.visualizationType === VisualizationType.Spiral) {
-        this.redrawCircleSector(arr, idx);
-        continue;
-      }
-      if (this.context.visualizationType === VisualizationType.Matrix) {
-        this.drawCell(arr, idx);
-        continue;
-      }
-      if (this.context.visualizationType === VisualizationType.Chords) {
-        this.redrawAll(arr);
-        continue;
-      }
-      this.redrawColumn(arr, idx);
-    }
+  private clearHighlights() {
+    const { canvas } = this.highlightCanvas2dCtx;
+    this.highlightCanvas2dCtx.clearRect(0, 0, canvas.width, canvas.height);
     this.highlightIndices = [];
   }
 }

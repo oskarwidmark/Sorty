@@ -81,6 +81,8 @@ class App extends React.Component<Props> {
       ...this.state.settings,
       canvasRef:
         React.createRef<HTMLCanvasElement>() as React.RefObject<HTMLCanvasElement>,
+      highlightCanvasRef:
+        React.createRef<HTMLCanvasElement>() as React.RefObject<HTMLCanvasElement>,
     });
 
     this.arr = createArr(this.state.settings.columnNbr);
@@ -194,7 +196,7 @@ class App extends React.Component<Props> {
     this.setState({
       isSorting: false,
     });
-    this.canvasController.stopSorting(this.arr);
+    this.canvasController.stopSorting();
     this.props.stopSounds();
   };
 
@@ -449,6 +451,7 @@ class App extends React.Component<Props> {
             className="canvas-wrapper"
             id="canvas-wrapper"
             onClick={() => this.setState({ areSettingsOpen: false })}
+            style={{ position: 'relative' }}
           >
             <canvas
               className="App-canvas"
@@ -465,6 +468,15 @@ class App extends React.Component<Props> {
                 this.canvasController.endDraw();
               }}
               style={{ touchAction: 'none' }}
+            />
+            <canvas
+              ref={this.canvasController.highlightCanvasRef}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                pointerEvents: 'none',
+              }}
             />
           </div>
           <SideDrawer isOpen={this.state.areSettingsOpen}>
